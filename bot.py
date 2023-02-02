@@ -1,6 +1,7 @@
 import discord
 import responses
 import os
+import magicshop
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -46,7 +47,10 @@ def run_discord_bot():
 
         print(f'{username} said: "{user_message}" ({channel})')
 
-        if user_message[0] == '@':
+        if user_message[0] == '$':
+            response = magicshop.get_item_names()
+            await message.channel.send(response)
+        elif user_message[0] == '@':
             await message.add_reaction('🪙')
         elif user_message[0] == '!':
             user_message = user_message[1:]
