@@ -32,7 +32,7 @@ def run_discord_bot():
         print(f'{username} said: "{user_message}" ({channel})')
 
         if message.channel.name == '💰-shop' or message.channel.name == 'spam':
-            if user_message == '$generate':
+            if message.author.guild_permissions.administrator and user_message == '$generate':
                 await message.channel.send(magicshop.generate_new_magic_shop())
             elif user_message[0] == '$' and len(user_message) >= 2 and user_message[1:3].isnumeric():
                 shop_message = await message.channel.fetch_message(firebase.shop_message_ref.get()["message_id"])
