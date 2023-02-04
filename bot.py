@@ -37,7 +37,10 @@ def run_discord_bot():
             elif user_message[0] == '$' and len(user_message) >= 2 and user_message[1:3].isnumeric():
                 shop_message = await message.channel.fetch_message(firebase.shop_message_ref.get()["message_id"])
                 shop_string = magicshop.sell_item(int(user_message[1:3]))
-                await shop_message.edit(content=shop_string)
-                await message.add_reaction('🪙')
+                if len(shop_string) > 0:
+                    await shop_message.edit(content=shop_string)
+                    await message.add_reaction('🪙')
+                else:
+                    await message.add_reaction('❌')
 
     client.run(bot_token)

@@ -78,11 +78,16 @@ def get_current_shop_string(items) -> str:
 
 def sell_item(index) -> str:
     items = firebase.get_magic_shop_items()
+    sold = False
     for item in items:
         if item["index"] == index and item["sold"] is False:
+            sold = True
             item["sold"] = True
-    firebase.set_in_magic_shop(items)
-    return get_current_shop_string(items)
+    if sold:
+        firebase.set_in_magic_shop(items)
+        return get_current_shop_string(items)
+    else:
+        return ""
 
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
