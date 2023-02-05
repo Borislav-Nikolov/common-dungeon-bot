@@ -73,13 +73,13 @@ async def handle_server_initialization_prompts(message):
 
 
 async def handle_shop_commands(message):
-    shop_key = '$shop.'
-    full_message = str(message.content)
-    if full_message.startswith(shop_key) and message.channel.id == firebase.get_shop_channel_id():
-        shop_key_length = len(shop_key)
-        command_message = full_message[shop_key_length:]
+    shop_key = '$shop'
+    keywords = str(message.content).split('.')
+    if keywords[0] == shop_key and message.channel.id == firebase.get_shop_channel_id():
+        command_message = keywords[1]
         if command_message == 'generate' and is_admin(message):
-            await message.channel.send(magicshop.generate_new_magic_shop())
+            max_rarity = keywords[2]
+            await message.channel.send(magicshop.generate_new_magic_shop(max_rarity))
         elif command_message.isnumeric():
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
             shop_string = magicshop.sell_item(int(command_message))

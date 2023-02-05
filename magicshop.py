@@ -11,15 +11,35 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 COMMON = "common"
+COMMON_ORDINAL = 1
 UNCOMMON = "uncommon"
+UNCOMMON_ORDINAL = 2
 RARE = "rare"
+RARE_ORDINAL = 3
 VERY_RARE = "very rare"
+VERY_RARE_ORDINAL = 4
 LEGENDARY = "legendary"
+LEGENDARY_ORDINAL = 5
 TYPE_MINOR = "minor"
 TYPE_MAJOR = "major"
 
 
-def generate_new_magic_shop() -> str:
+def __rarity_to_ordinal(rarity) -> int:
+    rarity = rarity.lower()
+    if rarity == COMMON:
+        return COMMON_ORDINAL
+    if rarity == UNCOMMON:
+        return UNCOMMON_ORDINAL
+    if rarity == RARE:
+        return RARE_ORDINAL
+    if rarity == VERY_RARE:
+        return VERY_RARE_ORDINAL
+    if rarity == LEGENDARY:
+        return LEGENDARY_ORDINAL
+
+
+def generate_new_magic_shop(max_rarity) -> str:
+    max_rarity_ordinal = __rarity_to_ordinal(max_rarity)
     items_from_firebase = firebase.get_all_items_from_firebase()
     common = list()
     uncommon = list()
@@ -28,15 +48,15 @@ def generate_new_magic_shop() -> str:
     legendary = list()
     for item in items_from_firebase:
         rarity = item["rarity"].lower()
-        if rarity == COMMON:
+        if rarity == COMMON and max_rarity_ordinal >= COMMON_ORDINAL:
             common.append(item)
-        if rarity == UNCOMMON:
+        if rarity == UNCOMMON and max_rarity_ordinal >= UNCOMMON_ORDINAL:
             uncommon.append(item)
-        if rarity == RARE:
+        if rarity == RARE and max_rarity_ordinal >= RARE_ORDINAL:
             rare.append(item)
-        if rarity == VERY_RARE:
+        if rarity == VERY_RARE and max_rarity_ordinal >= VERY_RARE_ORDINAL:
             very_rare.append(item)
-        if rarity == LEGENDARY:
+        if rarity == LEGENDARY and max_rarity_ordinal >= LEGENDARY_ORDINAL:
             legendary.append(item)
     random.shuffle(common)
     random.shuffle(uncommon)
@@ -44,22 +64,36 @@ def generate_new_magic_shop() -> str:
     random.shuffle(very_rare)
     random.shuffle(legendary)
     magic_shop_list = list()
-    for common_item in common[0:5]:
-        magic_shop_list.append(common_item)
-    for uncommon_item in uncommon[0:5]:
-        magic_shop_list.append(uncommon_item)
-    for rare_item in rare[0:3]:
-        magic_shop_list.append(rare_item)
-    for very_rare_item in very_rare[0:2]:
-        magic_shop_list.append(very_rare_item)
     for legendary_item in legendary[0:1]:
-        magic_shop_list.append(legendary_item)
+        if random.randint(1, 6) == 6:
+            magic_shop_list.append(legendary_item)
+    for very_rare_item in very_rare[0:2]:
+        if random.randint(1, 3) == 3:
+            magic_shop_list.append(very_rare_item)
+    for rare_item in rare[0:3]:
+        if random.randint(1, 2) == 2:
+            magic_shop_list.append(rare_item)
+    magic_shop_size = 16
+    remaining_items = magic_shop_size - len(magic_shop_list)
+    for uncommon_item in uncommon[0:remaining_items]:
+        magic_shop_list.append(uncommon_item)
+    magic_shop_list.reverse()
+    for common_item in common:
+        magic_shop_list.append(common_item)
+    potion_item = {
+        "name": "Potion of healing 2d4+2 (infinite amount)",
+        "price": "50 gp",
+        "rarity": "Common",
+        "attunement": "NO",
+        "rarity_level": "MINOR"
+    }
+    magic_shop_list.append(potion_item)
     magic_shop_string = ''
     counter = 1
     for magic_item in magic_shop_list:
         magic_item["sold"] = False
         magic_item["index"] = counter
-        magic_shop_string +=\
+        magic_shop_string += \
             f'{counter}) **{magic_item["name"]}** - {tokens_per_rarity(magic_item["rarity"], magic_item["rarity_level"])}\n'
         counter += 1
     firebase.set_in_magic_shop(magic_shop_list)
@@ -69,7 +103,7 @@ def generate_new_magic_shop() -> str:
 def get_current_shop_string(items) -> str:
     final_string = ''
     for item in items:
-        if item["sold"] is False:
+        if item["sold"] is False or item["name"] == "Potion of healing 2d4+2 (infinite amount)":  # TODO start using amounts
             final_string += f'{item["index"]}) **{item["name"]}** - {tokens_per_rarity(item["rarity"], item["rarity_level"])}\n'
         else:
             final_string += f'~~{item["index"]}) **{item["name"]}** - {tokens_per_rarity(item["rarity"], item["rarity_level"])}~~ SOLD\n'
