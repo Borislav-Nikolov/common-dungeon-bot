@@ -1,0 +1,8 @@
+# fly.toml file generated for common-dungeon-app on 2023-02-05T15:02:41+02:00
+
+app = "common-dungeon-app"
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[env]

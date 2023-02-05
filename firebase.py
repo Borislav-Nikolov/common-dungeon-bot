@@ -6,7 +6,7 @@ import json
 
 global items_ref
 global shop_ref
-global shop_message_ref
+global server_reference_ids_ref
 
 
 def get_all_items_from_firebase():
@@ -24,10 +24,10 @@ def init_firebase_items_refs():
     })
     global items_ref
     global shop_ref
-    global shop_message_ref
+    global server_reference_ids_ref
     items_ref = db.reference("/all_items")
     shop_ref = db.reference("/magic_shop_items")
-    shop_message_ref = db.reference("/magic_shop_message_id")
+    server_reference_ids_ref = db.reference("/server_reference_ids")
 
 
 def init_in_firebase(json_path):
@@ -41,6 +41,37 @@ def set_in_magic_shop(items):
 
 
 def set_shop_message_id(message_id):
-    data = {"message_id": message_id}
-    shop_message_ref.set(data)
+    set_server_reference_id("message_id", message_id)
+
+
+def set_shop_channel_id(shop_channel_id):
+    set_server_reference_id("shop_channel_id", shop_channel_id)
+
+
+def set_character_info_channel_id(character_info_channel_id):
+    set_server_reference_id("character_info_channel_id", character_info_channel_id)
+
+
+def set_server_reference_id(variable_name, reference_id):
+    data = server_reference_ids_ref.get()
+    if data is None:
+        data = dict()
+    data[variable_name] = reference_id
+    server_reference_ids_ref.set(data)
+
+
+def get_shop_message_id() -> int:
+    return get_server_reference_id("message_id")
+
+
+def get_shop_channel_id() -> int:
+    return get_server_reference_id("shop_channel_id")
+
+
+def get_character_info_channel_id() -> int:
+    return get_server_reference_id("character_info_channel_id")
+
+
+def get_server_reference_id(variable_name) -> int:
+    return server_reference_ids_ref.get()[variable_name]
 
