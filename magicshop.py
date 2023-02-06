@@ -23,6 +23,8 @@ LEGENDARY_ORDINAL = 5
 TYPE_MINOR = "minor"
 TYPE_MAJOR = "major"
 
+infinite_quantity = -1
+
 
 def __rarity_to_ordinal(rarity) -> int:
     rarity = rarity.lower()
@@ -85,12 +87,15 @@ def generate_new_magic_shop(max_rarity) -> str:
         "price": "50 gp",
         "rarity": "Common",
         "attunement": "NO",
-        "rarity_level": "MINOR"
+        "rarity_level": "MINOR",
+        "quantity": infinite_quantity
     }
     magic_shop_list.append(potion_item)
     magic_shop_string = ''
     counter = 1
     for magic_item in magic_shop_list:
+        if not("quantity" in magic_item):
+            magic_item["quantity"] = 1
         magic_item["sold"] = False
         magic_item["index"] = counter
         magic_shop_string += \
@@ -103,7 +108,7 @@ def generate_new_magic_shop(max_rarity) -> str:
 def get_current_shop_string(items) -> str:
     final_string = ''
     for item in items:
-        if item["sold"] is False or item["name"] == "Potion of healing 2d4+2 (infinite amount)":  # TODO start using amounts
+        if item["sold"] is False:
             final_string += f'{item["index"]}) **{item["name"]}** - {tokens_per_rarity(item["rarity"], item["rarity_level"])}\n'
         else:
             final_string += f'~~{item["index"]}) **{item["name"]}** - {tokens_per_rarity(item["rarity"], item["rarity_level"])}~~ SOLD\n'
@@ -114,9 +119,14 @@ def sell_item(index) -> str:
     items = firebase.get_magic_shop_items()
     sold = False
     for item in items:
-        if item["index"] == index and item["sold"] is False:
-            sold = True
-            item["sold"] = True
+        if item["quantity"] != infinite_quantity and item["index"] == index and item["sold"] is False:
+            item["quantity"] = item["quantity"] - 1
+            quantity = item["quantity"]
+            if quantity < 0:
+                raise Exception("Item quantity reached.")
+            if quantity == 0:
+                sold = True
+                item["sold"] = True
     if sold:
         firebase.set_in_magic_shop(items)
         return get_current_shop_string(items)

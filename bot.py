@@ -22,7 +22,7 @@ def run_discord_bot():
     async def on_message(message):
         if message.author == client.user:
             if str(message.content).startswith('1)') or str(message.content).startswith('~~'):
-                firebase.set_shop_message_id(message.id)
+                firebase.set_shop_message_id(message.id)  # TODO do not use firebase directly
             return
 
         username = str(message.author)
