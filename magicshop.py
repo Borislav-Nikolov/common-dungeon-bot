@@ -4,114 +4,105 @@ import os.path
 import firebase
 import random
 
+from utils import __rarity_to_ordinal, __tokens_per_rarity, __level_to_rarity_ordinal
+from utils import *
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-COMMON = "common"
-COMMON_ORDINAL = 1
-UNCOMMON = "uncommon"
-UNCOMMON_ORDINAL = 2
-RARE = "rare"
-RARE_ORDINAL = 3
-VERY_RARE = "very rare"
-VERY_RARE_ORDINAL = 4
-LEGENDARY = "legendary"
-LEGENDARY_ORDINAL = 5
-TYPE_MINOR = "minor"
-TYPE_MAJOR = "major"
+ITEM_FIELD_RARITY = "rarity"
+ITEM_FIELD_NAME = "name"
+ITEM_FIELD_PRICE = "price"
+ITEM_FIELD_ATTUNEMENT = "attunement"
+ITEM_FIELD_RARITY_LEVEL = "rarity_level"
 
-infinite_quantity = -1
+SHOP_ITEM_FIELD_QUANTITY = "quantity"
+SHOP_ITEM_FIELD_SOLD = "sold"
+SHOP_ITEM_FIELD_INDEX = "index"
 
 
-def __rarity_to_ordinal(rarity) -> int:
-    rarity = rarity.lower()
-    if rarity == COMMON:
-        return COMMON_ORDINAL
-    if rarity == UNCOMMON:
-        return UNCOMMON_ORDINAL
-    if rarity == RARE:
-        return RARE_ORDINAL
-    if rarity == VERY_RARE:
-        return VERY_RARE_ORDINAL
-    if rarity == LEGENDARY:
-        return LEGENDARY_ORDINAL
+def generate_new_magic_shop(character_levels_csv: str) -> str:
+    magic_shop_list = __generate_random_shop_list(character_levels_csv)
+    magic_shop_string = ''
+    counter = 1
+    for magic_item in magic_shop_list:
+        if not(SHOP_ITEM_FIELD_QUANTITY in magic_item):
+            magic_item[SHOP_ITEM_FIELD_QUANTITY] = 1
+        magic_item[SHOP_ITEM_FIELD_SOLD] = False
+        magic_item[SHOP_ITEM_FIELD_INDEX] = counter
+        magic_shop_string += \
+            f'{counter}) **{magic_item[ITEM_FIELD_NAME]}** - {__tokens_per_rarity(magic_item[ITEM_FIELD_RARITY], magic_item[ITEM_FIELD_RARITY_LEVEL])}\n'
+        counter += 1
+    firebase.set_in_magic_shop(magic_shop_list)
+    return magic_shop_string
 
 
-def generate_new_magic_shop(max_rarity) -> str:
-    max_rarity_ordinal = __rarity_to_ordinal(max_rarity)
+def __generate_random_shop_list(character_levels_csv: str) -> list:
+    character_levels_list: list = character_levels_csv.split(',')
+    character_rarity_ordinal_list = list(map(lambda it: __level_to_rarity_ordinal(int(it)), character_levels_list))
+    character_rarity_ordinal_list.sort(reverse=True)
+    max_rarity_ordinal = max(character_rarity_ordinal_list)
     items_from_firebase = firebase.get_all_items_from_firebase()
+    filtered_items = list()
     common = list()
     uncommon = list()
     rare = list()
     very_rare = list()
     legendary = list()
     for item in items_from_firebase:
-        rarity = item["rarity"].lower()
+        rarity = item[ITEM_FIELD_RARITY].lower()
         if rarity == COMMON and max_rarity_ordinal >= COMMON_ORDINAL:
             common.append(item)
-        if rarity == UNCOMMON and max_rarity_ordinal >= UNCOMMON_ORDINAL:
+            filtered_items.append(item)
+        elif rarity == UNCOMMON and max_rarity_ordinal >= UNCOMMON_ORDINAL:
             uncommon.append(item)
-        if rarity == RARE and max_rarity_ordinal >= RARE_ORDINAL:
+            filtered_items.append(item)
+        elif rarity == RARE and max_rarity_ordinal >= RARE_ORDINAL:
             rare.append(item)
-        if rarity == VERY_RARE and max_rarity_ordinal >= VERY_RARE_ORDINAL:
+            filtered_items.append(item)
+        elif rarity == VERY_RARE and max_rarity_ordinal >= VERY_RARE_ORDINAL:
             very_rare.append(item)
-        if rarity == LEGENDARY and max_rarity_ordinal >= LEGENDARY_ORDINAL:
+            filtered_items.append(item)
+        elif rarity == LEGENDARY and max_rarity_ordinal >= LEGENDARY_ORDINAL:
             legendary.append(item)
-    random.shuffle(common)
-    random.shuffle(uncommon)
-    random.shuffle(rare)
-    random.shuffle(very_rare)
-    random.shuffle(legendary)
+            filtered_items.append(item)
     magic_shop_list = list()
-    for legendary_item in legendary[0:1]:
-        if random.randint(1, 6) == 6:
-            magic_shop_list.append(legendary_item)
-    for very_rare_item in very_rare[0:2]:
-        if random.randint(1, 3) == 3:
-            magic_shop_list.append(very_rare_item)
-    for rare_item in rare[0:3]:
-        if random.randint(1, 2) == 2:
-            magic_shop_list.append(rare_item)
-    magic_shop_size = 16
-    remaining_items = magic_shop_size - len(magic_shop_list)
-    for uncommon_item in uncommon[0:remaining_items]:
-        magic_shop_list.append(uncommon_item)
-    magic_shop_list.reverse()
-    for common_item in common:
-        magic_shop_list.append(common_item)
+    for character_rarity_ordinal in character_rarity_ordinal_list:
+        if character_rarity_ordinal == COMMON_ORDINAL:
+            magic_shop_list.append(random.choice(common))
+        elif character_rarity_ordinal == UNCOMMON_ORDINAL:
+            magic_shop_list.append(random.choice(uncommon))
+        elif character_rarity_ordinal == RARE_ORDINAL:
+            magic_shop_list.append(random.choice(rare))
+        elif character_rarity_ordinal == VERY_RARE_ORDINAL:
+            magic_shop_list.append(random.choice(very_rare))
+        elif character_rarity_ordinal == LEGENDARY_ORDINAL:
+            magic_shop_list.append(random.choice(legendary))
+
+    rest_items = random.choices(filtered_items, k=16)
+    for item in rest_items:
+        magic_shop_list.append(item)
     potion_item = {
-        "name": "Potion of healing 2d4+2 (infinite amount)",
-        "price": "50 gp",
-        "rarity": "Common",
-        "attunement": "NO",
-        "rarity_level": "MINOR",
-        "quantity": infinite_quantity
+        ITEM_FIELD_NAME: "Potion of healing 2d4+2 (infinite amount)",
+        ITEM_FIELD_PRICE: "50 gp",
+        ITEM_FIELD_RARITY: "Common",
+        ITEM_FIELD_ATTUNEMENT: "NO",
+        ITEM_FIELD_RARITY_LEVEL: "MINOR",
+        SHOP_ITEM_FIELD_QUANTITY: infinite_quantity
     }
     magic_shop_list.append(potion_item)
-    magic_shop_string = ''
-    counter = 1
-    for magic_item in magic_shop_list:
-        if not("quantity" in magic_item):
-            magic_item["quantity"] = 1
-        magic_item["sold"] = False
-        magic_item["index"] = counter
-        magic_shop_string += \
-            f'{counter}) **{magic_item["name"]}** - {tokens_per_rarity(magic_item["rarity"], magic_item["rarity_level"])}\n'
-        counter += 1
-    firebase.set_in_magic_shop(magic_shop_list)
-    return magic_shop_string
+    return magic_shop_list
 
 
 def get_current_shop_string(items) -> str:
     final_string = ''
     for item in items:
-        if item["sold"] is False:
-            final_string += f'{item["index"]}) **{item["name"]}** - {tokens_per_rarity(item["rarity"], item["rarity_level"])}\n'
+        if item[SHOP_ITEM_FIELD_SOLD] is False:
+            final_string += f'{item[SHOP_ITEM_FIELD_INDEX]}) **{item[ITEM_FIELD_NAME]}** - {__tokens_per_rarity(item[ITEM_FIELD_RARITY], item[ITEM_FIELD_RARITY_LEVEL])}\n'
         else:
-            final_string += f'~~{item["index"]}) **{item["name"]}** - {tokens_per_rarity(item["rarity"], item["rarity_level"])}~~ SOLD\n'
+            final_string += f'~~{item[SHOP_ITEM_FIELD_INDEX]}) {item[ITEM_FIELD_NAME]} - {__tokens_per_rarity(item[ITEM_FIELD_RARITY], item[ITEM_FIELD_RARITY_LEVEL])}~~ SOLD\n'
     return final_string
 
 
@@ -119,14 +110,14 @@ def sell_item(index) -> str:
     items = firebase.get_magic_shop_items()
     sold = False
     for item in items:
-        if item["quantity"] != infinite_quantity and item["index"] == index and item["sold"] is False:
-            item["quantity"] = item["quantity"] - 1
-            quantity = item["quantity"]
+        if item[SHOP_ITEM_FIELD_QUANTITY] != infinite_quantity and item[SHOP_ITEM_FIELD_INDEX] == index and item[SHOP_ITEM_FIELD_SOLD] is False:
+            item[SHOP_ITEM_FIELD_QUANTITY] = item[SHOP_ITEM_FIELD_QUANTITY] - 1
+            quantity = item[SHOP_ITEM_FIELD_QUANTITY]
             if quantity < 0:
                 raise Exception("Item quantity reached.")
             if quantity == 0:
                 sold = True
-                item["sold"] = True
+                item[SHOP_ITEM_FIELD_SOLD] = True
     if sold:
         firebase.set_in_magic_shop(items)
         return get_current_shop_string(items)
@@ -170,7 +161,7 @@ def get_item_names_from_spreadsheet() -> str:
         item_names = ""
         for row in values:
             print(row)
-            token_cost = '1 common token' if len(row) < 3 else tokens_per_rarity(row[2], row[4])
+            token_cost = '1 common token' if len(row) < 3 else __tokens_per_rarity(row[2], row[4])
             name = str(f'**{row[1]}** - {token_cost}\n')
             item_names += name
 
@@ -187,30 +178,7 @@ def write_items(values):
             if len(row) > 3:
                 items.write('{')
                 items.write(
-                    f'"name":"{row[0]}","price":"{row[1]}","rarity":"{row[2]}","attunement":"{row[3]}","rarity_level":"{row[5]}"')
+                    f'"{ITEM_FIELD_NAME}":"{row[0]}","{ITEM_FIELD_PRICE}":"{row[1]}","{ITEM_FIELD_RARITY}":"{row[2]}","{ITEM_FIELD_ATTUNEMENT}":"{row[3]}","{ITEM_FIELD_RARITY_LEVEL}":"{row[5]}"')
                 items.write('},')
 
         items.write(']')
-
-
-def tokens_per_rarity(rarity, rarity_type) -> str:
-    rarity = rarity.lower()
-    rarity_type = rarity_type.lower()
-    if rarity == COMMON:
-        return '1 common token'
-    elif rarity == UNCOMMON and rarity_type == TYPE_MINOR:
-        return '3 uncommon tokens'
-    elif rarity == UNCOMMON and rarity_type == TYPE_MAJOR:
-        return '6 uncommon tokens'
-    elif rarity == RARE and rarity_type == TYPE_MINOR:
-        return '4 rare tokens'
-    elif rarity == RARE and rarity_type == TYPE_MAJOR:
-        return '8 rare tokens'
-    elif rarity == VERY_RARE and rarity_type == TYPE_MINOR:
-        return '5 very rare tokens'
-    elif rarity == VERY_RARE and rarity_type == TYPE_MAJOR:
-        return '10 very rare tokens'
-    elif rarity == LEGENDARY and rarity_type == TYPE_MINOR:
-        return '5 legendary tokens'
-    elif rarity == LEGENDARY and rarity_type == TYPE_MAJOR:
-        return '10 legendary tokens'

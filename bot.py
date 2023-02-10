@@ -1,15 +1,10 @@
 import discord
-import os
 
 import firebase
 import magicshop
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
-def run_discord_bot():
-    bot_token = str(os.getenv('TOKEN'))
+def run_discord_bot(bot_token):
     intents = discord.Intents.default()
     intents.message_content = True
     client = discord.Client(intents=intents)
@@ -52,9 +47,9 @@ async def handle_help_requests(message):
                            "        2) $init.characters.info - initializes the current channel as the Characters" \
                            "Info channel\n" \
                            "    In the Shop channel:\n" \
-                           "        1) $shop.generate - generates a new Magic Shop list.\n" \
-                           "\n" \
-                           "(more commands coming soon)"
+                           "        1) $shop.generate.[...]* - generates a new Magic Shop list.\n" \
+                           "            *Instead of '[...]' type the character levels that you want the items to be" \
+                           " generated for. Separate the levels by comma (',')"
         await message.author.send(commands_message)
 
 
@@ -78,8 +73,8 @@ async def handle_shop_commands(message):
     if keywords[0] == shop_key and message.channel.id == firebase.get_shop_channel_id():
         command_message = keywords[1]
         if command_message == 'generate' and is_admin(message):
-            max_rarity = keywords[2]
-            await message.channel.send(magicshop.generate_new_magic_shop(max_rarity))
+            character_levels_csv = keywords[2]
+            await message.channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
         elif command_message.isnumeric():
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
             shop_string = magicshop.sell_item(int(command_message))

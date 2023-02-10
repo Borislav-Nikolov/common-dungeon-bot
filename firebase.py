@@ -17,7 +17,7 @@ def get_magic_shop_items():
     return shop_ref.get()
 
 
-def init_firebase_items_refs():
+def init_firebase_items_refs(is_test: bool):
     cred_obj = credentials.Certificate('serviceAccountKey.json')
     firebase_admin.initialize_app(cred_obj, {
         'databaseURL': 'https://commondungeonbot-default-rtdb.europe-west1.firebasedatabase.app/'
@@ -25,9 +25,10 @@ def init_firebase_items_refs():
     global items_ref
     global shop_ref
     global server_reference_ids_ref
+    prefix = "/test" if is_test else ""
     items_ref = db.reference("/all_items")
-    shop_ref = db.reference("/magic_shop_items")
-    server_reference_ids_ref = db.reference("/server_reference_ids")
+    shop_ref = db.reference(f"{prefix}/magic_shop_items")
+    server_reference_ids_ref = db.reference(f"{prefix}/server_reference_ids")
 
 
 def init_in_firebase(json_path):
