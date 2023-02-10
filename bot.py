@@ -2,6 +2,7 @@ import discord
 
 import firebase
 import magicshop
+import characters
 
 
 def run_discord_bot(bot_token):
@@ -29,6 +30,7 @@ def run_discord_bot(bot_token):
         await handle_help_requests(message)
         await handle_server_initialization_prompts(message)
         await handle_shop_commands(message)
+        await handle_character_commands(message)
 
     client.run(bot_token)
 
@@ -83,6 +85,13 @@ async def handle_shop_commands(message):
                 await message.add_reaction('🪙')
             else:
                 await message.add_reaction('❌')
+
+
+async def handle_character_commands(message):
+    characters_key = '$characters'
+    keywords = str(message.content).split('.')
+    if keywords[0] == characters_key:
+        characters.set_player(keywords[1])
 
 
 def is_admin(message) -> bool:

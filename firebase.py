@@ -7,6 +7,7 @@ import json
 global items_ref
 global shop_ref
 global server_reference_ids_ref
+global players_ref
 
 
 def get_all_items_from_firebase():
@@ -22,13 +23,15 @@ def init_firebase_items_refs(is_test: bool):
     firebase_admin.initialize_app(cred_obj, {
         'databaseURL': 'https://commondungeonbot-default-rtdb.europe-west1.firebasedatabase.app/'
     })
+    prefix = "/test" if is_test else ""
     global items_ref
     global shop_ref
     global server_reference_ids_ref
-    prefix = "/test" if is_test else ""
+    global players_ref
     items_ref = db.reference("/all_items")
     shop_ref = db.reference(f"{prefix}/magic_shop_items")
     server_reference_ids_ref = db.reference(f"{prefix}/server_reference_ids")
+    players_ref = db.reference(f"{prefix}/players")
 
 
 def init_in_firebase(json_path):
@@ -59,6 +62,10 @@ def set_server_reference_id(variable_name, reference_id):
         data = dict()
     data[variable_name] = reference_id
     server_reference_ids_ref.set(data)
+
+
+def set_in_players(player_data: dict):
+    players_ref.set(player_data)
 
 
 def get_shop_message_id() -> int:
