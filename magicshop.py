@@ -3,8 +3,9 @@ from __future__ import print_function
 import os.path
 import firebase
 import random
+import copy
 
-from utils import __rarity_to_ordinal, __tokens_per_rarity, __level_to_rarity_ordinal
+from utils import __tokens_per_rarity, __level_to_rarity_ordinal
 from utils import *
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -71,17 +72,22 @@ def __generate_random_shop_list(character_levels_csv: str) -> list:
     magic_shop_list = list()
     for character_rarity_ordinal in character_rarity_ordinal_list:
         if character_rarity_ordinal == COMMON_ORDINAL:
-            magic_shop_list.append(random.choice(common))
+            common_item_clone = copy.deepcopy(random.choice(common))
+            magic_shop_list.append(common_item_clone)
         elif character_rarity_ordinal == UNCOMMON_ORDINAL:
-            magic_shop_list.append(random.choice(uncommon))
+            uncommon_item_clone = copy.deepcopy(random.choice(uncommon))
+            magic_shop_list.append(uncommon_item_clone)
         elif character_rarity_ordinal == RARE_ORDINAL:
-            magic_shop_list.append(random.choice(rare))
+            rare_item_clone = copy.deepcopy(random.choice(rare))
+            magic_shop_list.append(rare_item_clone)
         elif character_rarity_ordinal == VERY_RARE_ORDINAL:
-            magic_shop_list.append(random.choice(very_rare))
+            very_rare_item_clone = copy.deepcopy(random.choice(very_rare))
+            magic_shop_list.append(very_rare_item_clone)
         elif character_rarity_ordinal == LEGENDARY_ORDINAL:
-            magic_shop_list.append(random.choice(legendary))
+            legendary_item_clone = copy.deepcopy(random.choice(legendary))
+            magic_shop_list.append(legendary_item_clone)
 
-    rest_items = random.choices(filtered_items, k=16)
+    rest_items = random.sample(filtered_items, 16)
     for item in rest_items:
         magic_shop_list.append(item)
     potion_item = {
