@@ -17,11 +17,15 @@ def run_discord_bot(bot_token):
     @client.event
     async def on_message(message):
         if message.author == client.user:
-            if str(message.content).startswith('1)') or str(message.content).startswith('~~'):
+            content = str(message.content)
+            if content.startswith('1)') or content.startswith('~~'):
                 firebase.set_shop_message_id(message.id)  # TODO do not use firebase directly
+            elif content.startswith('<@'):
+                tag_end = content.find('>')
+                firebase.set_player_message_id(content[2:tag_end], message.id)
             return
 
-        username = str(message.author)
+        username = str(message.author.id)
         user_message = str(message.content)
         channel = str(message.channel)
 
@@ -30,7 +34,7 @@ def run_discord_bot(bot_token):
         await handle_help_requests(message)
         await handle_server_initialization_prompts(message)
         await handle_shop_commands(message)
-        await handle_character_commands(message)
+        await handle_character_commands(message, client)
 
     client.run(bot_token)
 
@@ -66,7 +70,7 @@ async def handle_server_initialization_prompts(message):
         if init_message == 'shop':
             firebase.set_shop_channel_id(message.channel.id)
             await message.channel.send('Channel initialized as the Shop channel.')
-        elif init_message == 'characters.info':
+        elif init_message == 'characters':
             firebase.set_character_info_channel_id(message.channel.id)
             await message.channel.send('Channel initialized as the Characters Info channel.')
 
@@ -92,11 +96,21 @@ async def handle_shop_commands(message):
                 await message.add_reaction('❌')
 
 
-async def handle_character_commands(message):
+async def handle_character_commands(message, client):
     characters_key = '$characters'
     keywords = str(message.content).split('.')
-    if keywords[0] == characters_key:
-        characters.set_player(keywords[1])
+    if keywords[0] == characters_key and message.channel.id == firebase.get_character_info_channel_id():
+        if keywords[1] == "hardinit":
+            await message.channel.send(characters.set_player(keywords[2], keywords[3]))
+        if keywords[1] == "test":
+            unstripped_player_id = keywords[2]
+            tag_end = unstripped_player_id.find('>')
+            player_id = unstripped_player_id[2:tag_end]
+            message_id = firebase.get_player_message_id(player_id)
+            print(f'message id: {message_id}')
+            channel = client.get_channel(firebase.get_character_info_channel_id())
+            message = await channel.fetch_message(message_id)
+            await message.edit(content=f'{unstripped_player_id}' + '\n' + 'edited')
 
 
 def is_admin(message) -> bool:

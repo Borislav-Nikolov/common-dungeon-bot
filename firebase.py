@@ -18,7 +18,7 @@ def get_magic_shop_items():
     return shop_ref.get()
 
 
-def init_firebase_items_refs(is_test: bool):
+def init_firebase_refs(is_test: bool):
     cred_obj = credentials.Certificate('serviceAccountKey.json')
     firebase_admin.initialize_app(cred_obj, {
         'databaseURL': 'https://commondungeonbot-default-rtdb.europe-west1.firebasedatabase.app/'
@@ -48,6 +48,18 @@ def set_shop_message_id(message_id):
     set_server_reference_id("message_id", message_id)
 
 
+def set_player_message_id(player_id, message_id):
+    server_reference_ids_ref.child("player_message_ids").update(
+        {
+            f'{player_id}': f'{message_id}'
+        }
+    )
+
+
+def get_player_message_id(player_id) -> str:
+    return server_reference_ids_ref.get()['player_message_ids'][player_id]
+
+
 def set_shop_channel_id(shop_channel_id):
     set_server_reference_id("shop_channel_id", shop_channel_id)
 
@@ -64,8 +76,8 @@ def set_server_reference_id(variable_name, reference_id):
     server_reference_ids_ref.set(data)
 
 
-def set_in_players(player_data: dict):
-    players_ref.set(player_data)
+def set_in_players(player_data):
+    players_ref.update(player_data)
 
 
 def get_shop_message_id() -> int:
