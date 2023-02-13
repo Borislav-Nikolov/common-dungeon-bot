@@ -131,6 +131,10 @@ def sell_item(index) -> str:
         return ""
 
 
+def refresh_shop_string() -> str:
+    return get_current_shop_string(firebase.get_magic_shop_items())
+
+
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
 spreadsheet = '1nnB8VmIUtkYCIQXcaQIsEHj10K7OkELYRloSJmbK-Ow'

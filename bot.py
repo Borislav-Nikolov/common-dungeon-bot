@@ -51,7 +51,9 @@ async def handle_help_requests(message):
                            "    In the Shop channel:\n" \
                            "        1) $shop.generate.[...]* - generates a new Magic Shop list.\n" \
                            "            *Instead of '[...]' type the character levels that you want the items to be" \
-                           " generated for. Separate the levels by comma (',')"
+                           " generated for. Separate the levels by comma (',')" \
+                           "        2) $shop.refresh - gets the current shop items from the database, generates a new" \
+                           "string and refreshes the shop message with this string."
         await message.author.send(commands_message)
 
 
@@ -77,6 +79,9 @@ async def handle_shop_commands(message):
         if command_message == 'generate' and is_admin(message):
             character_levels_csv = keywords[2]
             await message.channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
+        elif command_message == 'refresh' and is_admin(message):
+            shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
+            await shop_message.edit(content=magicshop.refresh_shop_string())
         elif command_message.isnumeric():
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
             shop_string = magicshop.sell_item(int(command_message))
