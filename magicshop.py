@@ -1,6 +1,8 @@
 from __future__ import print_function
 
 import os.path
+
+import characters
 import firebase
 import random
 import copy
@@ -112,16 +114,21 @@ def get_current_shop_string(items) -> str:
     return final_string
 
 
-def sell_item(index) -> str:
+def sell_item(player_id, item_index) -> str:
     items = firebase.get_magic_shop_items()
     sold = False
     for item in items:
-        if item[SHOP_ITEM_FIELD_QUANTITY] != infinite_quantity and item[SHOP_ITEM_FIELD_INDEX] == index and item[SHOP_ITEM_FIELD_SOLD] is False:
+        if item[SHOP_ITEM_FIELD_QUANTITY] != infinite_quantity and item[SHOP_ITEM_FIELD_INDEX] == item_index and item[
+            SHOP_ITEM_FIELD_SOLD
+        ] is False:
             item[SHOP_ITEM_FIELD_QUANTITY] = item[SHOP_ITEM_FIELD_QUANTITY] - 1
             quantity = item[SHOP_ITEM_FIELD_QUANTITY]
             if quantity < 0:
                 raise Exception("Item quantity reached.")
-            if quantity == 0:
+            if quantity == 0 and characters.subtract_player_tokens_for_rarity(
+                    player_id,
+                    item[ITEM_FIELD_RARITY],
+                    item[ITEM_FIELD_RARITY_LEVEL]):
                 sold = True
                 item[SHOP_ITEM_FIELD_SOLD] = True
     if sold:

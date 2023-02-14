@@ -18,6 +18,10 @@ def get_magic_shop_items():
     return shop_ref.get()
 
 
+def get_player(player_id) -> dict:
+    return players_ref.get()[f'{player_id}']
+
+
 def init_firebase_refs(is_test: bool):
     cred_obj = credentials.Certificate('serviceAccountKey.json')
     firebase_admin.initialize_app(cred_obj, {
@@ -76,7 +80,7 @@ def set_server_reference_id(variable_name, reference_id):
     server_reference_ids_ref.set(data)
 
 
-def set_in_players(player_data):
+def update_in_players(player_data):
     players_ref.update(player_data)
 
 

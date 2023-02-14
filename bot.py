@@ -88,7 +88,7 @@ async def handle_shop_commands(message):
             await shop_message.edit(content=magicshop.refresh_shop_string())
         elif command_message.isnumeric():
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
-            shop_string = magicshop.sell_item(int(command_message))
+            shop_string = magicshop.sell_item(message.author.id, int(command_message))
             if len(shop_string) > 0:
                 await shop_message.edit(content=shop_string)
                 await message.add_reaction('🪙')
@@ -101,7 +101,7 @@ async def handle_character_commands(message, client):
     keywords = str(message.content).split('.')
     if keywords[0] == characters_key and message.channel.id == firebase.get_character_info_channel_id():
         if keywords[1] == "hardinit":
-            await message.channel.send(characters.set_player(keywords[2], keywords[3]))
+            await message.channel.send(characters.hardinit_player(keywords[2], keywords[3]))
         if keywords[1] == "test":
             unstripped_player_id = keywords[2]
             tag_end = unstripped_player_id.find('>')

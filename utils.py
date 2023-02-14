@@ -43,26 +43,30 @@ def __level_to_rarity_ordinal(level: int) -> int:
         raise Exception(f'Level out of range: {level}')
 
 
-def __tokens_per_rarity(rarity, rarity_type) -> str:
+def __tokens_per_rarity_number(rarity, rarity_level) -> int:
+    return int(__tokens_per_rarity(rarity, rarity_level)[0:1])
+
+
+def __tokens_per_rarity(rarity, rarity_level) -> str:
     rarity = rarity.lower()
-    rarity_type = rarity_type.lower()
+    rarity_level = rarity_level.lower()
     if rarity == COMMON:
         return '1 common token'
-    elif rarity == UNCOMMON and rarity_type == TYPE_MINOR:
+    elif rarity == UNCOMMON and rarity_level == TYPE_MINOR:
         return '3 uncommon tokens'
-    elif rarity == UNCOMMON and rarity_type == TYPE_MAJOR:
+    elif rarity == UNCOMMON and rarity_level == TYPE_MAJOR:
         return '6 uncommon tokens'
-    elif rarity == RARE and rarity_type == TYPE_MINOR:
+    elif rarity == RARE and rarity_level == TYPE_MINOR:
         return '4 rare tokens'
-    elif rarity == RARE and rarity_type == TYPE_MAJOR:
+    elif rarity == RARE and rarity_level == TYPE_MAJOR:
         return '8 rare tokens'
-    elif rarity == VERY_RARE and rarity_type == TYPE_MINOR:
+    elif rarity == VERY_RARE and rarity_level == TYPE_MINOR:
         return '5 very rare tokens'
-    elif rarity == VERY_RARE and rarity_type == TYPE_MAJOR:
+    elif rarity == VERY_RARE and rarity_level == TYPE_MAJOR:
         return '10 very rare tokens'
-    elif rarity == LEGENDARY and rarity_type == TYPE_MINOR:
+    elif rarity == LEGENDARY and rarity_level == TYPE_MINOR:
         return '5 legendary tokens'
-    elif rarity == LEGENDARY and rarity_type == TYPE_MAJOR:
+    elif rarity == LEGENDARY and rarity_level == TYPE_MAJOR:
         return '10 legendary tokens'
 
 

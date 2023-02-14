@@ -1,6 +1,8 @@
 import firebase
 import json
-from firebase import set_in_players
+import utils
+
+from utils import *
 
 PLAYER_FIELD_INFO_MESSAGE_ID = "info_message_id"
 PLAYER_FIELD_NAME = "name"
@@ -22,7 +24,7 @@ CLASS_FIELD_LEVEL = "level"
 CLASS_FIELD_IS_PRIMARY = "is_primary"
 
 
-def set_player(player_id: str, player_data_json: str) -> str:
+def hardinit_player(player_id: str, player_data_json: str) -> str:
     stripped_player_id = player_id.strip()[2:len(player_id) - 1]
     with open('characters.json', 'w') as characters:
         characters.write('{')
@@ -31,8 +33,33 @@ def set_player(player_id: str, player_data_json: str) -> str:
         characters.write("}")
     with open("characters.json", "r") as character:
         data = json.load(character)
-        firebase.set_in_players(data)
+        firebase.update_in_players(data)
         return player_id + "\n" + "there will be data here"
+
+
+def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
+    player_data = firebase.get_player(player_id)
+    token_field = __player_token_field_for_rarity(utils.__rarity_to_ordinal(rarity))
+    tokens_to_subtract = utils.__tokens_per_rarity_number(rarity, rarity_level)
+    available_tokens = player_data[token_field]
+    if tokens_to_subtract <= available_tokens:
+        player_data[token_field] = available_tokens - tokens_to_subtract
+        update_player(player_id, player_data)
+        return True
+    return False
+
+
+def __player_token_field_for_rarity(rarity_ordinal: int) -> str:
+    if rarity_ordinal == COMMON_ORDINAL:
+        return PLAYER_FIELD_COMMON_TOKENS
+    elif rarity_ordinal == UNCOMMON_ORDINAL:
+        return PLAYER_FIELD_UNCOMMON_TOKENS
+    elif rarity_ordinal == RARE_ORDINAL:
+        return PLAYER_FIELD_RARE_TOKENS
+    elif rarity_ordinal == VERY_RARE_ORDINAL:
+        return PLAYER_FIELD_VERY_RARE_TOKENS
+    elif rarity_ordinal == LEGENDARY_ORDINAL:
+        return PLAYER_FIELD_LEGENDARY_TOKENS
 
 
 def add_player_info_message_id(player_id, info_message_id):
@@ -55,3 +82,9 @@ def update_player_session(player_id: str, character_name: str, class_name: str):
 
 def delete_player(player_id):
     print("TODO")
+
+
+def update_player(player_id, player_data):
+    all_data = dict()
+    all_data[player_id] = player_data
+    firebase.update_in_players(all_data)
