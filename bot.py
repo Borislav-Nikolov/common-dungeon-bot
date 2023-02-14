@@ -112,6 +112,8 @@ async def handle_character_commands(message, client):
     characters_key = '$characters'
     keywords = str(message.content).split('.')
     if keywords[0] == characters_key:
+        if keywords[1] == "test":
+            characters.add_session(keywords[2])
         if keywords[1] == "hardinit":
             player_id = utils.__strip_id_tag(keywords[2])
             characters.hardinit_player(player_id, keywords[3])

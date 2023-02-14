@@ -80,6 +80,16 @@ def __tokens_per_rarity(rarity, rarity_level) -> str:
         return '10 legendary tokens'
 
 
+def __sessions_to_next_level(current_level) -> str:
+    current_level_int = int(current_level)
+    if 1 <= current_level_int <= 2:
+        return "1"
+    elif 3 <= current_level_int <= 4:
+        return "2"
+    else:
+        return "3"
+
+
 def __in_range(compared, first, last) -> bool:
     if first >= last:
         raise Exception("The first number in range should be bigger than the last.")

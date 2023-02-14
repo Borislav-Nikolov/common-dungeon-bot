@@ -4,7 +4,6 @@ import utils
 
 from utils import *
 
-PLAYER_FIELD_INFO_MESSAGE_ID = "info_message_id"
 PLAYER_FIELD_NAME = "name"
 PLAYER_FIELD_COMMON_TOKENS = "common_tokens"
 PLAYER_FIELD_UNCOMMON_TOKENS = "uncommon_tokens"
@@ -16,8 +15,8 @@ PLAYER_FIELD_CHARACTERS = "characters"
 CHARACTER_FIELD_NAME = "character_name"
 CHARACTER_FIELD_LEVEL = "character_level"
 CHARACTER_FIELD_CLASSES = "classes"
-CHARACTER_FIELD_LAST_DM = "last_dm_id"
-CHARACTER_FIELD_TOTAL_SESSIONS = "total_sessions"
+CHARACTER_FIELD_LAST_DM = "last_dm"
+CHARACTER_FIELD_SESSIONS = "sessions_on_this_level"
 
 CLASS_FIELD_NAME = "class_name"
 CLASS_FIELD_LEVEL = "level"
@@ -49,13 +48,45 @@ def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str)
 
 def get_up_to_date_player_message(player_id) -> str:
     player_data = firebase.get_player(player_id)
-    return f'<@{player_id}>\n' \
-           f'**{player_data[PLAYER_FIELD_NAME]}**:\n' \
-           f'Tokens: {player_data[PLAYER_FIELD_COMMON_TOKENS]} common, ' \
-           f'{player_data[PLAYER_FIELD_UNCOMMON_TOKENS]} uncommon, ' \
-           f'{player_data[PLAYER_FIELD_RARE_TOKENS]} rare, ' \
-           f'{player_data[PLAYER_FIELD_VERY_RARE_TOKENS]} very rare, ' \
-           f'{player_data[PLAYER_FIELD_LEGENDARY_TOKENS]} legendary'
+    player_string = f'<@{player_id}>\n' \
+                    f'**{player_data[PLAYER_FIELD_NAME]}**:\n' \
+                    f'Tokens: {player_data[PLAYER_FIELD_COMMON_TOKENS]} common, ' \
+                    f'{player_data[PLAYER_FIELD_UNCOMMON_TOKENS]} uncommon, ' \
+                    f'{player_data[PLAYER_FIELD_RARE_TOKENS]} rare, ' \
+                    f'{player_data[PLAYER_FIELD_VERY_RARE_TOKENS]} very rare, ' \
+                    f'{player_data[PLAYER_FIELD_LEGENDARY_TOKENS]} legendary'
+    characters_string = '\n'
+    counter = 1
+    for character in player_data[PLAYER_FIELD_CHARACTERS]:
+        characters_string += f'{counter}) {character[CHARACTER_FIELD_NAME]} - '
+        for clazz in character[CHARACTER_FIELD_CLASSES]:
+            characters_string += f'{clazz[CLASS_FIELD_NAME]} {clazz[CLASS_FIELD_LEVEL]} - '
+        character_level = character[CHARACTER_FIELD_LEVEL]
+        current_sessions = character[CHARACTER_FIELD_SESSIONS]
+        characters_string += f'{current_sessions}/{utils.__sessions_to_next_level(character_level)} to level ' \
+                             f'{character_level + 1}'
+        if CHARACTER_FIELD_LAST_DM in character:
+            characters_string += f' - Last DM: {character[CHARACTER_FIELD_LAST_DM]}'
+        characters_string += '\n'
+        counter += 1
+    return f'{player_string}{characters_string}'
+
+
+#                        DM and opt. PC, Player1 - PC    Player2 - PC
+# $characters.addsession.<@1234>-PCName,<@1234>-PCName,<@1234>-PCName
+def add_session(csv_data):
+    split_data = csv_data.split(',')
+    print(split_data)
+    player_id_to_character = {
+        utils.__strip_id_tag(id_to_character[0:id_to_character.find('-')]): "" if id_to_character.find(
+            '-') == -1 else id_to_character[
+                            id_to_character.find(
+                                '-') + 1:]
+        for id_to_character in split_data}
+    print(f'player id to character: {player_id_to_character}')
+    player_ids = list(map(lambda it: utils.__strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
+    players_data = firebase.get_players(player_ids)
+    print(f'player data: {players_data}')
 
 
 def __player_token_field_for_rarity(rarity_ordinal: int) -> str:
@@ -77,11 +108,6 @@ def add_player_info_message_id(player_id, info_message_id):
 
 # expected: <@1234>,name=SomeName,character=CharName,class=Rogue
 def add_player(player_data):
-    print("TODO")
-
-
-# expected: <@1234>, <@2345>-CharName1, <@3456>-CharName2-Cleric...
-def add_session(session_data):
     print("TODO")
 
 

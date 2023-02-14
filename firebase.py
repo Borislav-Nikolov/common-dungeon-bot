@@ -22,6 +22,18 @@ def get_player(player_id) -> dict:
     return players_ref.get()[f'{player_id}']
 
 
+def get_players(player_ids: list) -> list:
+    player_list = list()
+    all_players = players_ref.get()
+    index = 0
+    for player in all_players:
+        player_id = list(all_players.keys())[index]
+        if player_id in player_ids:
+            player_list.append(player)
+        index += 1
+    return player_list
+
+
 def init_firebase_refs(is_test: bool):
     cred_obj = credentials.Certificate('serviceAccountKey.json')
     firebase_admin.initialize_app(cred_obj, {
