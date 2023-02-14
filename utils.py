@@ -44,7 +44,17 @@ def __level_to_rarity_ordinal(level: int) -> int:
 
 
 def __tokens_per_rarity_number(rarity, rarity_level) -> int:
-    return int(__tokens_per_rarity(rarity, rarity_level)[0:1])
+    tokens_per_rarity = __tokens_per_rarity(rarity, rarity_level)
+    first_symbol = tokens_per_rarity[0:1]
+    second_symbol = tokens_per_rarity[1:2]
+    final_number_string = ""
+    if first_symbol.isnumeric():
+        final_number_string += first_symbol
+    if second_symbol.isnumeric():
+        final_number_string += second_symbol
+    if len(final_number_string) == 0:
+        raise Exception("No token price could be derived.")
+    return int(final_number_string)
 
 
 def __tokens_per_rarity(rarity, rarity_level) -> str:
@@ -74,3 +84,7 @@ def __in_range(compared, first, last) -> bool:
     if first >= last:
         raise Exception("The first number in range should be bigger than the last.")
     return first <= compared <= last
+
+
+def __strip_id_tag(player_id_tag: str) -> str:
+    return player_id_tag.strip()[2:player_id_tag.find('>')]

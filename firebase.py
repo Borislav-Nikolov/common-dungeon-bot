@@ -61,7 +61,7 @@ def set_player_message_id(player_id, message_id):
 
 
 def get_player_message_id(player_id) -> str:
-    return server_reference_ids_ref.get()['player_message_ids'][player_id]
+    return server_reference_ids_ref.get()['player_message_ids'][f'{player_id}']
 
 
 def set_shop_channel_id(shop_channel_id):

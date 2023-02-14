@@ -24,17 +24,15 @@ CLASS_FIELD_LEVEL = "level"
 CLASS_FIELD_IS_PRIMARY = "is_primary"
 
 
-def hardinit_player(player_id: str, player_data_json: str) -> str:
-    stripped_player_id = player_id.strip()[2:len(player_id) - 1]
+def hardinit_player(player_id: str, player_data_json: str):
     with open('characters.json', 'w') as characters:
         characters.write('{')
-        characters.write(f'"{stripped_player_id}":')
+        characters.write(f'"{player_id}":')
         characters.write(player_data_json)
         characters.write("}")
     with open("characters.json", "r") as character:
         data = json.load(character)
         firebase.update_in_players(data)
-        return player_id + "\n" + "there will be data here"
 
 
 def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
@@ -47,6 +45,17 @@ def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str)
         update_player(player_id, player_data)
         return True
     return False
+
+
+def get_up_to_date_player_message(player_id) -> str:
+    player_data = firebase.get_player(player_id)
+    return f'<@{player_id}>\n' \
+           f'**{player_data[PLAYER_FIELD_NAME]}**:\n' \
+           f'Tokens: {player_data[PLAYER_FIELD_COMMON_TOKENS]} common, ' \
+           f'{player_data[PLAYER_FIELD_UNCOMMON_TOKENS]} uncommon, ' \
+           f'{player_data[PLAYER_FIELD_RARE_TOKENS]} rare, ' \
+           f'{player_data[PLAYER_FIELD_VERY_RARE_TOKENS]} very rare, ' \
+           f'{player_data[PLAYER_FIELD_LEGENDARY_TOKENS]} legendary'
 
 
 def __player_token_field_for_rarity(rarity_ordinal: int) -> str:

@@ -1,5 +1,5 @@
 import discord
-
+import utils
 import firebase
 import magicshop
 import characters
@@ -21,8 +21,7 @@ def run_discord_bot(bot_token):
             if content.startswith('1)') or content.startswith('~~'):
                 firebase.set_shop_message_id(message.id)  # TODO do not use firebase directly
             elif content.startswith('<@'):
-                tag_end = content.find('>')
-                firebase.set_player_message_id(content[2:tag_end], message.id)
+                firebase.set_player_message_id(utils.__strip_id_tag(content), message.id)
             return
 
         username = str(message.author.id)
@@ -33,7 +32,7 @@ def run_discord_bot(bot_token):
 
         await handle_help_requests(message)
         await handle_server_initialization_prompts(message)
-        await handle_shop_commands(message)
+        await handle_shop_commands(message, client)
         await handle_character_commands(message, client)
 
     client.run(bot_token)
@@ -75,7 +74,7 @@ async def handle_server_initialization_prompts(message):
             await message.channel.send('Channel initialized as the Characters Info channel.')
 
 
-async def handle_shop_commands(message):
+async def handle_shop_commands(message, client):
     shop_key = '$shop'
     keywords = str(message.content).split('.')
     if keywords[0] == shop_key and message.channel.id == firebase.get_shop_channel_id():
@@ -89,28 +88,37 @@ async def handle_shop_commands(message):
         elif command_message.isnumeric():
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
             shop_string = magicshop.sell_item(message.author.id, int(command_message))
+            # TODO instead of getting the message from "sell_item" use a boolean and construct message separately
             if len(shop_string) > 0:
                 await shop_message.edit(content=shop_string)
+                await __refresh_player_message(client, message.author.id)
                 await message.add_reaction('🪙')
             else:
                 await message.add_reaction('❌')
 
 
+async def __refresh_player_message(client, player_id):
+    await __update_player_message(client, player_id, characters.get_up_to_date_player_message(player_id))
+
+
+async def __update_player_message(client, player_id, new_message):
+    players_channel = client.get_channel(firebase.get_character_info_channel_id())
+    player_message_id = firebase.get_player_message_id(player_id)
+    player_message = await players_channel.fetch_message(player_message_id)
+    await player_message.edit(content=new_message)
+
+
 async def handle_character_commands(message, client):
     characters_key = '$characters'
     keywords = str(message.content).split('.')
-    if keywords[0] == characters_key and message.channel.id == firebase.get_character_info_channel_id():
+    if keywords[0] == characters_key:
         if keywords[1] == "hardinit":
-            await message.channel.send(characters.hardinit_player(keywords[2], keywords[3]))
-        if keywords[1] == "test":
-            unstripped_player_id = keywords[2]
-            tag_end = unstripped_player_id.find('>')
-            player_id = unstripped_player_id[2:tag_end]
-            message_id = firebase.get_player_message_id(player_id)
-            print(f'message id: {message_id}')
-            channel = client.get_channel(firebase.get_character_info_channel_id())
-            message = await channel.fetch_message(message_id)
-            await message.edit(content=f'{unstripped_player_id}' + '\n' + 'edited')
+            player_id = utils.__strip_id_tag(keywords[2])
+            characters.hardinit_player(player_id, keywords[3])
+            players_channel = client.get_channel(firebase.get_character_info_channel_id())
+            await players_channel.send(characters.get_up_to_date_player_message(player_id))
+        if message.channel.id == firebase.get_character_info_channel_id():
+            print("TODO - character channel only commands")
 
 
 def is_admin(message) -> bool:
