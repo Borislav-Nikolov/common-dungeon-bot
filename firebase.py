@@ -22,14 +22,14 @@ def get_player(player_id) -> dict:
     return players_ref.get()[f'{player_id}']
 
 
-def get_players(player_ids: list) -> list:
-    player_list = list()
+def get_players(player_ids: list) -> dict:
+    player_list = dict()
     all_players = players_ref.get()
     index = 0
     for player in all_players:
         player_id = list(all_players.keys())[index]
         if player_id in player_ids:
-            player_list.append(player)
+            player_list[player] = all_players[player]
         index += 1
     return player_list
 

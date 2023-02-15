@@ -86,7 +86,36 @@ def add_session(csv_data):
     print(f'player id to character: {player_id_to_character}')
     player_ids = list(map(lambda it: utils.__strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
     players_data = firebase.get_players(player_ids)
-    print(f'player data: {players_data}')
+    if len(players_data) != len(split_data):
+        raise Exception("Invalid player data provided.")
+    for player_id, player_data in players_data:
+        character: dict = dict()
+        for character_data in player_data[PLAYER_FIELD_CHARACTERS]:
+            if character_data[CHARACTER_FIELD_NAME] == player_id_to_character[player_id]:
+                character = character_data
+                break
+        is_game_master = player_id == player_ids[0]
+        if not is_game_master and len(character) == 0:
+            raise Exception(f"Character name not found for player {player_data[PLAYER_FIELD_NAME]}")
+        elif len(character) == 0:
+            for game_master_character_data in player_data[PLAYER_FIELD_CHARACTERS]:
+                if len(character) == 0 \
+                        or game_master_character_data[CHARACTER_FIELD_LEVEL] > character[CHARACTER_FIELD_LEVEL]:
+                    character = game_master_character_data[CHARACTER_FIELD_LEVEL]
+        # assign tokens
+        if 1 <= character[CHARACTER_FIELD_LEVEL] <= 5:
+            player_data[PLAYER_FIELD_COMMON_TOKENS] += 1
+            player_data[PLAYER_FIELD_UNCOMMON_TOKENS] += 1
+        elif 6 <= character[CHARACTER_FIELD_LEVEL] <= 10:
+            player_data[PLAYER_FIELD_RARE_TOKENS] += 1
+        elif 11 <= character[CHARACTER_FIELD_LEVEL] <= 15:
+            player_data[PLAYER_FIELD_VERY_RARE_TOKENS] += 1
+        elif 16 <= character[CHARACTER_FIELD_LEVEL] <= 20:
+            player_data[PLAYER_FIELD_LEGENDARY_TOKENS] += 1
+        # assign last DM
+        if not is_game_master:
+            character[CHARACTER_FIELD_LAST_DM] = players_data[player_ids[0]][PLAYER_FIELD_NAME]
+            utils.__sessions_to_next_level(character[CHARACTER_FIELD_LEVEL])  # TODO finish
 
 
 def __player_token_field_for_rarity(rarity_ordinal: int) -> str:
