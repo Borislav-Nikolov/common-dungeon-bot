@@ -72,50 +72,62 @@ def get_up_to_date_player_message(player_id) -> str:
     return f'{player_string}{characters_string}'
 
 
-#                        DM and opt. PC, Player1 - PC    Player2 - PC
-# $characters.addsession.<@1234>-PCName,<@1234>-PCName,<@1234>-PCName
-def add_session(csv_data):
+# $characters.addsession.<@1234>-PCName-OptClassName,<@1234>-PCName-OptClassName,<@1234>-PCName-OptClassName
+def add_session(csv_data) -> bool:
     split_data = csv_data.split(',')
     print(split_data)
     player_id_to_character = {
-        utils.__strip_id_tag(id_to_character[0:id_to_character.find('-')]): "" if id_to_character.find(
-            '-') == -1 else id_to_character[
-                            id_to_character.find(
-                                '-') + 1:]
-        for id_to_character in split_data}
-    print(f'player id to character: {player_id_to_character}')
+        utils.__strip_id_tag(id_to_character[0:id_to_character.find('-')]): id_to_character[
+                                                                            id_to_character.find('-') + 1:].split('-')
+        for id_to_character in split_data
+    }
     player_ids = list(map(lambda it: utils.__strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
     players_data = firebase.get_players(player_ids)
     if len(players_data) != len(split_data):
         raise Exception("Invalid player data provided.")
-    for player_id, player_data in players_data:
+    for player_id in players_data:
+        player_data = players_data[player_id]
         character: dict = dict()
         for character_data in player_data[PLAYER_FIELD_CHARACTERS]:
-            if character_data[CHARACTER_FIELD_NAME] == player_id_to_character[player_id]:
+            if character_data[CHARACTER_FIELD_NAME] == player_id_to_character[player_id][0]:
                 character = character_data
                 break
-        is_game_master = player_id == player_ids[0]
-        if not is_game_master and len(character) == 0:
+        if len(character) == 0:
             raise Exception(f"Character name not found for player {player_data[PLAYER_FIELD_NAME]}")
-        elif len(character) == 0:
-            for game_master_character_data in player_data[PLAYER_FIELD_CHARACTERS]:
-                if len(character) == 0 \
-                        or game_master_character_data[CHARACTER_FIELD_LEVEL] > character[CHARACTER_FIELD_LEVEL]:
-                    character = game_master_character_data[CHARACTER_FIELD_LEVEL]
         # assign tokens
-        if 1 <= character[CHARACTER_FIELD_LEVEL] <= 5:
-            player_data[PLAYER_FIELD_COMMON_TOKENS] += 1
-            player_data[PLAYER_FIELD_UNCOMMON_TOKENS] += 1
-        elif 6 <= character[CHARACTER_FIELD_LEVEL] <= 10:
+        player_data[PLAYER_FIELD_COMMON_TOKENS] += 1
+        player_data[PLAYER_FIELD_UNCOMMON_TOKENS] += 1
+        if character[CHARACTER_FIELD_LEVEL] >= 6:
             player_data[PLAYER_FIELD_RARE_TOKENS] += 1
-        elif 11 <= character[CHARACTER_FIELD_LEVEL] <= 15:
+        if character[CHARACTER_FIELD_LEVEL] >= 11:
             player_data[PLAYER_FIELD_VERY_RARE_TOKENS] += 1
-        elif 16 <= character[CHARACTER_FIELD_LEVEL] <= 20:
+        if character[CHARACTER_FIELD_LEVEL] >= 16:
             player_data[PLAYER_FIELD_LEGENDARY_TOKENS] += 1
+        # level up if needed
+        sessions_to_next_level = utils.__sessions_to_next_level(character[CHARACTER_FIELD_LEVEL])
+        character[CHARACTER_FIELD_SESSIONS] += 1
+        should_level_up = character[CHARACTER_FIELD_SESSIONS] >= int(sessions_to_next_level)
+        leveled_up = False
+        if should_level_up:
+            character[CHARACTER_FIELD_LEVEL] += 1
+            character[CHARACTER_FIELD_SESSIONS] = 0
+            for clazz in character[CHARACTER_FIELD_CLASSES]:
+                if len(player_id_to_character[player_id]) == 2 and player_id_to_character[player_id][1] ==\
+                        clazz[CLASS_FIELD_NAME]:
+                    clazz[CLASS_FIELD_LEVEL] += 1
+                    leveled_up = True
+                elif clazz[CLASS_FIELD_IS_PRIMARY] and len(player_id_to_character[player_id]) != 2:
+                    clazz[CLASS_FIELD_LEVEL] += 1
+                    leveled_up = True
+        if not leveled_up and should_level_up:
+            raise Exception("Invalid character class name provided.")
         # assign last DM
+        is_game_master = player_id == player_ids[0]
         if not is_game_master:
             character[CHARACTER_FIELD_LAST_DM] = players_data[player_ids[0]][PLAYER_FIELD_NAME]
-            utils.__sessions_to_next_level(character[CHARACTER_FIELD_LEVEL])  # TODO finish
+    # upload in database
+    firebase.update_in_players(players_data)
+    return True
 
 
 def __player_token_field_for_rarity(rarity_ordinal: int) -> str:

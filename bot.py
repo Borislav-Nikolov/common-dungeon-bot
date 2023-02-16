@@ -112,15 +112,23 @@ async def handle_character_commands(message, client):
     characters_key = '$characters'
     keywords = str(message.content).split('.')
     if keywords[0] == characters_key:
-        if keywords[1] == "test":
-            characters.add_session(keywords[2])
         if keywords[1] == "hardinit":
             player_id = utils.__strip_id_tag(keywords[2])
             characters.hardinit_player(player_id, keywords[3])
             players_channel = client.get_channel(firebase.get_character_info_channel_id())
             await players_channel.send(characters.get_up_to_date_player_message(player_id))
         if message.channel.id == firebase.get_character_info_channel_id():
-            print("TODO - character channel only commands")
+            if keywords[1] == "addsession":
+                if characters.add_session(keywords[2]):
+                    split_data = keywords[2].split(',')
+                    player_ids = list(
+                        map(lambda it: utils.__strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
+                    for player_id in player_ids:
+                        print(f'updating {player_id}')
+                        await __update_player_message(client, player_id, characters.get_up_to_date_player_message(player_id))
+                    await message.add_reaction('🪙')
+                else:
+                    await message.add_reaction('❌')
 
 
 def is_admin(message) -> bool:
