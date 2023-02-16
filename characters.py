@@ -22,6 +22,10 @@ CLASS_FIELD_NAME = "class_name"
 CLASS_FIELD_LEVEL = "level"
 CLASS_FIELD_IS_PRIMARY = "is_primary"
 
+NEW_PLAYER_FIELD_NAME = "name"
+NEW_PLAYER_FIELD_CHARACTER = "character"
+NEW_PLAYER_FIELD_CLASS = "class"
+
 
 def hardinit_player(player_id: str, player_data_json: str):
     with open('characters.json', 'w') as characters:
@@ -148,8 +152,50 @@ def add_player_info_message_id(player_id, info_message_id):
 
 
 # expected: <@1234>,name=SomeName,character=CharName,class=Rogue
-def add_player(player_data):
-    print("TODO")
+def add_player(player_data_csv: str):
+    player_data_list: list = player_data_csv.split(',')
+    if len(player_data_list) != 4:
+        raise Exception("Incorrect number of parameters.")
+    player_data = dict()
+    player_id = utils.__strip_id_tag(player_data_list[0])
+    player_data[player_id] = dict()
+    player_data_list.pop(0)
+    player_name = ''
+    character_name = ''
+    character_class = ''
+    for parameter in player_data_list:
+        field_to_argument = parameter.split('=')
+        field = field_to_argument[0]
+        argument = field_to_argument[1]
+        if field == NEW_PLAYER_FIELD_NAME:
+            player_name = argument
+        elif field == NEW_PLAYER_FIELD_CHARACTER:
+            character_name = argument
+        elif field == NEW_PLAYER_FIELD_CLASS:
+            character_class = argument
+    if len(player_name) == 0 or len(character_name) == 0 or len(character_class) == 0:
+        raise Exception("Invalid new player input provided.")
+    player_data[player_id][PLAYER_FIELD_NAME] = player_name
+    class_data = dict()
+    class_data[CLASS_FIELD_NAME] = character_class
+    class_data[CLASS_FIELD_LEVEL] = 1
+    class_data[CLASS_FIELD_IS_PRIMARY] = True
+    character_data = dict()
+    character_data[CHARACTER_FIELD_NAME] = character_name
+    character_data[CHARACTER_FIELD_LEVEL] = 1
+    character_data[CHARACTER_FIELD_SESSIONS] = 0
+    character_data[CHARACTER_FIELD_LAST_DM] = "no one yet"
+    character_data[CHARACTER_FIELD_CLASSES] = list()
+    character_data[CHARACTER_FIELD_CLASSES].append(class_data)
+    player_data[player_id][PLAYER_FIELD_CHARACTERS] = list()
+    player_data[player_id][PLAYER_FIELD_CHARACTERS].append(character_data)
+    player_data[player_id][PLAYER_FIELD_COMMON_TOKENS] = 0
+    player_data[player_id][PLAYER_FIELD_UNCOMMON_TOKENS] = 0
+    player_data[player_id][PLAYER_FIELD_RARE_TOKENS] = 0
+    player_data[player_id][PLAYER_FIELD_VERY_RARE_TOKENS] = 0
+    player_data[player_id][PLAYER_FIELD_LEGENDARY_TOKENS] = 0
+    firebase.update_in_players(player_data)  # TODO finish
+
 
 
 def update_player_session(player_id: str, character_name: str, class_name: str):
