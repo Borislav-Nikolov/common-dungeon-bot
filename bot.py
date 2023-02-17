@@ -129,6 +129,13 @@ async def handle_character_commands(message, client):
                     await message.add_reaction('🪙')
                 else:
                     await message.add_reaction('❌')
+            if keywords[1] == "addplayer":
+                player_data_list = keywords[2].split(',')
+                player_id = utils.__strip_id_tag(player_data_list[0])
+                player_data_list.pop(0)
+                characters.add_player(player_id, player_data_list)
+                players_channel = client.get_channel(firebase.get_character_info_channel_id())
+                await players_channel.send(characters.get_up_to_date_player_message(player_id))
 
 
 def is_admin(message) -> bool:

@@ -152,14 +152,9 @@ def add_player_info_message_id(player_id, info_message_id):
 
 
 # expected: <@1234>,name=SomeName,character=CharName,class=Rogue
-def add_player(player_data_csv: str):
-    player_data_list: list = player_data_csv.split(',')
-    if len(player_data_list) != 4:
-        raise Exception("Incorrect number of parameters.")
+def add_player(player_id: str, player_data_list: list):
     player_data = dict()
-    player_id = utils.__strip_id_tag(player_data_list[0])
     player_data[player_id] = dict()
-    player_data_list.pop(0)
     player_name = ''
     character_name = ''
     character_class = ''
@@ -194,8 +189,7 @@ def add_player(player_data_csv: str):
     player_data[player_id][PLAYER_FIELD_RARE_TOKENS] = 0
     player_data[player_id][PLAYER_FIELD_VERY_RARE_TOKENS] = 0
     player_data[player_id][PLAYER_FIELD_LEGENDARY_TOKENS] = 0
-    firebase.update_in_players(player_data)  # TODO finish
-
+    firebase.update_in_players(player_data)
 
 
 def update_player_session(player_id: str, character_name: str, class_name: str):
