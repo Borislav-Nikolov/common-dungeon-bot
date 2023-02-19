@@ -22,9 +22,9 @@ CLASS_FIELD_NAME = "class_name"
 CLASS_FIELD_LEVEL = "level"
 CLASS_FIELD_IS_PRIMARY = "is_primary"
 
-NEW_PLAYER_FIELD_NAME = "name"
-NEW_PLAYER_FIELD_CHARACTER = "character"
-NEW_PLAYER_FIELD_CLASS = "class"
+PARAMETER_NAME = "name"
+PARAMETER_CHARACTER = "character"
+PARAMETER_CLASS = "class"
 
 
 def hardinit_player(player_id: str, player_data_json: str):
@@ -116,10 +116,13 @@ def add_session(csv_data) -> bool:
             character[CHARACTER_FIELD_LEVEL] += 1
             character[CHARACTER_FIELD_SESSIONS] = 0
             for clazz in character[CHARACTER_FIELD_CLASSES]:
-                if len(player_id_to_character[player_id]) == 2 and player_id_to_character[player_id][1] ==\
-                        clazz[CLASS_FIELD_NAME]:
+                has_class_param = len(player_id_to_character[player_id]) == 2
+                class_param = player_id_to_character[player_id][1]
+                if has_class_param and class_param == clazz[CLASS_FIELD_NAME]:
                     clazz[CLASS_FIELD_LEVEL] += 1
                     leveled_up = True
+                elif has_class_param:
+                    __add_class_to_character_data(character, class_param)
                 elif clazz[CLASS_FIELD_IS_PRIMARY] and len(player_id_to_character[player_id]) != 2:
                     clazz[CLASS_FIELD_LEVEL] += 1
                     leveled_up = True
@@ -147,11 +150,7 @@ def __player_token_field_for_rarity(rarity_ordinal: int) -> str:
         return PLAYER_FIELD_LEGENDARY_TOKENS
 
 
-def add_player_info_message_id(player_id, info_message_id):
-    print("TODO")
-
-
-# expected: <@1234>,name=SomeName,character=CharName,class=Rogue
+# expected: player_id: <@1234> player_data_list: name=SomeName,character=CharName,class=Rogue
 def add_player(player_id: str, player_data_list: list):
     player_data = dict()
     player_data[player_id] = dict()
@@ -162,11 +161,11 @@ def add_player(player_id: str, player_data_list: list):
         field_to_argument = parameter.split('=')
         field = field_to_argument[0]
         argument = field_to_argument[1]
-        if field == NEW_PLAYER_FIELD_NAME:
+        if field == PARAMETER_NAME:
             player_name = argument
-        elif field == NEW_PLAYER_FIELD_CHARACTER:
+        elif field == PARAMETER_CHARACTER:
             character_name = argument
-        elif field == NEW_PLAYER_FIELD_CLASS:
+        elif field == PARAMETER_CLASS:
             character_class = argument
     if len(player_name) == 0 or len(character_name) == 0 or len(character_class) == 0:
         raise Exception("Invalid new player input provided.")
@@ -192,15 +191,38 @@ def add_player(player_id: str, player_data_list: list):
     firebase.update_in_players(player_data)
 
 
-def update_player_session(player_id: str, character_name: str, class_name: str):
-    print("TODO")
-
-
-def delete_player(player_id):
-    print("TODO")
+# expected: player_id: <@1234> character_data_list: name=SomeName,class=Rogue
+def add_character(player_id: str, character_data_list: list):
+    character_name = ''
+    character_class = ''
+    for parameter in character_data_list:
+        key_to_value = parameter.split('=')
+        if key_to_value[0] == PARAMETER_NAME:
+            character_name = key_to_value[1]
+        elif key_to_value[0] == PARAMETER_CLASS:
+            character_class = key_to_value[1]
+    if len(character_name.strip()) == 0 or len(character_class.strip()) == 0:
+        raise Exception('Invalid new character data provided')
+    player_data = firebase.get_player(player_id)
+    new_character = dict()
+    new_character[CHARACTER_FIELD_NAME] = character_name
+    new_character[CHARACTER_FIELD_LEVEL] = 1
+    new_character[CHARACTER_FIELD_LAST_DM] = 'no one yet'
+    new_character[CHARACTER_FIELD_SESSIONS] = 0
+    new_character[CHARACTER_FIELD_CLASSES] = list()
+    __add_class_to_character_data(new_character, character_class)
+    update_player(player_id, player_data)
 
 
 def update_player(player_id, player_data):
     all_data = dict()
     all_data[player_id] = player_data
     firebase.update_in_players(all_data)
+
+
+def __add_class_to_character_data(character_data: dict, class_name: str):
+    new_character_class = dict()
+    new_character_class[CLASS_FIELD_NAME] = class_name
+    new_character_class[CLASS_FIELD_LEVEL] = 1
+    new_character_class[CLASS_FIELD_IS_PRIMARY] = True
+    character_data[CHARACTER_FIELD_CLASSES].append(new_character_class)

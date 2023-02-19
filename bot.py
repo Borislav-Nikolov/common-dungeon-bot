@@ -124,8 +124,7 @@ async def handle_character_commands(message, client):
                     player_ids = list(
                         map(lambda it: utils.__strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
                     for player_id in player_ids:
-                        print(f'updating {player_id}')
-                        await __update_player_message(client, player_id, characters.get_up_to_date_player_message(player_id))
+                        await __refresh_player_message(client, player_id)
                     await message.add_reaction('🪙')
                 else:
                     await message.add_reaction('❌')
@@ -136,6 +135,12 @@ async def handle_character_commands(message, client):
                 characters.add_player(player_id, player_data_list)
                 players_channel = client.get_channel(firebase.get_character_info_channel_id())
                 await players_channel.send(characters.get_up_to_date_player_message(player_id))
+            if keywords[1] == "addcharacter":
+                data_list = keywords[2].split(',')
+                player_id = utils.__strip_id_tag(data_list[0])
+                data_list.pop(0)
+                characters.add_character(player_id, data_list)
+                await __refresh_player_message(client, player_id)
 
 
 def is_admin(message) -> bool:
