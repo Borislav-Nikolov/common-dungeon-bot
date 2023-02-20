@@ -138,6 +138,10 @@ def sell_item(player_id, item_index) -> str:
         return ""
 
 
+def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
+    return characters.add_player_tokens_for_rarity(player_id, item_rarity, item_rarity_level)
+
+
 def refresh_shop_string() -> str:
     return get_current_shop_string(firebase.get_magic_shop_items())
 

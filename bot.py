@@ -95,6 +95,15 @@ async def handle_shop_commands(message, client):
                 await message.add_reaction('🪙')
             else:
                 await message.add_reaction('❌')
+        elif command_message == 'sell':
+            # expected: rarity,rarity level
+            rarity_data = keywords[2].split(',')
+            sold = magicshop.refund_item(message.author.id, rarity_data[0], rarity_data[1])
+            if sold:
+                await __refresh_player_message(client, message.author.id)
+                await message.add_reaction('🪙')
+            else:
+                await message.add_reaction('❌')
 
 
 async def __refresh_player_message(client, player_id):
@@ -136,6 +145,7 @@ async def handle_character_commands(message, client):
                 players_channel = client.get_channel(firebase.get_character_info_channel_id())
                 await players_channel.send(characters.get_up_to_date_player_message(player_id))
             if keywords[1] == "addcharacter":
+                print("adding character")
                 data_list = keywords[2].split(',')
                 player_id = utils.__strip_id_tag(data_list[0])
                 data_list.pop(0)

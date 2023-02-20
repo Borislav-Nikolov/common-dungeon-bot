@@ -50,6 +50,15 @@ def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str)
     return False
 
 
+def add_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
+    player_data = firebase.get_player(player_id)
+    token_field = __player_token_field_for_rarity(utils.__rarity_to_ordinal(rarity))
+    tokens_to_add = utils.__tokens_per_rarity_number(rarity, rarity_level)
+    player_data[token_field] += tokens_to_add
+    update_player(player_id, player_data)
+    return True
+
+
 def get_up_to_date_player_message(player_id) -> str:
     player_data = firebase.get_player(player_id)
     player_string = f'<@{player_id}>\n' \
@@ -63,12 +72,17 @@ def get_up_to_date_player_message(player_id) -> str:
     counter = 1
     for character in player_data[PLAYER_FIELD_CHARACTERS]:
         characters_string += f'{counter}) {character[CHARACTER_FIELD_NAME]} - '
+        class_index = 0
         for clazz in character[CHARACTER_FIELD_CLASSES]:
-            characters_string += f'{clazz[CLASS_FIELD_NAME]} {clazz[CLASS_FIELD_LEVEL]} - '
-        character_level = character[CHARACTER_FIELD_LEVEL]
-        current_sessions = character[CHARACTER_FIELD_SESSIONS]
-        characters_string += f'{current_sessions}/{utils.__sessions_to_next_level(character_level)} to level ' \
-                             f'{character_level + 1}'
+            characters_string += f'{clazz[CLASS_FIELD_NAME]} {clazz[CLASS_FIELD_LEVEL]}'
+            if class_index != len(character[CHARACTER_FIELD_CLASSES]) - 1:
+                characters_string += ' - '
+            class_index += 1
+        if character[CHARACTER_FIELD_LEVEL] < 20:
+            character_level = character[CHARACTER_FIELD_LEVEL]
+            current_sessions = character[CHARACTER_FIELD_SESSIONS]
+            characters_string += f' - {current_sessions}/{utils.__sessions_to_next_level(character_level)} to level ' \
+                                 f'{character_level + 1}'
         if CHARACTER_FIELD_LAST_DM in character:
             characters_string += f' - Last DM: {character[CHARACTER_FIELD_LAST_DM]}'
         characters_string += '\n'
@@ -108,26 +122,29 @@ def add_session(csv_data) -> bool:
         if character[CHARACTER_FIELD_LEVEL] >= 16:
             player_data[PLAYER_FIELD_LEGENDARY_TOKENS] += 1
         # level up if needed
-        sessions_to_next_level = utils.__sessions_to_next_level(character[CHARACTER_FIELD_LEVEL])
-        character[CHARACTER_FIELD_SESSIONS] += 1
-        should_level_up = character[CHARACTER_FIELD_SESSIONS] >= int(sessions_to_next_level)
-        leveled_up = False
-        if should_level_up:
-            character[CHARACTER_FIELD_LEVEL] += 1
-            character[CHARACTER_FIELD_SESSIONS] = 0
-            for clazz in character[CHARACTER_FIELD_CLASSES]:
-                has_class_param = len(player_id_to_character[player_id]) == 2
-                class_param = player_id_to_character[player_id][1]
-                if has_class_param and class_param == clazz[CLASS_FIELD_NAME]:
-                    clazz[CLASS_FIELD_LEVEL] += 1
-                    leveled_up = True
-                elif has_class_param:
-                    __add_class_to_character_data(character, class_param)
-                elif clazz[CLASS_FIELD_IS_PRIMARY] and len(player_id_to_character[player_id]) != 2:
-                    clazz[CLASS_FIELD_LEVEL] += 1
-                    leveled_up = True
-        if not leveled_up and should_level_up:
-            raise Exception("Invalid character class name provided.")
+        if character[CHARACTER_FIELD_LEVEL] < 20:
+            sessions_to_next_level = utils.__sessions_to_next_level(character[CHARACTER_FIELD_LEVEL])
+            character[CHARACTER_FIELD_SESSIONS] += 1
+            should_level_up = character[CHARACTER_FIELD_SESSIONS] >= int(sessions_to_next_level)
+            leveled_up = False
+            if should_level_up:
+                character[CHARACTER_FIELD_LEVEL] += 1
+                character[CHARACTER_FIELD_SESSIONS] = 0
+                for clazz in character[CHARACTER_FIELD_CLASSES]:
+                    has_class_param = len(player_id_to_character[player_id]) == 2
+                    class_param = '' if not has_class_param else player_id_to_character[player_id][1]
+                    if has_class_param and class_param == clazz[CLASS_FIELD_NAME]:
+                        clazz[CLASS_FIELD_LEVEL] += 1
+                        leveled_up = True
+                    elif has_class_param:
+                        __add_class_to_character_data(character, class_param)
+                        leveled_up = True
+                    elif clazz[CLASS_FIELD_IS_PRIMARY] and len(player_id_to_character[player_id]) != 2:
+                        clazz[CLASS_FIELD_LEVEL] += 1
+                        leveled_up = True
+                    break
+            if not leveled_up and should_level_up:
+                raise Exception("Invalid character class name provided.")
         # assign last DM
         is_game_master = player_id == player_ids[0]
         if not is_game_master:
@@ -211,6 +228,7 @@ def add_character(player_id: str, character_data_list: list):
     new_character[CHARACTER_FIELD_SESSIONS] = 0
     new_character[CHARACTER_FIELD_CLASSES] = list()
     __add_class_to_character_data(new_character, character_class)
+    player_data[PLAYER_FIELD_CHARACTERS].append(new_character)
     update_player(player_id, player_data)
 
 
