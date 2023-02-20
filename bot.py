@@ -30,34 +30,12 @@ def run_discord_bot(bot_token):
 
         print(f'{username} said: "{user_message}" ({channel})')
 
-        await handle_help_requests(message)
-        await handle_server_initialization_prompts(message)
-        await handle_shop_commands(message, client)
-        await handle_character_commands(message, client)
+        if user_message.startswith('$'):
+            await handle_server_initialization_prompts(message)
+            await handle_shop_commands(message, client)
+            await handle_character_commands(message, client)
 
     client.run(bot_token)
-
-
-async def handle_help_requests(message):
-    help_key = '$help'
-    if str(message.content) == help_key:
-        commands_message = "General commands:\n" \
-                           "    In the Shop channel:\n" \
-                           "        1) $shop.*number* (for instance $shop.12) buys an item from the shop that" \
-                           "corresponds to the given number.\n" \
-                           "\n" \
-                           "Admin commands:\n" \
-                           "    In any channel:\n" \
-                           "        1) $init.shop - initializes the current channel as the Shop channel.\n" \
-                           "        2) $init.characters.info - initializes the current channel as the Characters" \
-                           "Info channel\n" \
-                           "    In the Shop channel:\n" \
-                           "        1) $shop.generate.[...]* - generates a new Magic Shop list.\n" \
-                           "            *Instead of '[...]' type the character levels that you want the items to be" \
-                           " generated for. Separate the levels by comma (',')" \
-                           "        2) $shop.refresh - gets the current shop items from the database, generates a new" \
-                           "string and refreshes the shop message with this string."
-        await message.author.send(commands_message)
 
 
 async def handle_server_initialization_prompts(message):
@@ -120,7 +98,7 @@ async def __update_player_message(client, player_id, new_message):
 async def handle_character_commands(message, client):
     characters_key = '$characters'
     keywords = str(message.content).split('.')
-    if keywords[0] == characters_key:
+    if keywords[0] == characters_key and is_admin(message):
         if keywords[1] == "hardinit":
             player_id = utils.__strip_id_tag(keywords[2])
             characters.hardinit_player(player_id, keywords[3])
