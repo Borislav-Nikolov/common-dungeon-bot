@@ -62,13 +62,13 @@ def add_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> b
 def get_up_to_date_player_message(player_id) -> str:
     player_data = firebase.get_player(player_id)
     player_string = f'<@{player_id}>\n' \
-                    f'**{player_data[PLAYER_FIELD_NAME]}**:\n' \
-                    f'Tokens: {player_data[PLAYER_FIELD_COMMON_TOKENS]} common, ' \
+                    f'**Player:** {player_data[PLAYER_FIELD_NAME]}\n' \
+                    f'**Tokens:** {player_data[PLAYER_FIELD_COMMON_TOKENS]} common, ' \
                     f'{player_data[PLAYER_FIELD_UNCOMMON_TOKENS]} uncommon, ' \
                     f'{player_data[PLAYER_FIELD_RARE_TOKENS]} rare, ' \
                     f'{player_data[PLAYER_FIELD_VERY_RARE_TOKENS]} very rare, ' \
                     f'{player_data[PLAYER_FIELD_LEGENDARY_TOKENS]} legendary'
-    characters_string = '\n'
+    characters_string = '\n**Characters:**\n'
     counter = 1
     for character in player_data[PLAYER_FIELD_CHARACTERS]:
         characters_string += f'{counter}) {character[CHARACTER_FIELD_NAME]} - '
