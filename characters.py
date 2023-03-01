@@ -92,11 +92,11 @@ def get_up_to_date_player_message(player_id) -> str:
 
 # $characters.addsession.<@1234>-PCName-OptClassName,<@1234>-PCName-OptClassName,<@1234>-PCName-OptClassName
 def add_session(csv_data) -> bool:
-    split_data = csv_data.split(',')
-    print(split_data)
-    player_id_to_character = {
-        utils.__strip_id_tag(id_to_character[0:id_to_character.find('-')]): id_to_character[
-                                                                            id_to_character.find('-') + 1:].split('-')
+    split_data = split_strip(csv_data, ',')
+    player_id_to_character_and_class = {
+        utils.__strip_id_tag(
+            id_to_character[0:id_to_character.find('-')]
+        ): split_strip(id_to_character[id_to_character.find('-') + 1:], '-')
         for id_to_character in split_data
     }
     player_ids = list(map(lambda it: utils.__strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
@@ -107,7 +107,7 @@ def add_session(csv_data) -> bool:
         player_data = players_data[player_id]
         character: dict = dict()
         for character_data in player_data[PLAYER_FIELD_CHARACTERS]:
-            if character_data[CHARACTER_FIELD_NAME] == player_id_to_character[player_id][0]:
+            if character_data[CHARACTER_FIELD_NAME] == player_id_to_character_and_class[player_id][0]:
                 character = character_data
                 break
         if len(character) == 0:
@@ -131,15 +131,15 @@ def add_session(csv_data) -> bool:
                 character[CHARACTER_FIELD_LEVEL] += 1
                 character[CHARACTER_FIELD_SESSIONS] = 0
                 for clazz in character[CHARACTER_FIELD_CLASSES]:
-                    has_class_param = len(player_id_to_character[player_id]) == 2
-                    class_param = '' if not has_class_param else player_id_to_character[player_id][1]
+                    has_class_param = len(player_id_to_character_and_class[player_id]) == 2
+                    class_param = '' if not has_class_param else player_id_to_character_and_class[player_id][1]
                     if has_class_param and class_param == clazz[CLASS_FIELD_NAME]:
                         clazz[CLASS_FIELD_LEVEL] += 1
                         leveled_up = True
                     elif has_class_param:
                         __add_class_to_character_data(character, class_param)
                         leveled_up = True
-                    elif clazz[CLASS_FIELD_IS_PRIMARY] and len(player_id_to_character[player_id]) != 2:
+                    elif clazz[CLASS_FIELD_IS_PRIMARY] and len(player_id_to_character_and_class[player_id]) != 2:
                         clazz[CLASS_FIELD_LEVEL] += 1
                         leveled_up = True
                     break
@@ -175,7 +175,7 @@ def add_player(player_id: str, player_data_list: list):
     character_name = ''
     character_class = ''
     for parameter in player_data_list:
-        field_to_argument = parameter.split('=')
+        field_to_argument = split_strip(parameter, '=')
         field = field_to_argument[0]
         argument = field_to_argument[1]
         if field == PARAMETER_NAME:
@@ -213,7 +213,7 @@ def add_character(player_id: str, character_data_list: list):
     character_name = ''
     character_class = ''
     for parameter in character_data_list:
-        key_to_value = parameter.split('=')
+        key_to_value = split_strip(parameter, '=')
         if key_to_value[0] == PARAMETER_NAME:
             character_name = key_to_value[1]
         elif key_to_value[0] == PARAMETER_CLASS:

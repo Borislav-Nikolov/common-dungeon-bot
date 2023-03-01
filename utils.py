@@ -98,3 +98,7 @@ def __in_range(compared, first, last) -> bool:
 
 def __strip_id_tag(player_id_tag: str) -> str:
     return player_id_tag.strip()[2:player_id_tag.find('>')]
+
+
+def split_strip(string_data: str, delimiter: str) -> list:
+    return list(map(lambda it: it.strip(), string_data.split(delimiter)))

@@ -54,7 +54,7 @@ async def handle_server_initialization_prompts(message):
 
 async def handle_shop_commands(message, client):
     shop_key = '$shop'
-    keywords = str(message.content).split('.')
+    keywords = utils.split_strip(str(message.content), '.')
     if keywords[0] == shop_key and message.channel.id == firebase.get_shop_channel_id():
         command_message = keywords[1]
         if command_message == 'generate' and is_admin(message):
@@ -62,12 +62,12 @@ async def handle_shop_commands(message, client):
             await message.channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
         elif command_message == 'refresh' and is_admin(message):
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
-            await shop_message.edit(content=magicshop.refresh_shop_string())
+            await shop_message.edit(content=magicshop.get_current_shop_string())
         elif command_message.isnumeric():
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
-            shop_string = magicshop.sell_item(message.author.id, int(command_message))
-            # TODO instead of getting the message from "sell_item" use a boolean and construct message separately
-            if len(shop_string) > 0:
+            sold = magicshop.sell_item(message.author.id, int(command_message))
+            if sold:
+                shop_string = magicshop.get_current_shop_string()
                 await shop_message.edit(content=shop_string)
                 await __refresh_player_message(client, message.author.id)
                 await message.add_reaction('🪙')
@@ -75,7 +75,7 @@ async def handle_shop_commands(message, client):
                 await message.add_reaction('❌')
         elif command_message == 'sell':
             # expected: rarity,rarity level
-            rarity_data = keywords[2].split(',')
+            rarity_data = utils.split_strip(keywords[2], ',')
             sold = magicshop.refund_item(message.author.id, rarity_data[0], rarity_data[1])
             if sold:
                 await __refresh_player_message(client, message.author.id)
@@ -97,7 +97,7 @@ async def __update_player_message(client, player_id, new_message):
 
 async def handle_character_commands(message, client):
     characters_key = '$characters'
-    keywords = str(message.content).split('.')
+    keywords = utils.split_strip(str(message.content), '.')
     if keywords[0] == characters_key and is_admin(message):
         if keywords[1] == "hardinit":
             player_id = utils.__strip_id_tag(keywords[2])
@@ -107,7 +107,7 @@ async def handle_character_commands(message, client):
         if message.channel.id == firebase.get_character_info_channel_id():
             if keywords[1] == "addsession":
                 if characters.add_session(keywords[2]):
-                    split_data = keywords[2].split(',')
+                    split_data = utils.split_strip(keywords[2], ',')
                     player_ids = list(
                         map(lambda it: utils.__strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
                     for player_id in player_ids:
@@ -116,15 +116,14 @@ async def handle_character_commands(message, client):
                 else:
                     await message.add_reaction('❌')
             if keywords[1] == "addplayer":
-                player_data_list = keywords[2].split(',')
+                player_data_list = utils.split_strip(keywords[2], ',')
                 player_id = utils.__strip_id_tag(player_data_list[0])
                 player_data_list.pop(0)
                 characters.add_player(player_id, player_data_list)
                 players_channel = client.get_channel(firebase.get_character_info_channel_id())
                 await players_channel.send(characters.get_up_to_date_player_message(player_id))
             if keywords[1] == "addcharacter":
-                print("adding character")
-                data_list = keywords[2].split(',')
+                data_list = utils.split_strip(keywords[2], ',')
                 player_id = utils.__strip_id_tag(data_list[0])
                 data_list.pop(0)
                 characters.add_character(player_id, data_list)

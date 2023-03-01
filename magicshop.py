@@ -43,7 +43,7 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
 
 
 def __generate_random_shop_list(character_levels_csv: str) -> list:
-    character_levels_list: list = character_levels_csv.split(',')
+    character_levels_list: list = split_strip(character_levels_csv, ',')
     character_rarity_ordinal_list = list(map(lambda it: __level_to_rarity_ordinal(int(it)), character_levels_list))
     character_rarity_ordinal_list.sort(reverse=True)
     max_rarity_ordinal = max(character_rarity_ordinal_list)
@@ -104,7 +104,8 @@ def __generate_random_shop_list(character_levels_csv: str) -> list:
     return magic_shop_list
 
 
-def get_current_shop_string(items) -> str:
+def get_current_shop_string() -> str:
+    items = firebase.get_magic_shop_items()
     final_string = ''
     for item in items:
         if item[SHOP_ITEM_FIELD_SOLD] is False:
@@ -114,36 +115,30 @@ def get_current_shop_string(items) -> str:
     return final_string
 
 
-def sell_item(player_id, item_index) -> str:
+def sell_item(player_id, item_index) -> bool:
     items = firebase.get_magic_shop_items()
     sold = False
     for item in items:
-        if item[SHOP_ITEM_FIELD_QUANTITY] != infinite_quantity and item[SHOP_ITEM_FIELD_INDEX] == item_index and item[
-            SHOP_ITEM_FIELD_SOLD
-        ] is False:
-            item[SHOP_ITEM_FIELD_QUANTITY] = item[SHOP_ITEM_FIELD_QUANTITY] - 1
-            quantity = item[SHOP_ITEM_FIELD_QUANTITY]
-            if quantity < 0:
-                raise Exception("Item quantity reached.")
-            if quantity == 0 and characters.subtract_player_tokens_for_rarity(
+        if item[SHOP_ITEM_FIELD_INDEX] == item_index and item[SHOP_ITEM_FIELD_SOLD] is False:
+            if item[SHOP_ITEM_FIELD_QUANTITY] != infinite_quantity:
+                item[SHOP_ITEM_FIELD_QUANTITY] = item[SHOP_ITEM_FIELD_QUANTITY] - 1
+                quantity = item[SHOP_ITEM_FIELD_QUANTITY]
+                if quantity < 0:
+                    raise Exception("Item quantity reached.")
+                if quantity == 0:
+                    item[SHOP_ITEM_FIELD_SOLD] = True
+            if characters.subtract_player_tokens_for_rarity(
                     player_id,
                     item[ITEM_FIELD_RARITY],
                     item[ITEM_FIELD_RARITY_LEVEL]):
                 sold = True
-                item[SHOP_ITEM_FIELD_SOLD] = True
     if sold:
         firebase.set_in_magic_shop(items)
-        return get_current_shop_string(items)
-    else:
-        return ""
+    return sold
 
 
 def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
     return characters.add_player_tokens_for_rarity(player_id, item_rarity, item_rarity_level)
-
-
-def refresh_shop_string() -> str:
-    return get_current_shop_string(firebase.get_magic_shop_items())
 
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
