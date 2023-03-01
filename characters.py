@@ -28,7 +28,7 @@ PARAMETER_CLASS = "class"
 
 
 def hardinit_player(player_id: str, player_data_json: str):
-    with open('characters.json', 'w') as characters:
+    with open('characters.json', 'w', encoding="utf-8") as characters:
         characters.write('{')
         characters.write(f'"{player_id}":')
         characters.write(player_data_json)
