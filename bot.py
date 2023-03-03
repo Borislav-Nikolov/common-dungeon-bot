@@ -19,9 +19,9 @@ def run_discord_bot(bot_token):
         if message.author == client.user:
             content = str(message.content)
             if content.startswith('1)') or content.startswith('~~'):
-                firebase.set_shop_message_id(message.id)  # TODO do not use firebase directly
+                firebase.set_shop_message_id(message.id)
             elif content.startswith('<@'):
-                firebase.set_player_message_id(utils.__strip_id_tag(content), message.id)
+                firebase.set_player_message_id(utils.strip_id_tag(content), message.id)
             return
 
         username = str(message.author.id)
@@ -69,7 +69,7 @@ async def handle_shop_commands(message, client):
             if sold:
                 shop_string = magicshop.get_current_shop_string()
                 await shop_message.edit(content=shop_string)
-                await __refresh_player_message(client, message.author.id)
+                await refresh_player_message(client, message.author.id)
                 await message.add_reaction('🪙')
             else:
                 await message.add_reaction('❌')
@@ -78,17 +78,17 @@ async def handle_shop_commands(message, client):
             rarity_data = utils.split_strip(keywords[2], ',')
             sold = magicshop.refund_item(message.author.id, rarity_data[0], rarity_data[1])
             if sold:
-                await __refresh_player_message(client, message.author.id)
+                await refresh_player_message(client, message.author.id)
                 await message.add_reaction('🪙')
             else:
                 await message.add_reaction('❌')
 
 
-async def __refresh_player_message(client, player_id):
-    await __update_player_message(client, player_id, characters.get_up_to_date_player_message(player_id))
+async def refresh_player_message(client, player_id):
+    await update_player_message(client, player_id, characters.get_up_to_date_player_message(player_id))
 
 
-async def __update_player_message(client, player_id, new_message):
+async def update_player_message(client, player_id, new_message):
     players_channel = client.get_channel(firebase.get_character_info_channel_id())
     player_message_id = firebase.get_player_message_id(player_id)
     player_message = await players_channel.fetch_message(player_message_id)
@@ -100,7 +100,7 @@ async def handle_character_commands(message, client):
     keywords = utils.split_strip(str(message.content), '.')
     if keywords[0] == characters_key and is_admin(message):
         if keywords[1] == "hardinit":
-            player_id = utils.__strip_id_tag(keywords[2])
+            player_id = utils.strip_id_tag(keywords[2])
             characters.hardinit_player(player_id, keywords[3])
             players_channel = client.get_channel(firebase.get_character_info_channel_id())
             await players_channel.send(characters.get_up_to_date_player_message(player_id))
@@ -109,25 +109,25 @@ async def handle_character_commands(message, client):
                 if characters.add_session(keywords[2]):
                     split_data = utils.split_strip(keywords[2], ',')
                     player_ids = list(
-                        map(lambda it: utils.__strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
+                        map(lambda it: utils.strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
                     for player_id in player_ids:
-                        await __refresh_player_message(client, player_id)
+                        await refresh_player_message(client, player_id)
                     await message.add_reaction('🪙')
                 else:
                     await message.add_reaction('❌')
             if keywords[1] == "addplayer":
                 player_data_list = utils.split_strip(keywords[2], ',')
-                player_id = utils.__strip_id_tag(player_data_list[0])
+                player_id = utils.strip_id_tag(player_data_list[0])
                 player_data_list.pop(0)
                 characters.add_player(player_id, player_data_list)
                 players_channel = client.get_channel(firebase.get_character_info_channel_id())
                 await players_channel.send(characters.get_up_to_date_player_message(player_id))
             if keywords[1] == "addcharacter":
                 data_list = utils.split_strip(keywords[2], ',')
-                player_id = utils.__strip_id_tag(data_list[0])
+                player_id = utils.strip_id_tag(data_list[0])
                 data_list.pop(0)
                 characters.add_character(player_id, data_list)
-                await __refresh_player_message(client, player_id)
+                await refresh_player_message(client, player_id)
 
 
 def is_admin(message) -> bool:

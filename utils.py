@@ -14,7 +14,7 @@ TYPE_MAJOR = "major"
 infinite_quantity = -1
 
 
-def __rarity_to_ordinal(rarity: str) -> int:
+def rarity_to_ordinal(rarity: str) -> int:
     rarity = rarity.lower()
     if rarity == COMMON:
         return COMMON_ORDINAL
@@ -30,23 +30,23 @@ def __rarity_to_ordinal(rarity: str) -> int:
         raise Exception(f'Unsupported rarity: {rarity}')
 
 
-def __level_to_rarity_ordinal(level: int) -> int:
-    if __in_range(level, 1, 5):
+def level_to_rarity_ordinal(level: int) -> int:
+    if in_range(level, 1, 5):
         return UNCOMMON_ORDINAL
-    elif __in_range(level, 6, 10):
+    elif in_range(level, 6, 10):
         return RARE_ORDINAL
-    elif __in_range(level, 11, 15):
+    elif in_range(level, 11, 15):
         return VERY_RARE_ORDINAL
-    elif __in_range(level, 16, 20):
+    elif in_range(level, 16, 20):
         return LEGENDARY_ORDINAL
     else:
         raise Exception(f'Level out of range: {level}')
 
 
-def __tokens_per_rarity_number(rarity, rarity_level) -> int:
-    tokens_per_rarity = __tokens_per_rarity(rarity, rarity_level)
-    first_symbol = tokens_per_rarity[0:1]
-    second_symbol = tokens_per_rarity[1:2]
+def tokens_per_rarity_number(rarity, rarity_level) -> int:
+    tokens_per_rarity_string = tokens_per_rarity(rarity, rarity_level)
+    first_symbol = tokens_per_rarity_string[0:1]
+    second_symbol = tokens_per_rarity_string[1:2]
     final_number_string = ""
     if first_symbol.isnumeric():
         final_number_string += first_symbol
@@ -57,7 +57,7 @@ def __tokens_per_rarity_number(rarity, rarity_level) -> int:
     return int(final_number_string)
 
 
-def __tokens_per_rarity(rarity, rarity_level) -> str:
+def tokens_per_rarity(rarity, rarity_level) -> str:
     rarity = rarity.lower()
     rarity_level = rarity_level.lower()
     if rarity == COMMON:
@@ -80,7 +80,7 @@ def __tokens_per_rarity(rarity, rarity_level) -> str:
         return '10 legendary tokens'
 
 
-def __sessions_to_next_level(current_level) -> str:
+def sessions_to_next_level(current_level) -> str:
     current_level_int = int(current_level)
     if 1 <= current_level_int <= 2:
         return "1"
@@ -90,13 +90,13 @@ def __sessions_to_next_level(current_level) -> str:
         return "3"
 
 
-def __in_range(compared, first, last) -> bool:
+def in_range(compared, first, last) -> bool:
     if first >= last:
         raise Exception("The first number in range should be bigger than the last.")
     return first <= compared <= last
 
 
-def __strip_id_tag(player_id_tag: str) -> str:
+def strip_id_tag(player_id_tag: str) -> str:
     return player_id_tag.strip()[2:player_id_tag.find('>')]
 
 

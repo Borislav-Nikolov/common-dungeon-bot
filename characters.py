@@ -25,6 +25,7 @@ CLASS_FIELD_IS_PRIMARY = "is_primary"
 PARAMETER_NAME = "name"
 PARAMETER_CHARACTER = "character"
 PARAMETER_CLASS = "class"
+PARAMETER_LEVEL = "level"
 
 
 def hardinit_player(player_id: str, player_data_json: str):
@@ -40,8 +41,8 @@ def hardinit_player(player_id: str, player_data_json: str):
 
 def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
     player_data = firebase.get_player(player_id)
-    token_field = __player_token_field_for_rarity(utils.__rarity_to_ordinal(rarity))
-    tokens_to_subtract = utils.__tokens_per_rarity_number(rarity, rarity_level)
+    token_field = player_token_field_for_rarity(utils.rarity_to_ordinal(rarity))
+    tokens_to_subtract = utils.tokens_per_rarity_number(rarity, rarity_level)
     available_tokens = player_data[token_field]
     if tokens_to_subtract <= available_tokens:
         player_data[token_field] = available_tokens - tokens_to_subtract
@@ -52,8 +53,8 @@ def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str)
 
 def add_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
     player_data = firebase.get_player(player_id)
-    token_field = __player_token_field_for_rarity(utils.__rarity_to_ordinal(rarity))
-    tokens_to_add = utils.__tokens_per_rarity_number(rarity, rarity_level)
+    token_field = player_token_field_for_rarity(utils.rarity_to_ordinal(rarity))
+    tokens_to_add = utils.tokens_per_rarity_number(rarity, rarity_level)
     player_data[token_field] += tokens_to_add
     update_player(player_id, player_data)
     return True
@@ -81,7 +82,7 @@ def get_up_to_date_player_message(player_id) -> str:
         if character[CHARACTER_FIELD_LEVEL] < 20:
             character_level = character[CHARACTER_FIELD_LEVEL]
             current_sessions = character[CHARACTER_FIELD_SESSIONS]
-            characters_string += f' - {current_sessions}/{utils.__sessions_to_next_level(character_level)} to level ' \
+            characters_string += f' - {current_sessions}/{utils.sessions_to_next_level(character_level)} to level ' \
                                  f'{character_level + 1}'
         if CHARACTER_FIELD_LAST_DM in character:
             characters_string += f' - Last DM: {character[CHARACTER_FIELD_LAST_DM]}'
@@ -94,12 +95,12 @@ def get_up_to_date_player_message(player_id) -> str:
 def add_session(csv_data) -> bool:
     split_data = split_strip(csv_data, ',')
     player_id_to_character_and_class = {
-        utils.__strip_id_tag(
+        utils.strip_id_tag(
             id_to_character[0:id_to_character.find('-')]
         ): split_strip(id_to_character[id_to_character.find('-') + 1:], '-')
         for id_to_character in split_data
     }
-    player_ids = list(map(lambda it: utils.__strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
+    player_ids = list(map(lambda it: utils.strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
     players_data = firebase.get_players(player_ids)
     if len(players_data) != len(split_data):
         raise Exception("Invalid player data provided.")
@@ -123,9 +124,9 @@ def add_session(csv_data) -> bool:
             player_data[PLAYER_FIELD_LEGENDARY_TOKENS] += 1
         # level up if needed
         if character[CHARACTER_FIELD_LEVEL] < 20:
-            sessions_to_next_level = utils.__sessions_to_next_level(character[CHARACTER_FIELD_LEVEL])
+            sessions_to_next_level_string = utils.sessions_to_next_level(character[CHARACTER_FIELD_LEVEL])
             character[CHARACTER_FIELD_SESSIONS] += 1
-            should_level_up = character[CHARACTER_FIELD_SESSIONS] >= int(sessions_to_next_level)
+            should_level_up = character[CHARACTER_FIELD_SESSIONS] >= int(sessions_to_next_level_string)
             leveled_up = False
             if should_level_up:
                 character[CHARACTER_FIELD_LEVEL] += 1
@@ -137,7 +138,7 @@ def add_session(csv_data) -> bool:
                         clazz[CLASS_FIELD_LEVEL] += 1
                         leveled_up = True
                     elif has_class_param:
-                        __add_class_to_character_data(character, class_param)
+                        add_class_to_character_data(character, {class_param: 1})
                         leveled_up = True
                     elif clazz[CLASS_FIELD_IS_PRIMARY] and len(player_id_to_character_and_class[player_id]) != 2:
                         clazz[CLASS_FIELD_LEVEL] += 1
@@ -152,19 +153,6 @@ def add_session(csv_data) -> bool:
     # upload in database
     firebase.update_in_players(players_data)
     return True
-
-
-def __player_token_field_for_rarity(rarity_ordinal: int) -> str:
-    if rarity_ordinal == COMMON_ORDINAL:
-        return PLAYER_FIELD_COMMON_TOKENS
-    elif rarity_ordinal == UNCOMMON_ORDINAL:
-        return PLAYER_FIELD_UNCOMMON_TOKENS
-    elif rarity_ordinal == RARE_ORDINAL:
-        return PLAYER_FIELD_RARE_TOKENS
-    elif rarity_ordinal == VERY_RARE_ORDINAL:
-        return PLAYER_FIELD_VERY_RARE_TOKENS
-    elif rarity_ordinal == LEGENDARY_ORDINAL:
-        return PLAYER_FIELD_LEGENDARY_TOKENS
 
 
 # expected: player_id: <@1234> player_data_list: name=SomeName,character=CharName,class=Rogue
@@ -208,26 +196,38 @@ def add_player(player_id: str, player_data_list: list):
     firebase.update_in_players(player_data)
 
 
-# expected: player_id: <@1234> character_data_list: name=SomeName,class=Rogue
+# expected: player_id: <@1234> character_data_list: name=SomeName,class=Rogue,level=2
 def add_character(player_id: str, character_data_list: list):
     character_name = ''
-    character_class = ''
+    character_level = 0
+    classes_to_level = dict()
     for parameter in character_data_list:
         key_to_value = split_strip(parameter, '=')
         if key_to_value[0] == PARAMETER_NAME:
             character_name = key_to_value[1]
         elif key_to_value[0] == PARAMETER_CLASS:
-            character_class = key_to_value[1]
-    if len(character_name.strip()) == 0 or len(character_class.strip()) == 0:
+            classes_to_level[key_to_value[1]] = 0
+        elif key_to_value[0] == PARAMETER_LEVEL:
+            for class_name in classes_to_level:
+                if classes_to_level[class_name] == 0:
+                    classes_to_level[class_name] = int(key_to_value[1])
+                    character_level += int(key_to_value[1])
+    if len(character_name.strip()) == 0 or len(classes_to_level) == 0:
         raise Exception('Invalid new character data provided')
+    for class_name in classes_to_level:
+        if classes_to_level[class_name] == 0 and len(classes_to_level) == 1:
+            classes_to_level[class_name] = 1
+            character_level += 1
+        elif classes_to_level[class_name] == 0:
+            raise Exception(f'Level not specified for class: {class_name}')
     player_data = firebase.get_player(player_id)
     new_character = dict()
     new_character[CHARACTER_FIELD_NAME] = character_name
-    new_character[CHARACTER_FIELD_LEVEL] = 1
+    new_character[CHARACTER_FIELD_LEVEL] = character_level
     new_character[CHARACTER_FIELD_LAST_DM] = 'no one yet'
     new_character[CHARACTER_FIELD_SESSIONS] = 0
     new_character[CHARACTER_FIELD_CLASSES] = list()
-    __add_class_to_character_data(new_character, character_class)
+    add_class_to_character_data(new_character, classes_to_level)
     player_data[PLAYER_FIELD_CHARACTERS].append(new_character)
     update_player(player_id, player_data)
 
@@ -238,9 +238,25 @@ def update_player(player_id, player_data):
     firebase.update_in_players(all_data)
 
 
-def __add_class_to_character_data(character_data: dict, class_name: str):
-    new_character_class = dict()
-    new_character_class[CLASS_FIELD_NAME] = class_name
-    new_character_class[CLASS_FIELD_LEVEL] = 1
-    new_character_class[CLASS_FIELD_IS_PRIMARY] = True
-    character_data[CHARACTER_FIELD_CLASSES].append(new_character_class)
+def player_token_field_for_rarity(rarity_ordinal: int) -> str:
+    if rarity_ordinal == COMMON_ORDINAL:
+        return PLAYER_FIELD_COMMON_TOKENS
+    elif rarity_ordinal == UNCOMMON_ORDINAL:
+        return PLAYER_FIELD_UNCOMMON_TOKENS
+    elif rarity_ordinal == RARE_ORDINAL:
+        return PLAYER_FIELD_RARE_TOKENS
+    elif rarity_ordinal == VERY_RARE_ORDINAL:
+        return PLAYER_FIELD_VERY_RARE_TOKENS
+    elif rarity_ordinal == LEGENDARY_ORDINAL:
+        return PLAYER_FIELD_LEGENDARY_TOKENS
+
+
+def add_class_to_character_data(character_data: dict, classes_to_levels: dict):
+    for class_name in classes_to_levels:
+        if not in_range(classes_to_levels[class_name], 1, 20):
+            raise Exception('Class level is not in range.')
+        new_character_class = dict()
+        new_character_class[CLASS_FIELD_NAME] = class_name
+        new_character_class[CLASS_FIELD_LEVEL] = classes_to_levels[class_name]
+        new_character_class[CLASS_FIELD_IS_PRIMARY] = True
+        character_data[CHARACTER_FIELD_CLASSES].append(new_character_class)
