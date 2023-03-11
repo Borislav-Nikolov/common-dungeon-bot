@@ -232,6 +232,28 @@ def add_character(player_id: str, character_data_list: list):
     update_player(player_id, player_data)
 
 
+def delete_character(player_id, character_name):
+    player_data = firebase.get_player(player_id)
+    index = -1
+    for character in player_data[PLAYER_FIELD_CHARACTERS]:
+        index += 1
+        if character[CHARACTER_FIELD_NAME] == character_name:
+            player_data[PLAYER_FIELD_CHARACTERS].pop(index)
+            break
+    update_player(player_id, player_data)
+
+
+def change_character_name(player_id, old_name, new_name):
+    player_data = firebase.get_player(player_id)
+    index = -1
+    for character in player_data[PLAYER_FIELD_CHARACTERS]:
+        index += 1
+        if character[CHARACTER_FIELD_NAME] == old_name:
+            character[CHARACTER_FIELD_NAME] = new_name
+            break
+    update_player(player_id, player_data)
+
+
 def update_player(player_id, player_data):
     all_data = dict()
     all_data[player_id] = player_data
