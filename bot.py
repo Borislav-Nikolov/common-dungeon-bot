@@ -138,6 +138,12 @@ async def handle_character_commands(message, client):
                 player_id = utils.strip_id_tag(player_id_and_names[0])
                 characters.change_character_name(player_id, player_id_and_names[1], player_id_and_names[2])
                 await refresh_player_message(client, player_id)
+            elif keywords[1] == "swapclasslevels":
+                player_id_and_params = utils.split_strip(keywords[2], ',')
+                player_id = utils.strip_id_tag(player_id_and_params[0])
+                characters.swap_class_levels(
+                    player_id, player_id_and_params[1], player_id_and_params[2], player_id_and_params[3])
+                await refresh_player_message(client, player_id)
 
 
 def is_admin(message) -> bool:
