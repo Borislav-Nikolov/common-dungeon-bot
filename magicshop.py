@@ -107,8 +107,9 @@ def get_current_shop_string() -> str:
     return final_string
 
 
-def sell_item(player_id, item_index) -> bool:
+def sell_item(player_id, item_index) -> str:
     items = firebase.get_magic_shop_items()
+    sold_item_name = ''
     sold = False
     for item in items:
         if item[SHOP_ITEM_FIELD_INDEX] == item_index and item[SHOP_ITEM_FIELD_SOLD] is False:
@@ -123,11 +124,16 @@ def sell_item(player_id, item_index) -> bool:
                     player_id,
                     item[ITEM_FIELD_RARITY],
                     item[ITEM_FIELD_RARITY_LEVEL]):
+                sold_item_name = item[ITEM_FIELD_NAME]
                 sold = True
     if sold:
         firebase.set_in_magic_shop(items)
-    return sold
+    return sold_item_name
 
 
 def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
     return characters.add_player_tokens_for_rarity(player_id, item_rarity, item_rarity_level)
+
+
+def get_sold_item_string(player_id, item_name) -> str:
+    return f'<@{player_id}> bought {item_name}.'

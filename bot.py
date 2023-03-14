@@ -65,12 +65,14 @@ async def handle_shop_commands(message, client):
             await shop_message.edit(content=magicshop.get_current_shop_string())
         elif command_message.isnumeric():
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
-            sold = magicshop.sell_item(message.author.id, int(command_message))
+            sold_item_name = magicshop.sell_item(message.author.id, int(command_message))
+            sold = len(sold_item_name) != 0
             if sold:
                 shop_string = magicshop.get_current_shop_string()
                 await shop_message.edit(content=shop_string)
                 await refresh_player_message(client, message.author.id)
                 await message.add_reaction('🪙')
+                await message.channel.send(magicshop.get_sold_item_string(message.author.id, sold_item_name))
             else:
                 await message.add_reaction('❌')
         elif command_message == 'sell':
