@@ -102,3 +102,11 @@ def strip_id_tag(player_id_tag: str) -> str:
 
 def split_strip(string_data: str, delimiter: str) -> list:
     return list(map(lambda it: it.strip(), string_data.split(delimiter)))
+
+
+def first_line(string: str) -> str:
+    new_line_index = string.find('\n')
+    if new_line_index == -1:
+        return string
+    else:
+        return string[0:new_line_index]

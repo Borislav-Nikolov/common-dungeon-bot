@@ -54,7 +54,7 @@ async def handle_server_initialization_prompts(message):
 
 async def handle_shop_commands(message, client):
     shop_key = '$shop'
-    keywords = utils.split_strip(str(message.content), '.')
+    keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     if keywords[0] == shop_key and is_shop_channel(message):
         command_message = keywords[1]
         if command_message == 'generate' and is_admin(message):
@@ -99,7 +99,7 @@ async def update_player_message(client, player_id, new_message):
 
 async def handle_character_commands(message, client):
     characters_key = '$characters'
-    keywords = utils.split_strip(str(message.content), '.')
+    keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     if keywords[0] == characters_key and is_admin(message):
         if keywords[1] == "hardinit":
             player_id = utils.strip_id_tag(keywords[2])
