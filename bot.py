@@ -18,9 +18,9 @@ def run_discord_bot(bot_token):
     async def on_message(message):
         if message.author == client.user:
             content = str(message.content)
-            if content.startswith('1)') or content.startswith('~~'):
+            if is_shop_channel(message) and (content.startswith('1)') or content.startswith('~~')):
                 firebase.set_shop_message_id(message.id)
-            elif content.startswith('<@'):
+            elif is_characters_info_channel(message) and content.startswith('<@'):
                 firebase.set_player_message_id(utils.strip_id_tag(content), message.id)
             return
 
@@ -55,7 +55,7 @@ async def handle_server_initialization_prompts(message):
 async def handle_shop_commands(message, client):
     shop_key = '$shop'
     keywords = utils.split_strip(str(message.content), '.')
-    if keywords[0] == shop_key and message.channel.id == firebase.get_shop_channel_id():
+    if keywords[0] == shop_key and is_shop_channel(message):
         command_message = keywords[1]
         if command_message == 'generate' and is_admin(message):
             character_levels_csv = keywords[2]
@@ -106,7 +106,7 @@ async def handle_character_commands(message, client):
             characters.hardinit_player(player_id, keywords[3])
             players_channel = client.get_channel(firebase.get_character_info_channel_id())
             await players_channel.send(characters.get_up_to_date_player_message(player_id))
-        elif message.channel.id == firebase.get_character_info_channel_id():
+        elif is_characters_info_channel(message):
             if keywords[1] == "addsession":
                 if characters.add_session(keywords[2]):
                     split_data = utils.split_strip(keywords[2], ',')
@@ -146,7 +146,18 @@ async def handle_character_commands(message, client):
                 characters.swap_class_levels(
                     player_id, player_id_and_params[1], player_id_and_params[2], player_id_and_params[3])
                 await refresh_player_message(client, player_id)
+            elif keywords[1] == "repost":
+                player_id = utils.strip_id_tag(keywords[2])
+                await message.channel.send(characters.get_up_to_date_player_message(player_id))
 
 
 def is_admin(message) -> bool:
     return message.author.guild_permissions.administrator
+
+
+def is_characters_info_channel(message) -> bool:
+    return message.channel.id == firebase.get_character_info_channel_id()
+
+
+def is_shop_channel(message) -> bool:
+    return message.channel.id == firebase.get_shop_channel_id()
