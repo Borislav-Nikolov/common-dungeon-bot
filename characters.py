@@ -131,19 +131,23 @@ def add_session(csv_data) -> bool:
             if should_level_up:
                 character[CHARACTER_FIELD_LEVEL] += 1
                 character[CHARACTER_FIELD_SESSIONS] = 0
+                class_index = 0
                 for clazz in character[CHARACTER_FIELD_CLASSES]:
+                    last_class = class_index == (len(character[CHARACTER_FIELD_CLASSES]) - 1)
                     has_class_param = len(player_id_to_character_and_class[player_id]) == 2
                     class_param = '' if not has_class_param else player_id_to_character_and_class[player_id][1]
                     if has_class_param and class_param == clazz[CLASS_FIELD_NAME]:
                         clazz[CLASS_FIELD_LEVEL] += 1
                         leveled_up = True
-                    elif has_class_param:
-                        add_class_to_character_data(character, {class_param: 1})
+                    elif has_class_param and last_class:
+                        add_class_to_character_data(character, {class_param: 1}, False)
                         leveled_up = True
-                    elif clazz[CLASS_FIELD_IS_PRIMARY] and len(player_id_to_character_and_class[player_id]) != 2:
+                    elif clazz[CLASS_FIELD_IS_PRIMARY] and not has_class_param:
                         clazz[CLASS_FIELD_LEVEL] += 1
                         leveled_up = True
-                    break
+                    if leveled_up:
+                        break
+                    class_index += 1
             if not leveled_up and should_level_up:
                 raise Exception("Invalid character class name provided.")
         # assign last DM
@@ -227,7 +231,7 @@ def add_character(player_id: str, character_data_list: list):
     new_character[CHARACTER_FIELD_LAST_DM] = 'no one yet'
     new_character[CHARACTER_FIELD_SESSIONS] = 0
     new_character[CHARACTER_FIELD_CLASSES] = list()
-    add_class_to_character_data(new_character, classes_to_level)
+    add_class_to_character_data(new_character, classes_to_level, True)
     player_data[PLAYER_FIELD_CHARACTERS].append(new_character)
     update_player(player_id, player_data)
 
@@ -272,7 +276,7 @@ def swap_class_levels(player_id, character_name, class_to_remove_from, class_to_
     if not was_level_removed:
         raise Exception("Class to remove from was not found.")
     elif was_level_removed and not was_level_added:
-        add_class_to_character_data(character, {class_to_add_to: 1})
+        add_class_to_character_data(character, {class_to_add_to: 1}, False)
     update_player(player_id, player_data)
 
 
@@ -302,7 +306,8 @@ def player_token_field_for_rarity(rarity_ordinal: int) -> str:
         return PLAYER_FIELD_LEGENDARY_TOKENS
 
 
-def add_class_to_character_data(character_data: dict, classes_to_levels: dict):
+def add_class_to_character_data(character_data: dict, classes_to_levels: dict, is_first_primary: bool):
+    is_primary = is_first_primary
     for class_name in classes_to_levels:
         if not in_range(classes_to_levels[class_name], 1, 20):
             raise Exception('Class level is not in range.')
@@ -311,5 +316,7 @@ def add_class_to_character_data(character_data: dict, classes_to_levels: dict):
         new_character_class = dict()
         new_character_class[CLASS_FIELD_NAME] = class_name
         new_character_class[CLASS_FIELD_LEVEL] = classes_to_levels[class_name]
-        new_character_class[CLASS_FIELD_IS_PRIMARY] = True
+        new_character_class[CLASS_FIELD_IS_PRIMARY] = is_primary
+        if is_primary:
+            is_primary = False
         character_data[CHARACTER_FIELD_CLASSES].append(new_character_class)
