@@ -75,12 +75,13 @@ async def handle_shop_commands(message, client):
                 await message.channel.send(magicshop.get_sold_item_string(message.author.id, sold_item_name))
             else:
                 await message.add_reaction('❌')
-        elif command_message == 'sell':
-            # expected: rarity,rarity level
-            rarity_data = utils.split_strip(keywords[2], ',')
-            sold = magicshop.refund_item(message.author.id, rarity_data[0], rarity_data[1])
+        elif command_message == 'sell' and is_admin(message):
+            # expected: player_tag,rarity,rarity level
+            sell_data = utils.split_strip(keywords[2], ',')
+            player_id = utils.strip_id_tag(sell_data[0])
+            sold = magicshop.refund_item(player_id, sell_data[1], sell_data[2])
             if sold:
-                await refresh_player_message(client, message.author.id)
+                await refresh_player_message(client, player_id)
                 await message.add_reaction('🪙')
             else:
                 await message.add_reaction('❌')
