@@ -45,11 +45,9 @@ def write_items_from_spreadsheet():
 
 def write_items_to_json_file(json_file_name, rows):
     with open(json_file_name, 'w', encoding='utf-8') as items_file_write:
-        items_file_write.write('{')
-        item_id = 1
+        items_file_write.write('[')
         for row in rows:
             if len(row) >= 6:
-                items_file_write.write(f'"{item_id}":')
                 items_file_write.write('{')
                 attunement = 'true' if row[3].lower() == 'yes' else 'false'
                 items_file_write.write(
@@ -69,13 +67,12 @@ def write_items_to_json_file(json_file_name, rows):
                 items_file_write.write('}')
                 if rows[len(rows) - 1] != row:
                     items_file_write.write(',')
-                item_id += 1
 
-        add_items_not_in_spreadsheet(items_file_write, item_id)
-        items_file_write.write('}')
+        add_items_not_in_spreadsheet(items_file_write)
+        items_file_write.write(']')
 
 
-def add_items_not_in_spreadsheet(items_file_write, item_id: int):
+def add_items_not_in_spreadsheet(items_file_write):
     items_file_write.write(',')
 
     price_50 = "50 gp"
@@ -84,7 +81,6 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
     minor_str = "MINOR"
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Potion of Healing",
             price=price_50,
             rarity=common_str,
@@ -97,11 +93,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Armor of Gleaming",
             price=price_50,
             rarity=common_str,
@@ -113,11 +107,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Bead of Nourishment",
             price=price_25,
             rarity=common_str,
@@ -129,11 +121,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Bead of Refreshment",
             price=price_25,
             rarity=common_str,
@@ -145,11 +135,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Boots of False Tracks",
             price=price_50,
             rarity=common_str,
@@ -161,11 +149,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Candle of the Deep",
             price=price_50,
             rarity=common_str,
@@ -177,11 +163,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Cast-Off Armor",
             price=price_50,
             rarity=common_str,
@@ -193,11 +177,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Charlatan's Die",
             price=price_50,
             rarity=common_str,
@@ -209,11 +191,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Cloak of Billowing",
             price=price_50,
             rarity=common_str,
@@ -225,11 +205,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Cloak of Many Fashions",
             price=price_50,
             rarity=common_str,
@@ -241,11 +219,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Clockwork Amulet",
             price=price_50,
             rarity=common_str,
@@ -257,11 +233,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Clothes of Mending",
             price=price_50,
             rarity=common_str,
@@ -273,11 +247,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Dark Shard Amulet",
             price=price_50,
             rarity=common_str,
@@ -289,11 +261,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Dread Helm",
             price=price_50,
             rarity=common_str,
@@ -305,11 +275,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Ear Horn of Hearing",
             price=price_50,
             rarity=common_str,
@@ -321,11 +289,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Enduring Spellbook",
             price=price_50,
             rarity=common_str,
@@ -337,11 +303,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Ersatz Eye",
             price=price_50,
             rarity=common_str,
@@ -353,11 +317,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Hat of Vermin",
             price=price_50,
             rarity=common_str,
@@ -369,11 +331,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Hat of Wizardry",
             price=price_50,
             rarity=common_str,
@@ -385,11 +345,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Heward's Handy Spice Pouch",
             price=price_50,
             rarity=common_str,
@@ -401,11 +359,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Horn of Silent Alarm",
             price=price_50,
             rarity=common_str,
@@ -417,11 +373,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Instrument of Illusions",
             price=price_50,
             rarity=common_str,
@@ -433,11 +387,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Instrument of Scribing",
             price=price_50,
             rarity=common_str,
@@ -449,11 +401,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Lock of Trickery",
             price=price_50,
             rarity=common_str,
@@ -465,11 +415,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Moon-Touched Sword",
             price=price_50,
             rarity=common_str,
@@ -481,11 +429,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Mystery Key",
             price=price_50,
             rarity=common_str,
@@ -497,11 +443,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Orb of Direction",
             price=price_50,
             rarity=common_str,
@@ -513,11 +457,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Orb of Time",
             price=price_50,
             rarity=common_str,
@@ -529,11 +471,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Perfume of Bewitching",
             price=price_25,
             rarity=common_str,
@@ -545,11 +485,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Pipe of Smoke Monsters",
             price=price_50,
             rarity=common_str,
@@ -561,11 +499,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Pole of Angling",
             price=price_50,
             rarity=common_str,
@@ -577,11 +513,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Pole of Collapsing",
             price=price_50,
             rarity=common_str,
@@ -593,11 +527,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Pot of Awakening",
             price=price_50,
             rarity=common_str,
@@ -609,11 +541,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Rope of Mending",
             price=price_50,
             rarity=common_str,
@@ -625,11 +555,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Ruby of the War Mage",
             price=price_50,
             rarity=common_str,
@@ -641,11 +569,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Shield of Expression",
             price=price_50,
             rarity=common_str,
@@ -657,11 +583,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Smoldering Armor",
             price=price_50,
             rarity=common_str,
@@ -673,11 +597,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Staff of Adornment",
             price=price_50,
             rarity=common_str,
@@ -689,11 +611,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Staff of Birdcalls",
             price=price_50,
             rarity=common_str,
@@ -705,11 +625,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Staff of Flowers",
             price=price_50,
             rarity=common_str,
@@ -721,11 +639,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Talking Doll",
             price=price_50,
             rarity=common_str,
@@ -737,11 +653,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Tankard of Sobriety",
             price=price_50,
             rarity=common_str,
@@ -753,11 +667,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Unbreakable Arrow",
             price=price_50,
             rarity=common_str,
@@ -769,11 +681,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Veteran's Cane",
             price=price_50,
             rarity=common_str,
@@ -785,11 +695,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Walloping Ammunition",
             price=price_25,
             rarity=common_str,
@@ -801,11 +709,9 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
             name="Wand of Conducting",
             price=price_50,
             rarity=common_str,
@@ -817,59 +723,51 @@ def add_items_not_in_spreadsheet(items_file_write, item_id: int):
             last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
-            name="",
-            price="",
-            rarity="",
-            rarity_level="",
-            attunement=,
-            official=,
-            banned=,
-            description="",
-            last_item=
+            name="Wand of Pyrotechnics",
+            price=price_50,
+            rarity=common_str,
+            rarity_level=minor_str,
+            attunement=False,
+            official=True,
+            banned=False,
+            description="This wand has 7 charges. While holding it, you can use an action to expend 1 of its charges and create a harmless burst of multicolored light at a point you can see up to 60 feet away. The burst of light is accompanied by a crackling noise that can be heard up to 300 feet away. The light is as bright as a torch flame but lasts only a second.\\n\\nThe wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll a d20. On a 1, the wand erupts in a harmless pyrotechnic display and is destroyed.",
+            last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
-            name="",
-            price="",
-            rarity="",
-            rarity_level="",
-            attunement=,
-            official=,
-            banned=,
-            description="",
-            last_item=
+            name="Wand of Scowls",
+            price=price_50,
+            rarity=common_str,
+            rarity_level=minor_str,
+            attunement=False,
+            official=True,
+            banned=False,
+            description="This wand has 3 charges. While holding it, you can use an action to expend 1 of its charges and target a humanoid you can see within 30 feet of you. The target must succeed on a DC 10 Charisma saving throw or be forced to scowl for 1 minute.\\n\\nThe wand regains all expended charges daily at dawn. If you expend the wand's last charge, roll a d20. On a 1, the wand transforms into a Wand of Smiles.",
+            last_item=False
         )
     )
-    item_id += 1
 
     items_file_write.write(
         create_json_item_string(
-            item_id=item_id,
-            name="",
-            price="",
-            rarity="",
-            rarity_level="",
-            attunement=,
-            official=,
-            banned=,
-            description="",
+            name="Wand of Smiles",
+            price=price_50,
+            rarity=common_str,
+            rarity_level=minor_str,
+            attunement=False,
+            official=True,
+            banned=False,
+            description="This wand has 3 charges. While holding it, you can use an action to expend 1 of its charges and target a humanoid you can see within 30 feet of you. The target must succeed on a DC 10 Charisma saving throw or be forced to smile for 1 minute.\\n\\nThe wand regains all expended charges daily at dawn. If you expend the wand's last charge, roll a d20. On a 1, the wand transforms into a Wand of Scowls.",
             last_item=True
         )
     )
-    item_id += 1
 
 
 def create_json_item_string(
-        item_id: int,
         name: str,
         price: str,
         rarity: str,
@@ -880,7 +778,7 @@ def create_json_item_string(
         description: str,
         last_item: bool
 ) -> str:
-    return f'"{item_id}":' + '{' + f'"{magicshop.ITEM_FIELD_NAME}":"{name}",' \
+    return '{' + f'"{magicshop.ITEM_FIELD_NAME}":"{name}",' \
                  f'"{magicshop.ITEM_FIELD_PRICE}":"{price}",' \
                  f'"{magicshop.ITEM_FIELD_RARITY}":"{rarity}",' \
                  f'"{magicshop.ITEM_FIELD_RARITY_LEVEL}":"{rarity_level}",' \
