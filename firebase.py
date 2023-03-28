@@ -44,14 +44,14 @@ def init_firebase_refs(is_test: bool):
     global shop_ref
     global server_reference_ids_ref
     global players_ref
-    items_ref = db.reference("/all_items")
+    items_ref = db.reference(f"{prefix}/all_items")
     shop_ref = db.reference(f"{prefix}/magic_shop_items")
     server_reference_ids_ref = db.reference(f"{prefix}/server_reference_ids")
     players_ref = db.reference(f"{prefix}/players")
 
 
 def init_in_firebase(json_path):
-    with open(json_path, 'r') as items:
+    with open(json_path, 'r', encoding='utf-8') as items:
         file_contents = json.load(items)
     items_ref.set(file_contents)
 

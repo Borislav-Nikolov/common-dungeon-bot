@@ -84,6 +84,12 @@ async def handle_shop_commands(message, client):
                 await message.add_reaction('🪙')
             else:
                 await message.add_reaction('❌')
+        elif command_message == 'help':
+            item_index = keywords[2]
+            if not item_index.isnumeric():
+                raise Exception("Invalid index format.")
+            item_description = magicshop.get_shop_item_description(item_index)
+            await message.author.send(item_description)
 
 
 async def refresh_player_message(client, player_id):

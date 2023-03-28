@@ -12,6 +12,9 @@ ITEM_FIELD_NAME = "name"
 ITEM_FIELD_PRICE = "price"
 ITEM_FIELD_ATTUNEMENT = "attunement"
 ITEM_FIELD_RARITY_LEVEL = "rarity_level"
+ITEM_FIELD_DESCRIPTION = "description"
+ITEM_FIELD_OFFICIAL = "official"
+ITEM_FIELD_BANNED = "banned"
 
 SHOP_ITEM_FIELD_QUANTITY = "quantity"
 SHOP_ITEM_FIELD_SOLD = "sold"
@@ -45,11 +48,15 @@ def generate_random_shop_list(character_levels_csv: str) -> list:
     rare = list()
     very_rare = list()
     legendary = list()
+    potion_of_healing = dict()
     for item in items_from_firebase:
         rarity = item[ITEM_FIELD_RARITY].lower()
         if rarity == COMMON and max_rarity_ordinal >= COMMON_ORDINAL:
             common.append(item)
-            filtered_items.append(item)
+            # add only potion of healing for now
+            if item[ITEM_FIELD_NAME] == "Potion of Healing":
+                item[SHOP_ITEM_FIELD_QUANTITY] = infinite_quantity
+                potion_of_healing = item
         elif rarity == UNCOMMON and max_rarity_ordinal >= UNCOMMON_ORDINAL:
             uncommon.append(item)
             filtered_items.append(item)
@@ -83,15 +90,7 @@ def generate_random_shop_list(character_levels_csv: str) -> list:
     rest_items = random.sample(filtered_items, 16)
     for item in rest_items:
         magic_shop_list.append(item)
-    potion_item = {
-        ITEM_FIELD_NAME: "Potion of healing 2d4+2",
-        ITEM_FIELD_PRICE: "50 gp",
-        ITEM_FIELD_RARITY: "Common",
-        ITEM_FIELD_ATTUNEMENT: "NO",
-        ITEM_FIELD_RARITY_LEVEL: "MINOR",
-        SHOP_ITEM_FIELD_QUANTITY: infinite_quantity
-    }
-    magic_shop_list.append(potion_item)
+    magic_shop_list.append(potion_of_healing)
     return magic_shop_list
 
 
@@ -128,6 +127,14 @@ def sell_item(player_id, item_index) -> str:
     if sold:
         firebase.set_in_magic_shop(items)
     return sold_item_name
+
+
+def get_shop_item_description(item_index) -> str:
+    items = firebase.get_magic_shop_items()
+    for item in items:
+        if item[SHOP_ITEM_FIELD_INDEX] == int(item_index) and ITEM_FIELD_DESCRIPTION in item:
+            return item[ITEM_FIELD_DESCRIPTION]
+    return "*couldn't find item description*"
 
 
 def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
