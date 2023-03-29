@@ -133,6 +133,11 @@ def get_shop_item_description(item_index) -> str:
     return "*couldn't find item description*"
 
 
+def refund_item_by_index(player_id, item_index: int) -> bool:
+    item = characters.get_item_from_inventory(player_id, item_index)
+    return characters.subtract_item_from_inventory(player_id, item)
+
+
 def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
     return characters.add_player_tokens_for_rarity(player_id, item_rarity, item_rarity_level)
 

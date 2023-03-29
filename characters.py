@@ -85,7 +85,55 @@ def get_inventory_string(player_id) -> str:
             magic_item=item,
             field_key_quantity=INVENTORY_ITEM_FIELD_QUANTITY
         )
-    return inventory_string
+    return inventory_string if len(inventory_string) != 0 else "*inventory is empty*"
+
+
+def get_item_from_inventory(player_id, item_index) -> dict:
+    inventory_list = get_inventory(player_id)
+    item = None
+    for list_item in inventory_list:
+        if list_item[INVENTORY_ITEM_FIELD_INDEX] == item_index:
+            item = list_item
+            break
+    if item is None:
+        raise Exception("Item was not found")
+    return item
+
+
+def subtract_item_from_inventory(player_id, item: dict) -> bool:
+    player_data = firebase.get_player(player_id)
+    subtracted = False
+    removed = False
+    rarity = ""
+    rarity_level = ""
+    if PLAYER_FIELD_INVENTORY in player_data:
+        list_index = 0
+        for inventory_item in player_data[PLAYER_FIELD_INVENTORY]:
+            if inventory_item[INVENTORY_ITEM_FIELD_INDEX] == item[INVENTORY_ITEM_FIELD_INDEX]:
+                inventory_item[INVENTORY_ITEM_FIELD_QUANTITY] -= 1
+                if inventory_item[INVENTORY_ITEM_FIELD_QUANTITY] <= 0:
+                    player_data[PLAYER_FIELD_INVENTORY].pop(list_index)
+                    removed = True
+                rarity = inventory_item[ITEM_FIELD_RARITY]
+                rarity_level = inventory_item[ITEM_FIELD_RARITY_LEVEL]
+                subtracted = True
+                break
+            list_index += 1
+    if subtracted:
+        print("item subtracted")
+        if removed:
+            print("item removed")
+            new_item_index = 1
+            for remaining_item in player_data[PLAYER_FIELD_INVENTORY]:
+                remaining_item[INVENTORY_ITEM_FIELD_INDEX] = new_item_index
+                new_item_index += 1
+        print(f'{rarity},{rarity_level}')
+        print(player_data)
+        add_tokens_to_player_data_for_rarity(player_data, rarity, rarity_level)
+        print(player_data)
+        update_player(player_id, player_data)
+        return True
+    return False
 
 
 def get_inventory(player_id) -> list:
@@ -98,11 +146,15 @@ def get_inventory(player_id) -> list:
 
 def add_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
     player_data = firebase.get_player(player_id)
+    add_tokens_to_player_data_for_rarity(player_data, rarity, rarity_level)
+    update_player(player_id, player_data)
+    return True
+
+
+def add_tokens_to_player_data_for_rarity(player_data: dict, rarity: str, rarity_level: str):
     token_field = player_token_field_for_rarity(utils.rarity_to_ordinal(rarity))
     tokens_to_add = utils.tokens_per_rarity_number(rarity, rarity_level)
     player_data[token_field] += tokens_to_add
-    update_player(player_id, player_data)
-    return True
 
 
 def get_up_to_date_player_message(player_id) -> str:
