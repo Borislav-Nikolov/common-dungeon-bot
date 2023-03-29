@@ -1,5 +1,7 @@
 import firebase
 import json
+
+import magicshop
 import utils
 
 from utils import *
@@ -11,6 +13,10 @@ PLAYER_FIELD_RARE_TOKENS = "rare_tokens"
 PLAYER_FIELD_VERY_RARE_TOKENS = "very_rare_tokens"
 PLAYER_FIELD_LEGENDARY_TOKENS = "legendary_tokens"
 PLAYER_FIELD_CHARACTERS = "characters"
+PLAYER_FIELD_INVENTORY = "inventory"
+
+INVENTORY_ITEM_FIELD_QUANTITY = "quantity"
+INVENTORY_ITEM_FIELD_INDEX = "index"
 
 CHARACTER_FIELD_NAME = "character_name"
 CHARACTER_FIELD_LEVEL = "character_level"
@@ -49,6 +55,25 @@ def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str)
         update_player(player_id, player_data)
         return True
     return False
+
+
+def add_item_to_inventory(player_id, stripped_from_shop_fields_item: dict):
+    player_data = firebase.get_player(player_id)
+    inventory = list()
+    if PLAYER_FIELD_INVENTORY in player_data:
+        inventory = player_data[PLAYER_FIELD_INVENTORY]
+    else:
+        player_data[PLAYER_FIELD_INVENTORY] = inventory
+    stripped_from_shop_fields_item[INVENTORY_ITEM_FIELD_INDEX] = len(inventory) + 1
+    stripped_from_shop_fields_item[INVENTORY_ITEM_FIELD_QUANTITY] = 1
+    item_for_inventory = stripped_from_shop_fields_item
+    for item in inventory:
+        if item_for_inventory[magicshop.ITEM_FIELD_NAME] == item[magicshop.ITEM_FIELD_NAME]:
+            item[INVENTORY_ITEM_FIELD_QUANTITY] += 1
+            item_for_inventory = item
+    if item_for_inventory[INVENTORY_ITEM_FIELD_QUANTITY] == 1:
+        inventory.append(item_for_inventory)
+    update_player(player_id, player_data)
 
 
 def add_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
