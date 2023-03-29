@@ -4,7 +4,7 @@ import json
 import magicshop
 import utils
 
-from utils import *
+from itemutils import *
 
 PLAYER_FIELD_NAME = "name"
 PLAYER_FIELD_COMMON_TOKENS = "common_tokens"
@@ -74,6 +74,26 @@ def add_item_to_inventory(player_id, stripped_from_shop_fields_item: dict):
     if item_for_inventory[INVENTORY_ITEM_FIELD_QUANTITY] == 1:
         inventory.append(item_for_inventory)
     update_player(player_id, player_data)
+
+
+def get_inventory_string(player_id) -> str:
+    inventory_list = get_inventory(player_id)
+    inventory_string = ""
+    for item in inventory_list:
+        inventory_string += get_unsold_item_row_string(
+            index=item[INVENTORY_ITEM_FIELD_INDEX],
+            magic_item=item,
+            field_key_quantity=INVENTORY_ITEM_FIELD_QUANTITY
+        )
+    return inventory_string
+
+
+def get_inventory(player_id) -> list:
+    player_data = firebase.get_player(player_id)
+    if PLAYER_FIELD_INVENTORY in player_data:
+        return player_data[PLAYER_FIELD_INVENTORY]
+    else:
+        return list()
 
 
 def add_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:

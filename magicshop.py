@@ -5,16 +5,7 @@ import firebase
 import random
 import copy
 
-from utils import *
-
-ITEM_FIELD_RARITY = "rarity"
-ITEM_FIELD_NAME = "name"
-ITEM_FIELD_PRICE = "price"
-ITEM_FIELD_ATTUNEMENT = "attunement"
-ITEM_FIELD_RARITY_LEVEL = "rarity_level"
-ITEM_FIELD_DESCRIPTION = "description"
-ITEM_FIELD_OFFICIAL = "official"
-ITEM_FIELD_BANNED = "banned"
+from itemutils import *
 
 SHOP_ITEM_FIELD_QUANTITY = "quantity"
 SHOP_ITEM_FIELD_SOLD = "sold"
@@ -30,7 +21,7 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
             magic_item[SHOP_ITEM_FIELD_QUANTITY] = 1
         magic_item[SHOP_ITEM_FIELD_SOLD] = False
         magic_item[SHOP_ITEM_FIELD_INDEX] = counter
-        magic_shop_string += get_unsold_item_row_string(counter, magic_item)
+        magic_shop_string += get_unsold_item_row_string(counter, magic_item, SHOP_ITEM_FIELD_QUANTITY)
         counter += 1
     firebase.set_in_magic_shop(magic_shop_list)
     return magic_shop_string
@@ -99,9 +90,9 @@ def get_current_shop_string() -> str:
     final_string = ''
     for item in items:
         if item[SHOP_ITEM_FIELD_SOLD] is False:
-            final_string += get_unsold_item_row_string(item[SHOP_ITEM_FIELD_INDEX], item)
+            final_string += get_unsold_item_row_string(item[SHOP_ITEM_FIELD_INDEX], item, SHOP_ITEM_FIELD_QUANTITY)
         else:
-            final_string += get_sold_item_row_string(item[SHOP_ITEM_FIELD_INDEX], item)
+            final_string += get_sold_item_row_string(item[SHOP_ITEM_FIELD_INDEX], item, SHOP_ITEM_FIELD_QUANTITY)
     return final_string
 
 
@@ -148,21 +139,3 @@ def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
 
 def get_sold_item_string(player_id, item_name) -> str:
     return f'<@{player_id}> bought {item_name}.'
-
-
-def get_unsold_item_row_string(index: int, magic_item: dict) -> str:
-    magic_item_string = f'{index}) **{magic_item[ITEM_FIELD_NAME]}** - quantity: '
-    item_quantity = magic_item[SHOP_ITEM_FIELD_QUANTITY]
-    quantity_string = str(item_quantity) if item_quantity != infinite_quantity else '*infinite*'
-    magic_item_string += quantity_string
-    magic_item_string += f' - {tokens_per_rarity(magic_item[ITEM_FIELD_RARITY], magic_item[ITEM_FIELD_RARITY_LEVEL])}\n'
-    return magic_item_string
-
-
-def get_sold_item_row_string(index: int, magic_item: dict) -> str:
-    magic_item_string = f'~~{index}) {magic_item[ITEM_FIELD_NAME]} - quantity: '
-    item_quantity = magic_item[SHOP_ITEM_FIELD_QUANTITY]
-    quantity_string = str(item_quantity) if item_quantity != infinite_quantity else '*infinite*'
-    magic_item_string += quantity_string
-    magic_item_string += f' - {tokens_per_rarity(magic_item[ITEM_FIELD_RARITY], magic_item[ITEM_FIELD_RARITY_LEVEL])}~~\n'
-    return magic_item_string

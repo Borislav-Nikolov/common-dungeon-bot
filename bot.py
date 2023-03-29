@@ -156,10 +156,18 @@ async def handle_character_commands(message, client):
             elif keywords[1] == "repost":
                 player_id = utils.strip_id_tag(keywords[2])
                 await message.channel.send(characters.get_up_to_date_player_message(player_id))
+    # non-admin commands
+    elif keywords[0] == characters_key:
+        if keywords[1] == "inventory":
+            inventory_string = characters.get_inventory_string(message.author.id)
+            await message.author.send(inventory_string)
 
 
 def is_admin(message) -> bool:
-    return message.author.guild_permissions.administrator
+    try:
+        return message.author.guild_permissions.administrator
+    except AttributeError:
+        return False
 
 
 def is_characters_info_channel(message) -> bool:
