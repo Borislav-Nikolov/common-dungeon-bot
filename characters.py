@@ -120,17 +120,12 @@ def subtract_item_from_inventory(player_id, item: dict) -> bool:
                 break
             list_index += 1
     if subtracted:
-        print("item subtracted")
         if removed:
-            print("item removed")
             new_item_index = 1
             for remaining_item in player_data[PLAYER_FIELD_INVENTORY]:
                 remaining_item[INVENTORY_ITEM_FIELD_INDEX] = new_item_index
                 new_item_index += 1
-        print(f'{rarity},{rarity_level}')
-        print(player_data)
         add_tokens_to_player_data_for_rarity(player_data, rarity, rarity_level)
-        print(player_data)
         update_player(player_id, player_data)
         return True
     return False
