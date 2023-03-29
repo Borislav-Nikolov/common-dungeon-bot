@@ -87,10 +87,12 @@ async def handle_shop_commands(message, client):
                 await message.add_reaction('❌')
         elif command_message == 'sell' and keywords[2].isnumeric():
             player_id = message.author.id
-            sold = magicshop.refund_item_by_index(player_id, int(keywords[2]))
+            item_name = magicshop.refund_item_by_index(player_id, int(keywords[2]))
+            sold = len(item_name) > 0
             if sold:
                 await refresh_player_message(client, player_id)
                 await message.add_reaction('🪙')
+                await message.channel.send(magicshop.get_refunded_item_string(player_id, item_name))
             else:
                 await message.add_reaction('❌')
         elif command_message == 'help':

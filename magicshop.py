@@ -133,9 +133,12 @@ def get_shop_item_description(item_index) -> str:
     return "*couldn't find item description*"
 
 
-def refund_item_by_index(player_id, item_index: int) -> bool:
+def refund_item_by_index(player_id, item_index: int) -> str:
     item = characters.get_item_from_inventory(player_id, item_index)
-    return characters.subtract_item_from_inventory(player_id, item)
+    refunded = characters.subtract_item_from_inventory(player_id, item)
+    if refunded:
+        return item[ITEM_FIELD_NAME]
+    return ""
 
 
 def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
@@ -144,3 +147,7 @@ def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
 
 def get_sold_item_string(player_id, item_name) -> str:
     return f'<@{player_id}> bought {item_name}.'
+
+
+def get_refunded_item_string(player_id, item_name) -> str:
+    return f'<@{player_id}> sold {item_name}.'
