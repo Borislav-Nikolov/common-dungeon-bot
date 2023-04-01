@@ -11,6 +11,9 @@ SHOP_ITEM_FIELD_QUANTITY = "quantity"
 SHOP_ITEM_FIELD_SOLD = "sold"
 SHOP_ITEM_FIELD_INDEX = "index"
 
+# number restricted because of emoji limit
+SHOP_MAX_NUMBER_OF_ITEMS = 20
+
 
 def generate_new_magic_shop(character_levels_csv: str) -> str:
     magic_shop_list = generate_random_shop_list(character_levels_csv)
@@ -21,7 +24,7 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
             magic_item[SHOP_ITEM_FIELD_QUANTITY] = 1
         magic_item[SHOP_ITEM_FIELD_SOLD] = False
         magic_item[SHOP_ITEM_FIELD_INDEX] = counter
-        magic_shop_string += get_unsold_item_row_string(counter, magic_item, SHOP_ITEM_FIELD_QUANTITY)
+        magic_shop_string += get_unsold_item_row_string_emoji(counter, magic_item, SHOP_ITEM_FIELD_QUANTITY)
         counter += 1
     firebase.set_in_magic_shop(magic_shop_list)
     return magic_shop_string
@@ -29,6 +32,8 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
 
 def generate_random_shop_list(character_levels_csv: str) -> list:
     character_levels_list: list = split_strip(character_levels_csv, ',')
+    if len(character_levels_list) >= SHOP_MAX_NUMBER_OF_ITEMS:
+        raise Exception("Too many character levels. Can't generate that many items.")
     character_rarity_ordinal_list = list(map(lambda it: level_to_rarity_ordinal(int(it)), character_levels_list))
     character_rarity_ordinal_list.sort(reverse=True)
     max_rarity_ordinal = max(character_rarity_ordinal_list)
@@ -78,9 +83,11 @@ def generate_random_shop_list(character_levels_csv: str) -> list:
             legendary_item_clone = copy.deepcopy(random.choice(legendary))
             magic_shop_list.append(legendary_item_clone)
 
-    rest_items = random.sample(filtered_items, 16)
-    for item in rest_items:
-        magic_shop_list.append(item)
+    remaining_number = (SHOP_MAX_NUMBER_OF_ITEMS - 1) - len(magic_shop_list)
+    if remaining_number > 0:
+        rest_items = random.sample(filtered_items, remaining_number)
+        for item in rest_items:
+            magic_shop_list.append(item)
     magic_shop_list.append(potion_of_healing)
     return magic_shop_list
 
@@ -90,7 +97,7 @@ def get_current_shop_string() -> str:
     final_string = ''
     for item in items:
         if item[SHOP_ITEM_FIELD_SOLD] is False:
-            final_string += get_unsold_item_row_string(item[SHOP_ITEM_FIELD_INDEX], item, SHOP_ITEM_FIELD_QUANTITY)
+            final_string += get_unsold_item_row_string_emoji(item[SHOP_ITEM_FIELD_INDEX], item, SHOP_ITEM_FIELD_QUANTITY)
         else:
             final_string += get_sold_item_row_string(item[SHOP_ITEM_FIELD_INDEX], item, SHOP_ITEM_FIELD_QUANTITY)
     return final_string
@@ -125,6 +132,13 @@ def sell_item(player_id, item_index) -> str:
     return sold_item_name
 
 
+def get_item_name_by_index(index: int) -> str:
+    items = firebase.get_magic_shop_items()
+    for item in items:
+        if item[SHOP_ITEM_FIELD_INDEX] == index and not item[SHOP_ITEM_FIELD_SOLD]:
+            return item[ITEM_FIELD_NAME]
+
+
 def get_shop_item_description(item_index) -> str:
     items = firebase.get_magic_shop_items()
     for item in items:
@@ -147,6 +161,10 @@ def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
 
 def get_sold_item_string(player_id, item_name) -> str:
     return f'<@{player_id}> bought {item_name}.'
+
+
+def get_failed_to_buy_item_string(player_id, item_name) -> str:
+    return f'<@{player_id}> transaction for {item_name} failed.'
 
 
 def get_refunded_item_string(player_id, item_name) -> str:
