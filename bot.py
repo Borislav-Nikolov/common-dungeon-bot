@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 import utils
 import firebase
@@ -18,9 +20,7 @@ def run_discord_bot(bot_token):
     async def on_message(message):
         if message.author == client.user:
             content = str(message.content)
-            if is_shop_channel(message) and (content.startswith('1)') or content.startswith('~~')):
-                firebase.set_shop_message_id(message.id)
-            elif is_characters_info_channel(message) and content.startswith('<@'):
+            if is_characters_info_channel(message) and content.startswith('<@'):
                 firebase.set_player_message_id(utils.strip_id_tag(content), message.id)
             return
 
@@ -34,6 +34,50 @@ def run_discord_bot(bot_token):
             await handle_server_initialization_prompts(message)
             await handle_shop_commands(message, client)
             await handle_character_commands(message, client)
+
+    @client.event
+    async def on_raw_reaction_add(payload):
+        if payload.user_id == client.user.id:
+            return
+        channel = client.get_channel(payload.channel_id)
+        if channel.id == firebase.get_shop_channel_id() and payload.message_id == firebase.get_shop_message_id():
+            shop_message = await channel.fetch_message(payload.message_id)
+            accept_emoji = '\U00002705'
+            decline_emoji = '\U0000274C'
+            item_index = utils.emoji_to_index(str(payload.emoji))
+            item_name = magicshop.get_item_name_by_index(item_index)
+            if item_name is None:
+                await channel.send(f"<@{payload.user_id}>, sorry but that item was already sold.")
+                await shop_message.remove_reaction(payload.emoji, payload.member)
+                raise Exception("Item not found in shop.")
+
+            def check_accept(reaction, user):
+                return user.id == payload.user_id and (str(reaction.emoji) == accept_emoji or str(reaction.emoji) == decline_emoji)
+
+            bot_message = await channel.send(f'<@{payload.user_id}>, are you sure you want to buy {item_name}?')
+            await bot_message.add_reaction(accept_emoji)
+            await bot_message.add_reaction(decline_emoji)
+            try:
+                reaction, user = await client.wait_for('reaction_add', timeout=15.0, check=check_accept)
+                if str(reaction.emoji) == accept_emoji:
+                    sold_item_name = magicshop.sell_item(payload.user_id, item_index)
+                    sold = len(sold_item_name) != 0
+                    if sold:
+                        shop_string = magicshop.get_current_shop_string()
+                        await shop_message.edit(content=shop_string)
+                        await refresh_player_message(client, payload.user_id)
+                        await channel.send(magicshop.get_sold_item_string(payload.user_id, sold_item_name))
+                        if magicshop.get_item_name_by_index(item_index) is not None:
+                            await shop_message.remove_reaction(payload.emoji, payload.member)
+                    else:
+                        await channel.send(magicshop.get_failed_to_buy_item_string(payload.user_id, item_name))
+                        await shop_message.remove_reaction(payload.emoji, payload.member)
+                else:
+                    await channel.send(f'Order of {item_name} was declined.')
+                    await shop_message.remove_reaction(payload.emoji, payload.member)
+            except asyncio.TimeoutError:
+                await channel.send(f'Order of {item_name} has timed out.')
+                await shop_message.remove_reaction(payload.emoji, payload.member)
 
     client.run(bot_token)
 
@@ -59,10 +103,18 @@ async def handle_shop_commands(message, client):
         command_message = keywords[1]
         if command_message == 'generate' and is_admin(message):
             character_levels_csv = keywords[2]
-            await message.channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
+            new_shop_message = await message.channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
+            firebase.set_shop_message_id(new_shop_message.id)
+            for index in range(1, magicshop.SHOP_MAX_NUMBER_OF_ITEMS + 1):
+                await new_shop_message.add_reaction(utils.index_to_emoji(index))
         elif command_message == 'refresh' and is_admin(message):
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
             await shop_message.edit(content=magicshop.get_current_shop_string())
+        elif command_message == 'repost' and is_admin(message):
+            new_shop_message = await message.channel.send(magicshop.get_current_shop_string())
+            firebase.set_shop_message_id(new_shop_message.id)
+            for index in range(1, magicshop.SHOP_MAX_NUMBER_OF_ITEMS + 1):
+                await new_shop_message.add_reaction(utils.index_to_emoji(index))
         elif command_message.isnumeric():
             shop_message = await message.channel.fetch_message(firebase.get_shop_message_id())
             sold_item_name = magicshop.sell_item(message.author.id, int(command_message))
