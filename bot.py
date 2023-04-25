@@ -47,19 +47,22 @@ def run_discord_bot(bot_token):
             item_index = utils.emoji_to_index(str(payload.emoji))
             item_name = magicshop.get_item_name_by_index(item_index)
             if item_name is None:
-                await channel.send(f"<@{payload.user_id}>, sorry but that item was already sold.")
+                await payload.member.send(f"<@{payload.user_id}>, sorry but that item was already sold.")
                 await shop_message.remove_reaction(payload.emoji, payload.member)
                 raise Exception("Item not found in shop.")
 
-            def check_accept(reaction, user):
-                return user.id == payload.user_id and (str(reaction.emoji) == accept_emoji or str(reaction.emoji) == decline_emoji)
+            def check_accept(inner_payload):
+                user_id = inner_payload.user_id
+                emoji = inner_payload.emoji
+                return user_id == payload.user_id and (str(emoji) == accept_emoji or str(emoji) == decline_emoji)
 
-            bot_message = await channel.send(f'<@{payload.user_id}>, are you sure you want to buy {item_name}?')
+            dm_channel = await payload.member.create_dm()
+            bot_message = await dm_channel.send(f'<@{payload.user_id}>, are you sure you want to buy {item_name}?')
             await bot_message.add_reaction(accept_emoji)
             await bot_message.add_reaction(decline_emoji)
             try:
-                reaction, user = await client.wait_for('reaction_add', timeout=15.0, check=check_accept)
-                if str(reaction.emoji) == accept_emoji:
+                result_payload = await client.wait_for('raw_reaction_add', timeout=15.0, check=check_accept)
+                if str(result_payload.emoji) == accept_emoji:
                     sold_item_name = magicshop.sell_item(payload.user_id, item_index)
                     sold = len(sold_item_name) != 0
                     if sold:
@@ -70,13 +73,13 @@ def run_discord_bot(bot_token):
                         if magicshop.get_item_name_by_index(item_index) is not None:
                             await shop_message.remove_reaction(payload.emoji, payload.member)
                     else:
-                        await channel.send(magicshop.get_failed_to_buy_item_string(payload.user_id, item_name))
+                        await dm_channel.send(magicshop.get_failed_to_buy_item_string(payload.user_id, item_name))
                         await shop_message.remove_reaction(payload.emoji, payload.member)
                 else:
-                    await channel.send(f'Order of {item_name} was declined.')
+                    await dm_channel.send(f'Order of {item_name} was declined.')
                     await shop_message.remove_reaction(payload.emoji, payload.member)
             except asyncio.TimeoutError:
-                await channel.send(f'Order of {item_name} has timed out.')
+                await dm_channel.send(f'Order of {item_name} has timed out.')
                 await shop_message.remove_reaction(payload.emoji, payload.member)
 
     client.run(bot_token)

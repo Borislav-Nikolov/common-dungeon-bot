@@ -120,11 +120,14 @@ def sell_item(player_id, item_index) -> str:
                     player_id,
                     item[ITEM_FIELD_RARITY],
                     item[ITEM_FIELD_RARITY_LEVEL]):
-                item_copy = copy.deepcopy(item)
-                del item_copy[SHOP_ITEM_FIELD_QUANTITY]
-                del item_copy[SHOP_ITEM_FIELD_INDEX]
-                del item_copy[SHOP_ITEM_FIELD_SOLD]
-                characters.add_item_to_inventory(player_id, item_copy)
+                item_name_lower = item[ITEM_FIELD_NAME].lower()
+                # TODO: add "consumable" field to items and use it instead
+                if "potion" not in item_name_lower and "scroll" not in item_name_lower and "ammunition" not in item_name_lower:
+                    item_copy = copy.deepcopy(item)
+                    del item_copy[SHOP_ITEM_FIELD_QUANTITY]
+                    del item_copy[SHOP_ITEM_FIELD_INDEX]
+                    del item_copy[SHOP_ITEM_FIELD_SOLD]
+                    characters.add_item_to_inventory(player_id, item_copy)
                 sold_item_name = item[ITEM_FIELD_NAME]
                 sold = True
     if sold:
