@@ -24,7 +24,7 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
             magic_item[SHOP_ITEM_FIELD_QUANTITY] = 1
         magic_item[SHOP_ITEM_FIELD_SOLD] = False
         magic_item[SHOP_ITEM_FIELD_INDEX] = counter
-        magic_shop_string += get_unsold_item_row_string_emoji(counter, magic_item, SHOP_ITEM_FIELD_QUANTITY)
+        magic_shop_string += get_item_row_string(magic_item, counter)
         counter += 1
     firebase.set_in_magic_shop(magic_shop_list)
     return magic_shop_string
@@ -97,9 +97,9 @@ def get_current_shop_string() -> str:
     final_string = ''
     for item in items:
         if item[SHOP_ITEM_FIELD_SOLD] is False:
-            final_string += get_unsold_item_row_string_emoji(item[SHOP_ITEM_FIELD_INDEX], item, SHOP_ITEM_FIELD_QUANTITY)
+            final_string += get_item_row_string(item, item[SHOP_ITEM_FIELD_INDEX])
         else:
-            final_string += get_sold_item_row_string(item[SHOP_ITEM_FIELD_INDEX], item, SHOP_ITEM_FIELD_QUANTITY)
+            final_string += get_sold_item_row_string(item)
     return final_string
 
 
