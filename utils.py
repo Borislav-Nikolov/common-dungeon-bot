@@ -145,7 +145,7 @@ def first_line(string: str) -> str:
 
 
 def index_to_emoji(index: int) -> str:
-    return letter_emojis[index + 1]
+    return letter_emojis[index - 1]
 
 
 def emoji_to_index(emoji: str) -> int:
