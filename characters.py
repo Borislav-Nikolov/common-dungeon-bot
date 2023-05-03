@@ -218,7 +218,7 @@ def add_session(csv_data) -> bool:
         if character[CHARACTER_FIELD_LEVEL] < 20:
             sessions_to_next_level_string = utils.sessions_to_next_level(character[CHARACTER_FIELD_LEVEL])
             character[CHARACTER_FIELD_SESSIONS] += 1
-            should_level_up = character[CHARACTER_FIELD_SESSIONS] >= int(sessions_to_next_level_string)
+            should_level_up = character[CHARACTER_FIELD_SESSIONS] >= sessions_to_next_level_string
             leveled_up = False
             if should_level_up:
                 character[CHARACTER_FIELD_LEVEL] += 1
