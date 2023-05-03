@@ -41,6 +41,9 @@ EMOJI_X = '\U0001F1FD'
 EMOJI_Y = '\U0001F1FE'
 EMOJI_Z = '\U0001F1FF'
 
+# this is a red X, used in place of other emojis when they are missing so that the rest of the text remains aligned.
+EMOJI_NONE = '\U0000274C'
+
 letter_emojis = (EMOJI_A, EMOJI_B, EMOJI_C, EMOJI_D, EMOJI_E, EMOJI_F, EMOJI_G, EMOJI_H, EMOJI_I, EMOJI_J, EMOJI_K,
                  EMOJI_L, EMOJI_M, EMOJI_N, EMOJI_O, EMOJI_P, EMOJI_Q, EMOJI_R, EMOJI_S, EMOJI_T, EMOJI_U, EMOJI_V,
                  EMOJI_W, EMOJI_X, EMOJI_Y, EMOJI_Z)
@@ -145,7 +148,10 @@ def first_line(string: str) -> str:
 
 
 def index_to_emoji(index: int) -> str:
-    return letter_emojis[index - 1]
+    try:
+        return letter_emojis[index - 1]
+    except IndexError:
+        return EMOJI_NONE
 
 
 def emoji_to_index(emoji: str) -> int:
