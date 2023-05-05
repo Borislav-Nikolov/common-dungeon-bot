@@ -41,13 +41,14 @@ EMOJI_X = '\U0001F1FD'
 EMOJI_Y = '\U0001F1FE'
 EMOJI_Z = '\U0001F1FF'
 
-EMOJI_RARITY_COMMON = '\U0001F532'
-EMOJI_RARITY_UNCOMMON = '\U0001F530'
-EMOJI_RARITY_RARE = '\U0001F4A0'
-EMOJI_RARITY_VERY_RARE = '\U0000269C'
-EMOJI_RARITY_LEGENDARY = '\U0001F531'
+EMOJI_RARITY_COMMON = '\U000026AA'
+EMOJI_RARITY_UNCOMMON = '\U0001F7E2'
+EMOJI_RARITY_RARE = '\U0001F535'
+EMOJI_RARITY_VERY_RARE = '\U0001F7E3'
+EMOJI_RARITY_LEGENDARY = '\U0001F7E1'
 # this is a red X, used in place of other emojis when they are missing so that the rest of the text remains aligned.
 EMOJI_NONE = '\U0000274C'
+
 
 def rarity_to_ordinal(rarity: str) -> int:
     rarity = rarity.lower()
@@ -265,4 +266,4 @@ def get_rarity_emoji(rarity: str) -> str:
         VERY_RARE: EMOJI_RARITY_VERY_RARE,
         LEGENDARY: EMOJI_RARITY_LEGENDARY,
     }
-    return switcher.get(rarity, EMOJI_NONE)
+    return switcher.get(rarity.lower(), EMOJI_NONE)

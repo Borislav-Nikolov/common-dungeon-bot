@@ -80,7 +80,11 @@ def get_inventory_string(player_id) -> str:
     inventory_list = get_inventory(player_id)
     inventory_string = ""
     for item in inventory_list:
-        inventory_string += get_item_row_string(item, item[INVENTORY_ITEM_FIELD_INDEX])
+        inventory_string += get_item_row_string(
+            item,
+            item[INVENTORY_ITEM_FIELD_INDEX],
+            item[INVENTORY_ITEM_FIELD_QUANTITY]
+        )
     return inventory_string if len(inventory_string) != 0 else "*inventory is empty*"
 
 
