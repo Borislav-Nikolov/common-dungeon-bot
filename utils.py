@@ -41,6 +41,13 @@ EMOJI_X = '\U0001F1FD'
 EMOJI_Y = '\U0001F1FE'
 EMOJI_Z = '\U0001F1FF'
 
+# this is a red X, used in place of other emojis when they are missing so that the rest of the text remains aligned.
+EMOJI_NONE = '\U0000274C'
+
+letter_emojis = (EMOJI_A, EMOJI_B, EMOJI_C, EMOJI_D, EMOJI_E, EMOJI_F, EMOJI_G, EMOJI_H, EMOJI_I, EMOJI_J, EMOJI_K,
+                 EMOJI_L, EMOJI_M, EMOJI_N, EMOJI_O, EMOJI_P, EMOJI_Q, EMOJI_R, EMOJI_S, EMOJI_T, EMOJI_U, EMOJI_V,
+                 EMOJI_W, EMOJI_X, EMOJI_Y, EMOJI_Z)
+
 
 def rarity_to_ordinal(rarity: str) -> int:
     rarity = rarity.lower()
@@ -108,14 +115,14 @@ def tokens_per_rarity(rarity, rarity_level) -> str:
         return '10 legendary tokens'
 
 
-def sessions_to_next_level(current_level) -> str:
+def sessions_to_next_level(current_level) -> int:
     current_level_int = int(current_level)
     if 1 <= current_level_int <= 2:
-        return "1"
+        return 1
     elif 3 <= current_level_int <= 4:
-        return "2"
+        return 2
     else:
-        return "3"
+        return 3
 
 
 def in_range(compared, first, last) -> bool:
@@ -141,110 +148,11 @@ def first_line(string: str) -> str:
 
 
 def index_to_emoji(index: int) -> str:
-    if index == 1:
-        return EMOJI_A
-    if index == 2:
-        return EMOJI_B
-    if index == 3:
-        return EMOJI_C
-    if index == 4:
-        return EMOJI_D
-    if index == 5:
-        return EMOJI_E
-    if index == 6:
-        return EMOJI_F
-    if index == 7:
-        return EMOJI_G
-    if index == 8:
-        return EMOJI_H
-    if index == 9:
-        return EMOJI_I
-    if index == 10:
-        return EMOJI_J
-    if index == 11:
-        return EMOJI_K
-    if index == 12:
-        return EMOJI_L
-    if index == 13:
-        return EMOJI_M
-    if index == 14:
-        return EMOJI_N
-    if index == 15:
-        return EMOJI_O
-    if index == 16:
-        return EMOJI_P
-    if index == 17:
-        return EMOJI_Q
-    if index == 18:
-        return EMOJI_R
-    if index == 19:
-        return EMOJI_S
-    if index == 20:
-        return EMOJI_T
-    if index == 21:
-        return EMOJI_U
-    if index == 22:
-        return EMOJI_V
-    if index == 23:
-        return EMOJI_W
-    if index == 24:
-        return EMOJI_X
-    if index == 25:
-        return EMOJI_Y
-    if index == 26:
-        return EMOJI_Z
+    try:
+        return letter_emojis[index - 1]
+    except IndexError:
+        return EMOJI_NONE
 
 
 def emoji_to_index(emoji: str) -> int:
-    if emoji == EMOJI_A:
-        return 1
-    if emoji == EMOJI_B:
-        return 2
-    if emoji == EMOJI_C:
-        return 3
-    if emoji == EMOJI_D:
-        return 4
-    if emoji == EMOJI_E:
-        return 5
-    if emoji == EMOJI_F:
-        return 6
-    if emoji == EMOJI_G:
-        return 7
-    if emoji == EMOJI_H:
-        return 8
-    if emoji == EMOJI_I:
-        return 9
-    if emoji == EMOJI_J:
-        return 10
-    if emoji == EMOJI_K:
-        return 11
-    if emoji == EMOJI_L:
-        return 12
-    if emoji == EMOJI_M:
-        return 13
-    if emoji == EMOJI_N:
-        return 14
-    if emoji == EMOJI_O:
-        return 15
-    if emoji == EMOJI_P:
-        return 16
-    if emoji == EMOJI_Q:
-        return 17
-    if emoji == EMOJI_R:
-        return 18
-    if emoji == EMOJI_S:
-        return 19
-    if emoji == EMOJI_T:
-        return 20
-    if emoji == EMOJI_U:
-        return 21
-    if emoji == EMOJI_V:
-        return 22
-    if emoji == EMOJI_W:
-        return 23
-    if emoji == EMOJI_X:
-        return 24
-    if emoji == EMOJI_Y:
-        return 25
-    if emoji == EMOJI_Z:
-        return 26
+    return letter_emojis.index(emoji) + 1
