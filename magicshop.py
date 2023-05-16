@@ -5,6 +5,7 @@ import firebase
 import random
 import copy
 
+import itemutils
 from itemutils import *
 
 SHOP_ITEM_FIELD_QUANTITY = "quantity"
@@ -146,7 +147,7 @@ def get_shop_item_description(item_index) -> str:
     items = firebase.get_magic_shop_items()
     for item in items:
         if item[SHOP_ITEM_FIELD_INDEX] == int(item_index) and ITEM_FIELD_DESCRIPTION in item:
-            return item[ITEM_FIELD_DESCRIPTION]
+            return itemutils.get_item_info_message(item)
     return "*couldn't find item description*"
 
 

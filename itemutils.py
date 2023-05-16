@@ -58,3 +58,12 @@ def get_unsold_item_row_string_emoji(
         magic_item_string += 'cost: '
     magic_item_string += f'{tokens_per_rarity(magic_item[ITEM_FIELD_RARITY], magic_item[ITEM_FIELD_RARITY_LEVEL])}\n'
     return magic_item_string
+
+
+def get_item_info_message(item: dict) -> str:
+    item_info_string = f'**Name:** {item[ITEM_FIELD_NAME]}\n'
+    item_info_string += f'**Rarity:** {item[ITEM_FIELD_RARITY]}, {item[ITEM_FIELD_RARITY_LEVEL]}\n'
+    item_info_string += f'**Requires attunement:** {"Yes" if item[ITEM_FIELD_ATTUNEMENT] else "No"}\n'
+    item_info_string += f'**Homebrew:** {"No" if item[ITEM_FIELD_OFFICIAL] else "Yes"}\n'
+    item_info_string += f'**Description:** {item[ITEM_FIELD_DESCRIPTION]}\n'
+    return item_info_string

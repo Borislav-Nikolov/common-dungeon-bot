@@ -1,6 +1,7 @@
-import asyncio
 
 import discord
+
+import reactionhandler
 import utils
 import firebase
 import magicshop
@@ -41,46 +42,7 @@ def run_discord_bot(bot_token):
             return
         channel = client.get_channel(payload.channel_id)
         if channel.id == firebase.get_shop_channel_id() and payload.message_id == firebase.get_shop_message_id():
-            shop_message = await channel.fetch_message(payload.message_id)
-            accept_emoji = '\U00002705'
-            decline_emoji = '\U0000274C'
-            item_index = utils.emoji_to_index(str(payload.emoji))
-            item_name = magicshop.get_item_name_by_index(item_index)
-            if item_name is None:
-                await payload.member.send(f"<@{payload.user_id}>, sorry but that item was already sold.")
-                await shop_message.remove_reaction(payload.emoji, payload.member)
-                raise Exception("Item not found in shop.")
-
-            def check_accept(inner_payload):
-                user_id = inner_payload.user_id
-                emoji = inner_payload.emoji
-                return user_id == payload.user_id and (str(emoji) == accept_emoji or str(emoji) == decline_emoji)
-
-            dm_channel = await payload.member.create_dm()
-            bot_message = await dm_channel.send(f'<@{payload.user_id}>, are you sure you want to buy {item_name}?')
-            await bot_message.add_reaction(accept_emoji)
-            await bot_message.add_reaction(decline_emoji)
-            try:
-                result_payload = await client.wait_for('raw_reaction_add', timeout=15.0, check=check_accept)
-                if str(result_payload.emoji) == accept_emoji:
-                    sold_item_name = magicshop.sell_item(payload.user_id, item_index)
-                    sold = len(sold_item_name) != 0
-                    if sold:
-                        shop_string = magicshop.get_current_shop_string()
-                        await shop_message.edit(content=shop_string)
-                        await refresh_player_message(client, payload.user_id)
-                        await channel.send(magicshop.get_sold_item_string(payload.user_id, sold_item_name))
-                        if magicshop.get_item_name_by_index(item_index) is not None:
-                            await shop_message.remove_reaction(payload.emoji, payload.member)
-                    else:
-                        await dm_channel.send(magicshop.get_failed_to_buy_item_string(payload.user_id, item_name))
-                        await shop_message.remove_reaction(payload.emoji, payload.member)
-                else:
-                    await dm_channel.send(f'Order of {item_name} was declined.')
-                    await shop_message.remove_reaction(payload.emoji, payload.member)
-            except asyncio.TimeoutError:
-                await dm_channel.send(f'Order of {item_name} has timed out.')
-                await shop_message.remove_reaction(payload.emoji, payload.member)
+            await reactionhandler.handle_magic_shop_reaction(payload, channel, client)
 
     client.run(bot_token)
 
@@ -125,7 +87,7 @@ async def handle_shop_commands(message, client):
             if sold:
                 shop_string = magicshop.get_current_shop_string()
                 await shop_message.edit(content=shop_string)
-                await refresh_player_message(client, message.author.id)
+                await characters.refresh_player_message(client, message.author.id)
                 await message.add_reaction('🪙')
                 await message.channel.send(magicshop.get_sold_item_string(message.author.id, sold_item_name))
             else:
@@ -136,7 +98,7 @@ async def handle_shop_commands(message, client):
             player_id = utils.strip_id_tag(sell_data[0])
             sold = magicshop.refund_item(player_id, sell_data[1], sell_data[2])
             if sold:
-                await refresh_player_message(client, player_id)
+                await characters.refresh_player_message(client, player_id)
                 await message.add_reaction('🪙')
             else:
                 await message.add_reaction('❌')
@@ -145,7 +107,7 @@ async def handle_shop_commands(message, client):
             item_name = magicshop.refund_item_by_index(player_id, int(keywords[2]))
             sold = len(item_name) > 0
             if sold:
-                await refresh_player_message(client, player_id)
+                await characters.refresh_player_message(client, player_id)
                 await message.add_reaction('🪙')
                 await message.channel.send(magicshop.get_refunded_item_string(player_id, item_name))
             else:
@@ -156,17 +118,6 @@ async def handle_shop_commands(message, client):
                 raise Exception("Invalid index format.")
             item_description = magicshop.get_shop_item_description(item_index)
             await message.author.send(item_description)
-
-
-async def refresh_player_message(client, player_id):
-    await update_player_message(client, player_id, characters.get_up_to_date_player_message(player_id))
-
-
-async def update_player_message(client, player_id, new_message):
-    players_channel = client.get_channel(firebase.get_character_info_channel_id())
-    player_message_id = firebase.get_player_message_id(player_id)
-    player_message = await players_channel.fetch_message(player_message_id)
-    await player_message.edit(content=new_message)
 
 
 async def handle_character_commands(message, client):
@@ -185,7 +136,7 @@ async def handle_character_commands(message, client):
                     player_ids = list(
                         map(lambda it: utils.strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
                     for player_id in player_ids:
-                        await refresh_player_message(client, player_id)
+                        await characters.refresh_player_message(client, player_id)
                     await message.add_reaction('🪙')
                 else:
                     await message.add_reaction('❌')
@@ -201,23 +152,23 @@ async def handle_character_commands(message, client):
                 player_id = utils.strip_id_tag(data_list[0])
                 data_list.pop(0)
                 characters.add_character(player_id, data_list)
-                await refresh_player_message(client, player_id)
+                await characters.refresh_player_message(client, player_id)
             elif keywords[1] == "deletecharacter":
                 player_id_to_character_name = utils.split_strip(keywords[2], ',')
                 player_id = utils.strip_id_tag(player_id_to_character_name[0])
                 characters.delete_character(player_id, player_id_to_character_name[1])
-                await refresh_player_message(client, player_id)
+                await characters.refresh_player_message(client, player_id)
             elif keywords[1] == "changename":
                 player_id_and_names = utils.split_strip(keywords[2], ',')
                 player_id = utils.strip_id_tag(player_id_and_names[0])
                 characters.change_character_name(player_id, player_id_and_names[1], player_id_and_names[2])
-                await refresh_player_message(client, player_id)
+                await characters.refresh_player_message(client, player_id)
             elif keywords[1] == "swapclasslevels":
                 player_id_and_params = utils.split_strip(keywords[2], ',')
                 player_id = utils.strip_id_tag(player_id_and_params[0])
                 characters.swap_class_levels(
                     player_id, player_id_and_params[1], player_id_and_params[2], player_id_and_params[3])
-                await refresh_player_message(client, player_id)
+                await characters.refresh_player_message(client, player_id)
             elif keywords[1] == "repost":
                 player_id = utils.strip_id_tag(keywords[2])
                 await message.channel.send(characters.get_up_to_date_player_message(player_id))
