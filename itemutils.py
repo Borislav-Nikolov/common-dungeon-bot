@@ -9,6 +9,7 @@ ITEM_FIELD_RARITY_LEVEL = "rarity_level"
 ITEM_FIELD_DESCRIPTION = "description"
 ITEM_FIELD_OFFICIAL = "official"
 ITEM_FIELD_BANNED = "banned"
+ITEM_FIELD_CONSUMABLE = "consumable"
 
 
 def get_unsold_item_row_string(
@@ -68,3 +69,12 @@ def get_item_info_message(item: dict) -> str:
         item_info_string += f'**Homebrew:** {"No" if item[ITEM_FIELD_OFFICIAL] else "Yes"}\n'
     item_info_string += f'**Description:** {item[ITEM_FIELD_DESCRIPTION]}\n'
     return item_info_string
+
+
+def get_homebrew_item_confirmation_description(item: dict) -> str:
+    return f'**Name:** {item[ITEM_FIELD_NAME]}\n' \
+                  f'**Rarity:** {item[ITEM_FIELD_RARITY]}, {item[ITEM_FIELD_RARITY_LEVEL]}\n' \
+                  f'**Consumable:** {"Yes" if item[ITEM_FIELD_CONSUMABLE] else "No"}\n' \
+                  f'**Requires attunement:** {"Yes" if item[ITEM_FIELD_ATTUNEMENT] else "No"}\n' \
+                  f'**Banned:** {"Yes" if item[ITEM_FIELD_BANNED] else "No"}\n' \
+                  f'**Description:** {item[ITEM_FIELD_DESCRIPTION]}'

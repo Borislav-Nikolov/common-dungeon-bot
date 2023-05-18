@@ -62,7 +62,7 @@ def rarity_to_ordinal(rarity: str) -> int:
     elif rarity == LEGENDARY:
         return LEGENDARY_ORDINAL
     else:
-        raise Exception(f'Unsupported rarity: {rarity}')
+        raise ValueError(f'Unsupported rarity: {rarity}')
 
 
 def level_to_rarity_ordinal(level: int) -> int:

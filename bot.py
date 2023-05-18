@@ -6,6 +6,7 @@ import utils
 import firebase
 import magicshop
 import characters
+import itemutils
 
 
 def run_discord_bot(bot_token):
@@ -35,6 +36,7 @@ def run_discord_bot(bot_token):
             await handle_server_initialization_prompts(message)
             await handle_shop_commands(message, client)
             await handle_character_commands(message, client)
+            await handle_homebrew_commands(message, client)
 
     @client.event
     async def on_raw_reaction_add(payload):
@@ -178,6 +180,150 @@ async def handle_character_commands(message, client):
         if keywords[1] == "inventory":
             inventory_string = characters.get_inventory_string(message.author.id)
             await message.author.send(inventory_string)
+
+
+async def handle_homebrew_commands(message, client):
+    homebrew_key = '$homebrew'
+    keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
+    if keywords[0] == homebrew_key and is_admin(message):
+        if keywords[1] == 'item':
+            new_item = dict()
+            new_item[itemutils.ITEM_FIELD_OFFICIAL] = False
+            can_continue = False
+
+            def check_author(checked_message):
+                return checked_message.author.id == message.author.id
+
+            # TODO: extract repeating code if adequate
+            # Input item name
+            def check_item_name(name):
+                return len(name) <= 48
+            while not can_continue:
+                await message.author.send("Input item **name**.\n```yaml\nMax 48 symbols.\n```")
+                item_creator_reply = await client.wait_for('message', timeout=60.0, check=check_author)
+                can_continue = check_item_name(item_creator_reply.content)
+                if not can_continue:
+                    await message.author.send("Item name is too long. Try again.")
+                else:
+                    new_item[itemutils.ITEM_FIELD_NAME] = item_creator_reply.content
+            can_continue = False
+
+            # Input item description
+            def check_item_description(description):
+                return len(description) <= 2048
+            while not can_continue:
+                await message.author.send("Input item **description**.\n```yaml\nMax 1024 symbols.\n```")
+                item_creator_reply = await client.wait_for('message', timeout=300.0, check=check_author)
+                can_continue = check_item_description(item_creator_reply.content)
+                if not can_continue:
+                    await message.author.send("Description is too long. Try again.")
+                else:
+                    new_item[itemutils.ITEM_FIELD_DESCRIPTION] = item_creator_reply.content
+            can_continue = False
+
+            # Input item rarity
+            def check_item_rarity_input(rarity):
+                try:
+                    utils.rarity_to_ordinal(rarity)
+                except ValueError:
+                    return False
+                return True
+            while not can_continue:
+                await message.author.send(
+                    "Input item **rarity**.\n```yaml\n"
+                    "Possible values: common, uncommon, rare, very rare, legendary\n```")
+                item_creator_reply = await client.wait_for('message', timeout=120.0, check=check_author)
+                can_continue = check_item_rarity_input(item_creator_reply.content)
+                if not can_continue:
+                    await message.author.send("Wrong input. Try again.")
+                else:
+                    new_item[itemutils.ITEM_FIELD_RARITY] = item_creator_reply.content.capitalize()
+            can_continue = False
+
+            # Input item rarity level
+            def check_item_rarity_level_input(rarity_level):
+                lowered_rarity_level = rarity_level.lower()
+                return lowered_rarity_level == "minor" or lowered_rarity_level == "major"
+            while not can_continue:
+                await message.author.send("Input item **rarity level**.\n```yaml\nPossible values: minor, major\n```")
+                item_creator_reply = await client.wait_for('message', timeout=120.0, check=check_author)
+                can_continue = check_item_rarity_level_input(item_creator_reply.content)
+                if not can_continue:
+                    await message.author.send("Wrong input. Try again.")
+                else:
+                    new_item[itemutils.ITEM_FIELD_RARITY_LEVEL] = item_creator_reply.content.upper()
+            can_continue = False
+
+            # It item consumable
+            def check_item_consumable(consumable):
+                lowered_consumable = consumable.lower()
+                return lowered_consumable == "yes" or lowered_consumable == "no"
+            while not can_continue:
+                await message.author.send("Is item **consumable**?\n```yaml\nPossible values: Yes, No\n```")
+                item_creator_reply = await client.wait_for('message', timeout=60.0, check=check_author)
+                lowered_content = item_creator_reply.content.lower()
+                can_continue = check_item_consumable(lowered_content)
+                if not can_continue:
+                    await message.author.send("Wrong input. Try again.")
+                else:
+                    new_item[itemutils.ITEM_FIELD_CONSUMABLE] = True if lowered_content == "yes" else False
+            can_continue = False
+
+            # Is item attunable
+            def check_item_attunable(attunable):
+                lowered_attunable = attunable.lower()
+                return lowered_attunable == "yes" or lowered_attunable == "no"
+            while not can_continue:
+                await message.author.send("Is item **attunable**?\n```yaml\nPossible values: Yes, No\n```")
+                item_creator_reply = await client.wait_for('message', timeout=60.0, check=check_author)
+                lowered_content = item_creator_reply.content.lower()
+                can_continue = check_item_attunable(lowered_content)
+                if not can_continue:
+                    await message.author.send("Wrong input. Try again.")
+                else:
+                    new_item[itemutils.ITEM_FIELD_ATTUNEMENT] = True if lowered_content == "yes" else False
+            can_continue = False
+
+            # Is item banned from the Magic Shop
+            def check_item_banned(banned):
+                lowered_banned = banned.lower()
+                return lowered_banned == "yes" or lowered_banned == "no"
+            while not can_continue:
+                await message.author.send(
+                    "Is item **banned** from the Magic Shop?\n```yaml\nPossible values: Yes, No\n```")
+                item_creator_reply = await client.wait_for('message', timeout=60.0, check=check_author)
+                lowered_content = item_creator_reply.content.lower()
+                can_continue = check_item_banned(lowered_content)
+                if not can_continue:
+                    await message.author.send("Wrong input. Try again.")
+                else:
+                    new_item[itemutils.ITEM_FIELD_BANNED] = True if lowered_content == "yes" else False
+            can_continue = False
+
+            # Confirm item creation
+            confirmed = False
+
+            def check_confirmation(confirmation):
+                lowered_confirmation = confirmation.lower()
+                return lowered_confirmation == "yes" or lowered_confirmation == "no"
+            while not can_continue:
+                await message.author.send(
+                    "Confirm creation of item:\n" +
+                    itemutils.get_homebrew_item_confirmation_description(new_item) +
+                    "```yaml\nPossible values: Yes, No\n```")
+                item_creator_reply = await client.wait_for('message', timeout=300.0, check=check_author)
+                lowered_content = item_creator_reply.content.lower()
+                can_continue = check_confirmation(lowered_content)
+                if not can_continue:
+                    await message.author.send("Wrong input. Try again.")
+                else:
+                    confirmed = True if lowered_content == "yes" else False
+
+            if confirmed:
+                firebase.update_in_items(new_item)
+                await message.author.send(f'**{new_item[itemutils.ITEM_FIELD_NAME]}** was created.')
+            else:
+                await message.author.send(f'**{new_item[itemutils.ITEM_FIELD_NAME]}** was NOT created.')
 
 
 def is_admin(message) -> bool:
