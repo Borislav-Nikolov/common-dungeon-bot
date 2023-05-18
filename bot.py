@@ -189,23 +189,24 @@ async def handle_homebrew_commands(message, client):
         if keywords[1] == 'item':
             new_item = dict()
             new_item[itemutils.ITEM_FIELD_OFFICIAL] = False
-            can_continue = False
 
             def check_author(checked_message):
                 return checked_message.author.id == message.author.id
 
-            # TODO: extract repeating code if adequate
+            # TODO: apply function to the rest of the prompts
             # Input item name
-            def check_item_name(name):
-                return len(name) <= 48
-            while not can_continue:
-                await message.author.send("Input item **name**.\n```yaml\nMax 48 symbols.\n```")
-                item_creator_reply = await client.wait_for('message', timeout=60.0, check=check_author)
-                can_continue = check_item_name(item_creator_reply.content)
-                if not can_continue:
-                    await message.author.send("Item name is too long. Try again.")
-                else:
-                    new_item[itemutils.ITEM_FIELD_NAME] = item_creator_reply.content
+            await item_creation_prompt(
+                client=client,
+                message=message,
+                bot_message="Input item **name**.\n```yaml\nMax 48 symbols.\n```",
+                error_message="Item name is too long. Try again.",
+                timeout=60.0,
+                new_item=new_item,
+                new_item_parameter=itemutils.ITEM_FIELD_NAME,
+                check_input=lambda name: len(name) <= 48,
+                produce_result=lambda name: name
+            )
+
             can_continue = False
 
             # Input item description
@@ -339,3 +340,35 @@ def is_characters_info_channel(message) -> bool:
 
 def is_shop_channel(message) -> bool:
     return message.channel.id == firebase.get_shop_channel_id()
+
+
+async def item_creation_prompt(
+        client,
+        message,
+        bot_message: str,
+        error_message: str,
+        timeout,
+        new_item: dict,
+        new_item_parameter: str,
+        check_input,
+        produce_result
+):
+
+    can_continue = False
+
+    def check_author(checked_message):
+        return checked_message.author.id == message.author.id
+
+    try:
+        while not can_continue:
+            await message.author.send(bot_message)
+            item_creator_reply = await client.wait_for('message', timeout=timeout, check=check_author)
+            lowered_content = item_creator_reply.content.lower()
+            can_continue = check_input(lowered_content)
+            if not can_continue:
+                await message.author.send(error_message)
+            else:
+                new_item[new_item_parameter] = produce_result(lowered_content)
+    except asyncio.TimeoutError:
+        await message.author.send("Item creation timed out.")
+        raise Exception()
