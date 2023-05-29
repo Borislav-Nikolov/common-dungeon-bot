@@ -61,9 +61,10 @@ def get_unsold_item_row_string_emoji(
 
 
 def get_item_info_message(item: dict) -> str:
-    item_info_string = f'**Name:** {item[ITEM_FIELD_NAME]}\n'
-    item_info_string += f'**Rarity:** {item[ITEM_FIELD_RARITY]}, {item[ITEM_FIELD_RARITY_LEVEL]}\n'
-    item_info_string += f'**Requires attunement:** {"Yes" if item[ITEM_FIELD_ATTUNEMENT] else "No"}\n'
-    item_info_string += f'**Homebrew:** {"No" if item[ITEM_FIELD_OFFICIAL] else "Yes"}\n'
+    item_info_string = f'**Name:** {item[ITEM_FIELD_NAME]}\n' \
+                       f'**Rarity:** {item[ITEM_FIELD_RARITY]}, {item[ITEM_FIELD_RARITY_LEVEL]}\n' \
+                       f'**Requires attunement:** {"Yes" if item[ITEM_FIELD_ATTUNEMENT] else "No"}\n'
+    if item[ITEM_FIELD_OFFICIAL] is not None and not item[ITEM_FIELD_OFFICIAL]:
+        item_info_string += f'**Homebrew:** {"No" if item[ITEM_FIELD_OFFICIAL] else "Yes"}\n'
     item_info_string += f'**Description:** {item[ITEM_FIELD_DESCRIPTION]}\n'
     return item_info_string

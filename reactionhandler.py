@@ -19,14 +19,16 @@ async def handle_magic_shop_reaction(payload, channel, client):
         await shop_message.remove_reaction(payload.emoji, payload.member)
         raise Exception("Item not found in shop.")
 
+    bot_message = None
+
     def check_command_emoji(inner_payload):
         user_id = inner_payload.user_id
         emoji = inner_payload.emoji
-        return user_id == payload.user_id and (
+        return user_id == payload.user_id and bot_message.id == inner_payload.message_id and (
                     str(emoji) == accept_emoji or str(emoji) == decline_emoji or str(emoji) == info_emoji)
 
     bot_message = await dm_channel.send(f'<@{payload.user_id}>, are you sure you want to buy **{item_name}**?\n'
-                                        f'You can select the \U00002754 to learn about the item.')
+                                        f'You can select the {info_emoji} to learn about the item.')
     await bot_message.add_reaction(accept_emoji)
     await bot_message.add_reaction(decline_emoji)
     await bot_message.add_reaction(info_emoji)
