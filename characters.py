@@ -412,3 +412,14 @@ def add_class_to_character_data(character_data: dict, classes_to_levels: dict, i
         if is_primary:
             is_primary = False
         character_data[CHARACTER_FIELD_CLASSES].append(new_character_class)
+
+
+async def refresh_player_message(client, player_id):
+    await update_player_message(client, player_id, get_up_to_date_player_message(player_id))
+
+
+async def update_player_message(client, player_id, new_message):
+    players_channel = client.get_channel(firebase.get_character_info_channel_id())
+    player_message_id = firebase.get_player_message_id(player_id)
+    player_message = await players_channel.fetch_message(player_message_id)
+    await player_message.edit(content=new_message)
