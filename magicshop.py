@@ -143,12 +143,12 @@ def get_item_name_by_index(index: int) -> str:
             return item[ITEM_FIELD_NAME]
 
 
-def get_shop_item_description(item_index) -> str:
+def get_shop_item_description(item_index) -> list:
     items = firebase.get_magic_shop_items()
     for item in items:
         if item[SHOP_ITEM_FIELD_INDEX] == int(item_index) and ITEM_FIELD_DESCRIPTION in item:
-            return itemutils.get_item_info_message(item)
-    return "*couldn't find item description*"
+            return split_by_number_of_characters(itemutils.get_item_info_message(item), 2000)
+    return ["*couldn't find item description*"]
 
 
 def refund_item_by_index(player_id, item_index: int) -> str:

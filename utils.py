@@ -156,3 +156,8 @@ def index_to_emoji(index: int) -> str:
 
 def emoji_to_index(emoji: str) -> int:
     return letter_emojis.index(emoji) + 1
+
+
+def split_by_number_of_characters(text: str, number_of_characters: int) -> list:
+    return [text[i:i + number_of_characters] for i in range(0, len(text), number_of_characters)]
+

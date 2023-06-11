@@ -13,9 +13,10 @@ async def handle_magic_shop_reaction(payload, channel, client):
     item_name = magicshop.get_item_name_by_index(item_index)
     dm_channel = await payload.member.create_dm()
     if item_name is None:
-        await dm_channel.send(
-            'That item has already been sold.\n\n' + magicshop.get_shop_item_description(item_index)
-        )
+        item_description = magicshop.get_shop_item_description(item_index)
+        await dm_channel.send( 'That item has already been sold.')
+        for description_part in item_description:
+            await dm_channel.send(description_part)
         await shop_message.remove_reaction(payload.emoji, payload.member)
         raise Exception("Item not found in shop.")
 
@@ -56,7 +57,9 @@ async def handle_magic_shop_reaction(payload, channel, client):
             elif str(result_payload.emoji) == info_emoji:
                 result_payload = None
                 timeout = 300.0
-                await dm_channel.send(magicshop.get_shop_item_description(item_index))
+                item_description = magicshop.get_shop_item_description(item_index)
+                for description_part in item_description:
+                    await dm_channel.send(description_part)
     except asyncio.TimeoutError:
         await dm_channel.send(f'Order of **{item_name}** has timed out.')
         await shop_message.remove_reaction(payload.emoji, payload.member)

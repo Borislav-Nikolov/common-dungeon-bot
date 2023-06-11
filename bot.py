@@ -117,7 +117,8 @@ async def handle_shop_commands(message, client):
             if not item_index.isnumeric():
                 raise Exception("Invalid index format.")
             item_description = magicshop.get_shop_item_description(item_index)
-            await message.author.send(item_description)
+            for description_part in item_description:
+                await message.author.send(description_part)
 
 
 async def handle_character_commands(message, client):
