@@ -96,6 +96,10 @@ def update_in_players(player_data):
     players_ref.update(player_data)
 
 
+def update_in_items(item_data):
+    items_ref.update(item_data)
+
+
 def get_shop_message_id() -> int:
     return get_server_reference_id("message_id")
 
