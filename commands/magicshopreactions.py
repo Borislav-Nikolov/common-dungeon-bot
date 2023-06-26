@@ -1,7 +1,6 @@
 import asyncio
-import magicshop
-import utils
-import characters
+from util import utils
+from controller import characters, magicshop
 
 
 async def handle_magic_shop_reaction(payload, channel, client):

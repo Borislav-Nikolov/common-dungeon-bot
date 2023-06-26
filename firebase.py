@@ -1,20 +1,27 @@
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
-import json
 
+# TODO: split into different "source" files for items, shop, characters, servers/channels
 
-global items_ref
 global shop_ref
 global server_reference_ids_ref
 global players_ref
 
 
-def get_all_items_from_firebase():
-    return items_ref.get()
+def init_firebase(project: str, is_test: bool):
+    cred_obj = credentials.Certificate('serviceAccountKey.json')
+    firebase_admin.initialize_app(cred_obj, {'databaseURL': project})
+    prefix = "/test" if is_test else ""
+    global shop_ref
+    global server_reference_ids_ref
+    global players_ref
+    shop_ref = db.reference(f"{prefix}/magic_shop_items")
+    server_reference_ids_ref = db.reference(f"{prefix}/server_reference_ids")
+    players_ref = db.reference(f"{prefix}/players")
 
 
-def get_magic_shop_items():
+def get_magic_shop_items() -> list:
     return shop_ref.get()
 
 
@@ -34,30 +41,7 @@ def get_players(player_ids: list) -> dict:
     return player_list
 
 
-def init_firebase_refs(is_test: bool):
-    cred_obj = credentials.Certificate('serviceAccountKey.json')
-    firebase_admin.initialize_app(cred_obj, {
-        'databaseURL': 'https://commondungeonbot-default-rtdb.europe-west1.firebasedatabase.app/'
-    })
-    prefix = "/test" if is_test else ""
-    global items_ref
-    global shop_ref
-    global server_reference_ids_ref
-    global players_ref
-    # TODO: fix test item list in database
-    items_ref = db.reference(f"all_items")
-    shop_ref = db.reference(f"{prefix}/magic_shop_items")
-    server_reference_ids_ref = db.reference(f"{prefix}/server_reference_ids")
-    players_ref = db.reference(f"{prefix}/players")
-
-
-def init_in_firebase(json_path):
-    with open(json_path, 'r', encoding='utf-8') as items:
-        file_contents = json.load(items)
-    items_ref.set(file_contents)
-
-
-def set_in_magic_shop(items):
+def set_in_magic_shop(items: list):
     shop_ref.set(items)
 
 
@@ -97,10 +81,6 @@ def update_in_players(player_data):
     players_ref.update(player_data)
 
 
-def update_in_items(item_data):
-    items_ref.update(item_data)
-
-
 def get_shop_message_id() -> int:
     return get_server_reference_id("message_id")
 
@@ -109,10 +89,9 @@ def get_shop_channel_id() -> int:
     return get_server_reference_id("shop_channel_id")
 
 
-def get_character_info_channel_id() -> int:
+def get_characters_info_channel_id() -> int:
     return get_server_reference_id("character_info_channel_id")
 
 
 def get_server_reference_id(variable_name) -> int:
     return server_reference_ids_ref.get()[variable_name]
-
