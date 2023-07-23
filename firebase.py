@@ -44,7 +44,8 @@ def init_firebase_refs(is_test: bool):
     global shop_ref
     global server_reference_ids_ref
     global players_ref
-    items_ref = db.reference(f"{prefix}/all_items")
+    # TODO: fix test item list in database
+    items_ref = db.reference(f"all_items")
     shop_ref = db.reference(f"{prefix}/magic_shop_items")
     server_reference_ids_ref = db.reference(f"{prefix}/server_reference_ids")
     players_ref = db.reference(f"{prefix}/players")

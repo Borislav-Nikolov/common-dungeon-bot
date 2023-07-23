@@ -22,7 +22,7 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
     counter = 1
     for magic_item in magic_shop_list:
         if not(SHOP_ITEM_FIELD_QUANTITY in magic_item):
-            magic_item[SHOP_ITEM_FIELD_QUANTITY] = 1
+            magic_item[SHOP_ITEM_FIELD_QUANTITY] = infinite_quantity
         magic_item[SHOP_ITEM_FIELD_SOLD] = False
         magic_item[SHOP_ITEM_FIELD_INDEX] = counter
         magic_shop_string += get_unsold_item_row_string_emoji(counter, magic_item, SHOP_ITEM_FIELD_QUANTITY)
@@ -122,7 +122,7 @@ def sell_item(player_id, item_index) -> str:
                     item[ITEM_FIELD_RARITY],
                     item[ITEM_FIELD_RARITY_LEVEL]):
                 item_name_lower = item[ITEM_FIELD_NAME].lower()
-                is_consumable = False if item[ITEM_FIELD_CONSUMABLE] is None else item[ITEM_FIELD_CONSUMABLE]
+                is_consumable = False if not (ITEM_FIELD_CONSUMABLE in item) else item[ITEM_FIELD_CONSUMABLE]
                 is_probably_consumable = "potion" not in item_name_lower and "scroll" not in item_name_lower\
                                          and "ammunition" not in item_name_lower
                 if is_consumable or is_probably_consumable:
