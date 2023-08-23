@@ -21,7 +21,7 @@ def hardinit_player(player_id: str, player_data_json: str):
         characters.write("}")
     with open("../characters.json", "r") as character:
         data = json.load(character)
-        charactersprovider.add_or_update_players_data(data)
+        charactersprovider.add_or_update_players(data)
 
 
 def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
@@ -30,7 +30,7 @@ def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str)
     available_tokens = player.get_tokens_with_rarity_string(rarity)
     if tokens_to_subtract <= available_tokens:
         player.set_tokens_with_rarity_string(rarity, available_tokens - tokens_to_subtract)
-        charactersprovider.add_or_update_player_data(player)
+        charactersprovider.add_or_update_player(player)
         return True
     return False
 
@@ -46,7 +46,7 @@ def add_item_to_inventory(player_id, new_item: InventoryItem):
         new_item.index = len(player.inventory) + 1
         new_item.quantity = 1
         player.inventory.append(new_item)
-    charactersprovider.add_or_update_player_data(player)
+    charactersprovider.add_or_update_player(player)
 
 
 def get_inventory_string(player_id) -> str:
@@ -71,7 +71,7 @@ def refund_item_by_index(player_id, item_index: int) -> str:
     subtracted = subtract_item_from_inventory(player, item)
     if subtracted:
         add_tokens_to_player_for_rarity(player, item.rarity.rarity, item.rarity.rarity_level)
-        charactersprovider.add_or_update_player_data(player)
+        charactersprovider.add_or_update_player(player)
         return item.name
     return ""
 
@@ -102,7 +102,7 @@ def subtract_item_from_inventory(player: Player, item: InventoryItem) -> bool:
 def add_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
     player: Player = charactersprovider.get_player(player_id)
     add_tokens_to_player_for_rarity(player, rarity, rarity_level)
-    charactersprovider.add_or_update_player_data(player)
+    charactersprovider.add_or_update_player(player)
     return True
 
 
@@ -211,13 +211,13 @@ def add_session(csv_data) -> bool:
             if character_loop_index >= (len(player.characters) - 1):
                 raise Exception(f"Character name not found for player {player.name}")
     # upload in database
-    charactersprovider.add_or_update_players_data(players)
+    charactersprovider.add_or_update_players(players)
     return True
 
 
+# TODO: add models for the bot commands like: AddPlayerCommandData(name,character,class)
 # expected: player_id: <@1234> player_data_list: name=SomeName,character=CharName,class=Rogue
 def add_player(player_id: str, player_data_list: list):
-    # TODO: continue
     player_data = dict()
     player_data[player_id] = dict()
     player_name = ''
@@ -235,26 +235,29 @@ def add_player(player_id: str, player_data_list: list):
             character_class = argument
     if len(player_name) == 0 or len(character_name) == 0 or len(character_class) == 0:
         raise Exception("Invalid new player input provided.")
-    player_data[player_id][PLAYER_FIELD_NAME] = player_name
-    class_data = dict()
-    class_data[CLASS_FIELD_NAME] = character_class
-    class_data[CLASS_FIELD_LEVEL] = 1
-    class_data[CLASS_FIELD_IS_PRIMARY] = True
-    character_data = dict()
-    character_data[CHARACTER_FIELD_NAME] = character_name
-    character_data[CHARACTER_FIELD_LEVEL] = 1
-    character_data[CHARACTER_FIELD_SESSIONS] = 0
-    character_data[CHARACTER_FIELD_LAST_DM] = "no one yet"
-    character_data[CHARACTER_FIELD_CLASSES] = list()
-    character_data[CHARACTER_FIELD_CLASSES].append(class_data)
-    player_data[player_id][PLAYER_FIELD_CHARACTERS] = list()
-    player_data[player_id][PLAYER_FIELD_CHARACTERS].append(character_data)
-    player_data[player_id][PLAYER_FIELD_COMMON_TOKENS] = 0
-    player_data[player_id][PLAYER_FIELD_UNCOMMON_TOKENS] = 0
-    player_data[player_id][PLAYER_FIELD_RARE_TOKENS] = 0
-    player_data[player_id][PLAYER_FIELD_VERY_RARE_TOKENS] = 0
-    player_data[player_id][PLAYER_FIELD_LEGENDARY_TOKENS] = 0
-    charactersprovider.add_or_update_players_data(player_data)
+    charactersprovider.add_or_update_player(
+        Player(
+            player_id=player_id,
+            name=player_name,
+            common_tokens=0,
+            uncommon_tokens=0,
+            rare_tokens=0,
+            very_rare_tokens=0,
+            legendary_tokens=0,
+            characters=[Character(
+                character_name=character_name,
+                character_level=1,
+                classes=[CharacterClass(
+                    class_name=character_class,
+                    level=1,
+                    is_primary=True
+                )],
+                last_dm="no one yet",
+                sessions_on_this_level=0
+            )],
+            inventory=list[InventoryItem]()
+        )
+    )
 
 
 # expected: player_id: <@1234> character_data_list: name=SomeName,class=Rogue,level=2
@@ -281,65 +284,65 @@ def add_character(player_id: str, character_data_list: list):
             character_level += 1
         elif classes_to_level[class_name] == 0:
             raise Exception(f'Level not specified for class: {class_name}')
-    player_data = charactersprovider.get_player(player_id)
-    new_character = dict()
-    new_character[CHARACTER_FIELD_NAME] = character_name
-    new_character[CHARACTER_FIELD_LEVEL] = character_level
-    new_character[CHARACTER_FIELD_LAST_DM] = 'no one yet'
-    new_character[CHARACTER_FIELD_SESSIONS] = 0
-    new_character[CHARACTER_FIELD_CLASSES] = list()
+    player: Player = charactersprovider.get_player(player_id)
+    new_character = Character(
+        character_name=character_name,
+        character_level=character_level,
+        classes=list[CharacterClass](),
+        last_dm='no one yet',
+        sessions_on_this_level=0
+    )
     add_class_to_character_data(new_character, classes_to_level, True)
-    player_data[PLAYER_FIELD_CHARACTERS].append(new_character)
-    update_player(player_id, player_data)
+    player.characters.append(new_character)
+    charactersprovider.add_or_update_player(player)
 
 
 def delete_character(player_id, character_name):
-    player_data = charactersprovider.get_player(player_id)
+    player: Player = charactersprovider.get_player(player_id)
     index = -1
-    for character in player_data[PLAYER_FIELD_CHARACTERS]:
+    for character in player.characters:
         index += 1
-        if character[CHARACTER_FIELD_NAME] == character_name:
-            player_data[PLAYER_FIELD_CHARACTERS].pop(index)
+        if character.character_name == character_name:
+            player.characters.pop(index)
             break
-    update_player(player_id, player_data)
+    charactersprovider.add_or_update_player(player)
 
 
 def change_character_name(player_id, old_name, new_name):
-    player_data = charactersprovider.get_player(player_id)
-    character = find_character_or_throw(player_data, old_name)
-    character[CHARACTER_FIELD_NAME] = new_name
-    update_player(player_id, player_data)
+    player: Player = charactersprovider.get_player(player_id)
+    character = find_character_or_throw(player, old_name)
+    character.character_name = new_name
+    charactersprovider.add_or_update_player(player)
 
 
 def swap_class_levels(player_id, character_name, class_to_remove_from, class_to_add_to):
-    player_data = charactersprovider.get_player(player_id)
-    character = find_character_or_throw(player_data, character_name)
+    player = charactersprovider.get_player(player_id)
+    character = find_character_or_throw(player, character_name)
     was_level_removed = False
     was_level_added = False
-    for class_data in character[CHARACTER_FIELD_CLASSES]:
-        class_name = class_data[CLASS_FIELD_NAME]
-        if class_name == class_to_remove_from:
-            if class_data[CLASS_FIELD_LEVEL] <= 1:
+    for character_class in character.classes:
+        if character_class.class_name == class_to_remove_from:
+            if character_class.level <= 1:
                 raise Exception("Class to remove from must be of level higher than 1.")
             else:
-                class_data[CLASS_FIELD_LEVEL] -= 1
+                character_class.level -= 1
                 was_level_removed = True
-        elif class_name == class_to_add_to:
-            if class_data[CLASS_FIELD_LEVEL] >= 20:
+        elif character_class.class_name == class_to_add_to:
+            if character_class.level >= 20:
                 raise Exception("Class to add to must be of level lower than 20.")
             else:
-                class_data[CLASS_FIELD_LEVEL] += 1
+                character_class.level += 1
                 was_level_added = True
     if not was_level_removed:
         raise Exception("Class to remove from was not found.")
     elif was_level_removed and not was_level_added:
         add_class_to_character_data(character, {class_to_add_to: 1}, False)
-    update_player(player_id, player_data)
+    charactersprovider.add_or_update_player(player)
 
 
-def find_character_or_throw(player_data, character_name) -> dict:
-    for character in player_data[PLAYER_FIELD_CHARACTERS]:
-        if character[CHARACTER_FIELD_NAME] == character_name:
+def find_character_or_throw(player: Player, character_name) -> Character:
+    for character in player.characters:
+        if character.character_name == character_name:
             return character
     raise Exception("Character not found.")
 

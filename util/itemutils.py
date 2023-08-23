@@ -17,11 +17,8 @@ def get_unsold_item_row_string(magic_item: InventoryItem) -> str:
     return magic_item_string
 
 
-def get_sold_item_row_string(
-        index: int,
-        magic_item: ShopItem
-) -> str:
-    magic_item_string = f'~~{index}) {magic_item.name} - '
+def get_sold_item_row_string(magic_item: ShopItem) -> str:
+    magic_item_string = f'~~{magic_item.index}) {magic_item.name} - '
     item_quantity = magic_item.quantity
     if item_quantity != 1 and item_quantity != 0:
         magic_item_string += 'quantity: '
@@ -32,12 +29,9 @@ def get_sold_item_row_string(
     return magic_item_string
 
 
-def get_unsold_item_row_string_emoji(
-        index: int,
-        magic_item: ShopItem
-) -> str:
-    emoji = utils.index_to_emoji(index)
-    magic_item_string = f'{index} - {emoji}) **{magic_item.name}** - '
+def get_unsold_item_row_string_emoji(magic_item: ShopItem) -> str:
+    emoji = utils.index_to_emoji(magic_item.index)
+    magic_item_string = f'{magic_item.index} - {emoji}) **{magic_item.name}** - '
     item_quantity = magic_item.quantity
     if item_quantity != 1 and item_quantity != 0:
         magic_item_string += 'quantity: '

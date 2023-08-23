@@ -2,10 +2,6 @@ from __future__ import print_function
 
 from controller import characters
 from provider import magicshopprovider, itemsprovider
-from model.item import Item
-from model.shopitem import ShopItem
-from model.player import Player
-from provider import charactersprovider
 import random
 import copy
 
@@ -35,7 +31,8 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
             index=counter,
             sold=False
         )
-        magic_shop_string += get_unsold_item_row_string_emoji(counter, new_shop_item)
+        shop_items.append(new_shop_item)
+        magic_shop_string += get_unsold_item_row_string_emoji(new_shop_item)
         counter += 1
     magicshopprovider.set_in_magic_shop(shop_items)
     return magic_shop_string
@@ -63,7 +60,7 @@ def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
             # add only potion of healing for now
             if item.name == "Potion of Healing":
                 potion_of_healing = item
-        elif rarity == UNCOMMON and max_rarity_ordinal >= UNCOMMON_ORDINAL:
+        elif rarity.rarity == UNCOMMON and max_rarity_ordinal >= UNCOMMON_ORDINAL:
             uncommon.append(item)
             filtered_items.append(item)
         elif rarity.rarity == RARE and max_rarity_ordinal >= RARE_ORDINAL:
@@ -103,44 +100,36 @@ def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
 
 
 def get_current_shop_string() -> str:
-    items = magicshopprovider.get_magic_shop_items()
+    items: list[ShopItem] = magicshopprovider.get_magic_shop_items()
     final_string = ''
     for item in items:
-        if item[SHOP_ITEM_FIELD_SOLD] is False:
-            final_string += get_unsold_item_row_string_emoji(item[SHOP_ITEM_FIELD_INDEX], item)
+        if item.sold is False:
+            final_string += get_unsold_item_row_string_emoji(item)
         else:
-            final_string += get_sold_item_row_string(item[SHOP_ITEM_FIELD_INDEX], item)
+            final_string += get_sold_item_row_string(item)
     return final_string
 
 
 def sell_item(player_id, item_index) -> str:
-    items = magicshopprovider.get_magic_shop_items()
+    items: list[ShopItem] = magicshopprovider.get_magic_shop_items()
     sold_item_name = ''
     sold = False
     for item in items:
-        if item[SHOP_ITEM_FIELD_INDEX] == item_index and item[SHOP_ITEM_FIELD_SOLD] is False:
-            if item[SHOP_ITEM_FIELD_QUANTITY] != infinite_quantity:
-                item[SHOP_ITEM_FIELD_QUANTITY] = item[SHOP_ITEM_FIELD_QUANTITY] - 1
-                quantity = item[SHOP_ITEM_FIELD_QUANTITY]
+        if item.index == item_index and item.sold is False:
+            if item.quantity != infinite_quantity:
+                item.quantity = item.quantity - 1
+                quantity = item.quantity
                 if quantity < 0:
-                    raise Exception("Item quantity reached.")
+                    raise Exception("Item already sold.")
                 if quantity == 0:
-                    item[SHOP_ITEM_FIELD_SOLD] = True
-            if characters.subtract_player_tokens_for_rarity(
-                    player_id,
-                    item[ITEM_FIELD_RARITY],
-                    item[ITEM_FIELD_RARITY_LEVEL]):
-                item_name_lower = item[ITEM_FIELD_NAME].lower()
-                is_consumable = False if not (ITEM_FIELD_CONSUMABLE in item) else item[ITEM_FIELD_CONSUMABLE]
+                    item.sold = True
+            if characters.subtract_player_tokens_for_rarity(player_id, item.rarity.rarity, item.rarity.rarity_level):
+                item_name_lower = item.name.lower()
                 is_probably_consumable = "potion" not in item_name_lower and "scroll" not in item_name_lower\
                                          and "ammunition" not in item_name_lower
-                if is_consumable or is_probably_consumable:
-                    item_copy = copy.deepcopy(item)
-                    del item_copy[SHOP_ITEM_FIELD_QUANTITY]
-                    del item_copy[SHOP_ITEM_FIELD_INDEX]
-                    del item_copy[SHOP_ITEM_FIELD_SOLD]
-                    characters.add_item_to_inventory(player_id, item_copy)
-                sold_item_name = item[ITEM_FIELD_NAME]
+                if item.consumable or is_probably_consumable:
+                    characters.add_item_to_inventory(player_id, item)
+                sold_item_name = item.name
                 sold = True
     if sold:
         magicshopprovider.set_in_magic_shop(items)
@@ -150,14 +139,14 @@ def sell_item(player_id, item_index) -> str:
 def get_item_name_by_index(index: int) -> str:
     items = magicshopprovider.get_magic_shop_items()
     for item in items:
-        if item[SHOP_ITEM_FIELD_INDEX] == index and not item[SHOP_ITEM_FIELD_SOLD]:
-            return item[ITEM_FIELD_NAME]
+        if item.index == index and not item.sold:
+            return item.name
 
 
 def get_shop_item_description(item_index) -> list:
     items = magicshopprovider.get_magic_shop_items()
     for item in items:
-        if item[SHOP_ITEM_FIELD_INDEX] == int(item_index) and ITEM_FIELD_DESCRIPTION in item:
+        if item.index == int(item_index):
             return split_by_number_of_characters(itemutils.get_item_info_message(item), 2000)
     return ["*couldn't find item description*"]
 

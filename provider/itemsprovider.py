@@ -18,9 +18,9 @@ def get_all_items() -> list[Item]:
                     rarity_level=item[ITEM_FIELD_RARITY_LEVEL]
                 ),
                 attunement=item[ITEM_FIELD_ATTUNEMENT],
-                consumable=item[ITEM_FIELD_CONSUMABLE],
-                official=item[ITEM_FIELD_OFFICIAL],
-                banned=item[ITEM_FIELD_BANNED]
+                consumable=False if ITEM_FIELD_CONSUMABLE not in item else item[ITEM_FIELD_CONSUMABLE],
+                official=False if ITEM_FIELD_OFFICIAL not in item else item[ITEM_FIELD_OFFICIAL],
+                banned=False if ITEM_FIELD_BANNED not in item else item[ITEM_FIELD_BANNED]
             )
         )
     return items
