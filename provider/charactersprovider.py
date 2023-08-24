@@ -1,10 +1,10 @@
-import firebase
 from model.player import Player
 from model.character import Character
 from model.characterclass import CharacterClass
 from model.inventoryitem import InventoryItem
 from model.rarity import rarity_strings_to_rarity
 from provider.sourcefields import *
+from source import playerssource
 
 
 def add_or_update_player(player: Player):
@@ -61,16 +61,16 @@ def add_or_update_players(players: list[Player]):
                 )
             )
         }
-    firebase.update_in_players(player_data)
+    playerssource.update_in_players(player_data)
 
 
 def get_player(player_id) -> Player:
-    player_data = firebase.get_player(player_id)
+    player_data = playerssource.get_player(player_id)
     return map_player_object(player_id, player_data)
 
 
 def get_players(player_ids: list) -> list[Player]:
-    players_data = firebase.get_players(player_ids)
+    players_data = playerssource.get_players(player_ids)
     return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
 
 

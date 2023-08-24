@@ -1,15 +1,15 @@
-import firebase
 from model.shopitem import ShopItem
 from provider.sourcefields import *
 from model.rarity import rarity_strings_to_rarity
+from source import magicshopsource, channelssource
 
 
 def get_shop_channel_id() -> int:
-    return firebase.get_shop_channel_id()
+    return channelssource.get_shop_channel_id()
 
 
 def get_shop_message_id() -> int:
-    return firebase.get_shop_message_id()
+    return channelssource.get_shop_message_id()
 
 
 def set_in_magic_shop(items: list[ShopItem]):
@@ -31,11 +31,11 @@ def set_in_magic_shop(items: list[ShopItem]):
                 SHOP_ITEM_FIELD_SOLD: item.sold
             }
         )
-    firebase.set_in_magic_shop(items_data)
+    magicshopsource.set_in_magic_shop(items_data)
 
 
 def get_magic_shop_items() -> list[ShopItem]:
-    shop_items_data = firebase.get_magic_shop_items()
+    shop_items_data = magicshopsource.get_magic_shop_items()
     shop_items = list[ShopItem]()
     for source_item in shop_items_data:
         shop_items.append(
