@@ -5,6 +5,7 @@ from model.player import Player
 from model.character import Character
 from model.inventoryitem import InventoryItem
 from model.characterclass import CharacterClass
+from model.addsessiondata import AddSessionData
 
 
 PARAMETER_NAME = "name"
@@ -142,29 +143,21 @@ def get_up_to_date_player_message(player_id) -> str:
     return f'{player_string}{characters_string}'
 
 
-# $characters.addsession.<@1234>-PCName-OptClassName,<@1234>-PCName-OptClassName,<@1234>-PCName-OptClassName
-def add_session(csv_data) -> bool:
-    split_data = split_strip(csv_data, ',')
-    player_id_to_character_and_class = {
-        utils.strip_id_tag(
-            id_to_character[0:id_to_character.find('-')]
-        ): split_strip(id_to_character[id_to_character.find('-') + 1:], '-')
-        for id_to_character in split_data
-    }
-    player_ids = list(map(lambda it: utils.strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
+def add_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
+    player_ids = list(player_id_to_data.keys())
     players: list[Player] = charactersprovider.get_players(player_ids)
-    if len(players) != len(split_data):
+    if len(players) != len(player_ids):
         raise Exception("Invalid player data provided.")
     dungeon_master = None
     # Find dungeon master
     for potential_dm in players:
-        if potential_dm.player_id == player_ids[0]:
+        if player_id_to_data[potential_dm.player_id].is_dm:
             dungeon_master = potential_dm
             break
     for player in players:
         character_loop_index = 0
         for character in player.characters:
-            if character.character_name == player_id_to_character_and_class[player.player_id][0]:
+            if character.character_name == player_id_to_data[player.player_id].character_name:
                 # assign tokens
                 player.common_tokens += 1
                 player.uncommon_tokens += 1
@@ -186,9 +179,8 @@ def add_session(csv_data) -> bool:
                         class_index = 0
                         for character_class in character.classes:
                             is_last_class = class_index == (len(character.classes) - 1)
-                            has_class_param = len(player_id_to_character_and_class[player.player_id]) == 2
-                            class_param = '' if not has_class_param\
-                                else player_id_to_character_and_class[player.player_id][1]
+                            has_class_param = player_id_to_data[player.player_id].class_name is not None
+                            class_param = '' if not has_class_param else player_id_to_data[player.player_id].class_name
                             if has_class_param and class_param == character_class.class_name:
                                 character_class.level += 1
                                 leveled_up = True
@@ -215,7 +207,6 @@ def add_session(csv_data) -> bool:
     return True
 
 
-# TODO: add models for the bot commands like: AddPlayerCommandData(name,character,class)
 # expected: player_id: <@1234> player_data_list: name=SomeName,character=CharName,class=Rogue
 def add_player(player_id: str, player_data_list: list):
     player_data = dict()

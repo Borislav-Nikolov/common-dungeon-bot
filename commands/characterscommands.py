@@ -1,6 +1,8 @@
+import model.addsessiondata
 from controller import characters
 from provider import channelsprovider
 from util import utils, botutils
+from model.addsessiondata import AddSessionData
 
 
 async def handle_character_commands(message, client):
@@ -42,12 +44,22 @@ async def handle_hardinit(client, player_tag, json_data):
     await players_channel.send(characters.get_up_to_date_player_message(player_id))
 
 
+# TODO: Do the same for the rest of the commands as for this function, meaning:
+#  Add a model class for the input and documentation.
 async def handle_addsession(client, message, session_data_csv):
-    if characters.add_session(session_data_csv):
-        split_data = utils.split_strip(session_data_csv, ',')
-        player_ids = list(
-            map(lambda it: utils.strip_id_tag(it if it.find('-') == -1 else it[0:it.find('-')]), split_data))
-        for player_id in player_ids:
+    """
+     Expected input for `session_data_csv`:
+        1) Player ID - required.
+            1.1) The first player is always taken as the Dungeon Master.
+        2) Character name - required even for the Dungeon Master.
+        3) Class name if the character is expected to level up => optional.
+            3.1) If class name is not provided, the character's main class will be leveled up.
+        Example raw input for 3 players:
+        '@<1234> - Bob, @<5678> - Alice - Rogue, @<9012> - Dave'
+    """
+    id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
+    if characters.add_session(id_to_data):
+        for player_id in id_to_data:
             await characters.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
     else:

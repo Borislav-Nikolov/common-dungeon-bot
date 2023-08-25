@@ -3,10 +3,12 @@ from util import utils, botutils, itemutils
 from controller import homebrew
 
 
+# TODO: Needs serious revision and finishing.
 async def handle_homebrew_commands(message, client):
     homebrew_key = '$homebrew'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
-    if keywords[0] == homebrew_key and botutils.is_admin(message):
+    # `False` because temporarily disabled
+    if False and keywords[0] == homebrew_key and botutils.is_admin(message):
         if keywords[1] == 'item':
             new_item = dict()
             new_item[itemutils.ITEM_FIELD_OFFICIAL] = False
