@@ -1,4 +1,3 @@
-import model
 from util import utils
 
 
@@ -10,8 +9,8 @@ class AddSessionData:
         self.is_dm: bool = is_dm
 
     @staticmethod
-    def id_to_data_from_command_input(command_input: str) -> dict[str, model.addsessiondata.AddSessionData]:
-        id_to_add_session_data = dict()
+    def id_to_data_from_command_input(command_input: str):
+        id_to_add_session_data = dict[str, AddSessionData]()
         for single_player_data in utils.split_strip(command_input, ','):
             single_player_data_list = utils.split_strip(single_player_data, '-')
             player_id = utils.strip_id_tag(single_player_data_list[0])

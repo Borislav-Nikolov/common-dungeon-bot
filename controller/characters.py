@@ -1,4 +1,3 @@
-import json
 from provider import charactersprovider, channelsprovider
 from util.itemutils import *
 from model.player import Player
@@ -12,17 +11,6 @@ PARAMETER_NAME = "name"
 PARAMETER_CHARACTER = "character"
 PARAMETER_CLASS = "class"
 PARAMETER_LEVEL = "level"
-
-
-def hardinit_player(player_id: str, player_data_json: str):
-    with open('../characters.json', 'w', encoding="utf-8") as characters:
-        characters.write('{')
-        characters.write(f'"{player_id}":')
-        characters.write(player_data_json)
-        characters.write("}")
-    with open("../characters.json", "r") as character:
-        data = json.load(character)
-        charactersprovider.add_or_update_players(data)
 
 
 def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
@@ -200,7 +188,7 @@ def add_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
                         character.last_dm = dungeon_master.name
                 break
             character_loop_index += 1
-            if character_loop_index >= (len(player.characters) - 1):
+            if character_loop_index > (len(player.characters) - 1):
                 raise Exception(f"Character name not found for player {player.name}")
     # upload in database
     charactersprovider.add_or_update_players(players)

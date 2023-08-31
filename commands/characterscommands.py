@@ -10,38 +10,26 @@ async def handle_character_commands(message, client):
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     if keywords[0] == characters_key:
         # ADMIN COMMANDS
-        if botutils.is_admin(message):
-            # ALL CHANNELS
-            if keywords[1] == "hardinit":
-                await handle_hardinit(client, player_tag=keywords[2], json_data=keywords[3])
-            # CHARACTERS INFO CHANNEL COMMANDS
-            elif botutils.is_characters_info_channel(message):
-                if keywords[1] == "addsession":
-                    await handle_addsession(client, message, session_data_csv=keywords[2])
-                elif keywords[1] == "addplayer":
-                    await handle_addplayer(client, player_data_csv=keywords[2])
-                elif keywords[1] == "addcharacter":
-                    await handle_addcharacter(client, data_csv=keywords[2])
-                elif keywords[1] == "deletecharacter":
-                    await handle_deletecharacter(client, player_id_char_name_csv=keywords[2])
-                elif keywords[1] == "changename":
-                    await handle_changename(client, player_id_names_csv=keywords[2])
-                elif keywords[1] == "swapclasslevels":
-                    await handle_swapclasslevels(client, player_id_and_params_csv=keywords[2])
-                elif keywords[1] == "repost":
-                    await handle_repost(client, player_tag=keywords[2])
+        if botutils.is_admin(message) and botutils.is_characters_info_channel(message):
+            if keywords[1] == "addsession":
+                await handle_addsession(client, message, session_data_csv=keywords[2])
+            elif keywords[1] == "addplayer":
+                await handle_addplayer(client, player_data_csv=keywords[2])
+            elif keywords[1] == "addcharacter":
+                await handle_addcharacter(client, data_csv=keywords[2])
+            elif keywords[1] == "deletecharacter":
+                await handle_deletecharacter(client, player_id_char_name_csv=keywords[2])
+            elif keywords[1] == "changename":
+                await handle_changename(client, player_id_names_csv=keywords[2])
+            elif keywords[1] == "swapclasslevels":
+                await handle_swapclasslevels(client, player_id_and_params_csv=keywords[2])
+            elif keywords[1] == "repost":
+                await handle_repost(message, player_tag=keywords[2])
         # NON-ADMIN COMMANDS
         else:
             # ALL CHANNELS
             if keywords[1] == "inventory":
                 await handle_inventory_prompt(message)
-
-
-async def handle_hardinit(client, player_tag, json_data):
-    player_id = utils.strip_id_tag(player_tag)
-    characters.hardinit_player(player_id, json_data)
-    players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
-    await players_channel.send(characters.get_up_to_date_player_message(player_id))
 
 
 # TODO: Do the same for the rest of the commands as for this function, meaning:
@@ -113,7 +101,9 @@ async def handle_swapclasslevels(client, player_id_and_params_csv):
 
 async def handle_repost(message, player_tag):
     player_id = utils.strip_id_tag(player_tag)
-    await message.channel.send(characters.get_up_to_date_player_message(player_id))
+    new_player_message = await message.channel.send(characters.get_up_to_date_player_message(player_id))
+    content = str(new_player_message.content)
+    channelsprovider.set_player_message_id(utils.strip_id_tag(content), new_player_message.id)
 
 
 async def handle_inventory_prompt(message):

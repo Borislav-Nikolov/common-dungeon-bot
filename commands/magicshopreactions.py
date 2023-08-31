@@ -13,7 +13,7 @@ async def handle_magic_shop_reaction(payload, channel, client):
     dm_channel = await payload.member.create_dm()
     if item_name is None:
         item_description = magicshop.get_shop_item_description(item_index)
-        await dm_channel.send( 'That item has already been sold.')
+        await dm_channel.send('That item has already been sold.')
         for description_part in item_description:
             await dm_channel.send(description_part)
         await shop_message.remove_reaction(payload.emoji, payload.member)
