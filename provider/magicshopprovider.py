@@ -45,9 +45,9 @@ def get_magic_shop_items() -> list[ShopItem]:
                 price=source_item[ITEM_FIELD_PRICE],
                 rarity=rarity_strings_to_rarity(source_item[ITEM_FIELD_RARITY], source_item[ITEM_FIELD_RARITY_LEVEL]),
                 attunement=source_item[ITEM_FIELD_ATTUNEMENT],
-                consumable=source_item[ITEM_FIELD_CONSUMABLE],
-                official=source_item[ITEM_FIELD_OFFICIAL],
-                banned=source_item[ITEM_FIELD_BANNED],
+                consumable=False if ITEM_FIELD_CONSUMABLE not in source_item else source_item[ITEM_FIELD_CONSUMABLE],
+                official=False if ITEM_FIELD_OFFICIAL not in source_item else source_item[ITEM_FIELD_OFFICIAL],
+                banned=False if ITEM_FIELD_BANNED not in source_item else source_item[ITEM_FIELD_BANNED],
                 quantity=source_item[INVENTORY_ITEM_FIELD_QUANTITY],
                 index=source_item[INVENTORY_ITEM_FIELD_INDEX],
                 sold=source_item[SHOP_ITEM_FIELD_SOLD]
