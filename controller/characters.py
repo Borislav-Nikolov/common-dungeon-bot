@@ -42,7 +42,7 @@ def get_inventory_string(player_id) -> str:
     inventory = charactersprovider.get_player(player_id).inventory
     inventory_string = ""
     for item in inventory:
-        inventory_string += get_unsold_item_row_string(magic_item=item)
+        inventory_string += get_inventory_item_row_string(magic_item=item)
     return inventory_string if len(inventory_string) != 0 else "*inventory is empty*"
 
 

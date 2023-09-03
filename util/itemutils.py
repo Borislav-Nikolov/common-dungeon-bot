@@ -5,7 +5,7 @@ from model.inventoryitem import InventoryItem
 from model.item import Item
 
 
-def get_unsold_item_row_string(magic_item: InventoryItem) -> str:
+def get_inventory_item_row_string(magic_item: InventoryItem) -> str:
     magic_item_string = f'{magic_item.index}) **{magic_item.name}** - '
     item_quantity = magic_item.quantity
     if item_quantity != 1 and item_quantity != 0:
@@ -32,12 +32,6 @@ def get_sold_item_row_string(magic_item: ShopItem) -> str:
 def get_unsold_item_row_string_emoji(magic_item: ShopItem) -> str:
     emoji = utils.index_to_emoji(magic_item.index)
     magic_item_string = f'{magic_item.index} - {emoji}) **{magic_item.name}** - '
-    item_quantity = magic_item.quantity
-    if item_quantity != 1 and item_quantity != 0:
-        magic_item_string += 'quantity: '
-        quantity_string = str(item_quantity) if item_quantity != infinite_quantity else '*infinite*'
-        magic_item_string += f'{quantity_string}, '
-        magic_item_string += 'cost: '
     magic_item_string += f'{tokens_per_rarity(magic_item.rarity.rarity, magic_item.rarity.rarity_level)}\n'
     return magic_item_string
 
