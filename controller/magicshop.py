@@ -45,21 +45,17 @@ def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
     character_rarity_ordinal_list = list(map(lambda it: level_to_rarity_ordinal(int(it)), character_levels_list))
     character_rarity_ordinal_list.sort(reverse=True)
     max_rarity_ordinal = max(character_rarity_ordinal_list)
-    items_from_firebase: list[Item] = itemsprovider.get_all_items()
+    items_from_firebase: list[Item] = itemsprovider.get_all_major_items()
     filtered_items = list()
     common = list()
     uncommon = list()
     rare = list()
     very_rare = list()
     legendary = list()
-    potion_of_healing = None
     for item in items_from_firebase:
         rarity = item.rarity
         if rarity.rarity == COMMON and max_rarity_ordinal >= COMMON_ORDINAL:
             common.append(item)
-            # add only potion of healing for now
-            if item.name == "Potion of Healing":
-                potion_of_healing = item
         elif rarity.rarity == UNCOMMON and max_rarity_ordinal >= UNCOMMON_ORDINAL:
             uncommon.append(item)
             filtered_items.append(item)
@@ -76,6 +72,10 @@ def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
     for character_rarity_ordinal in character_rarity_ordinal_list:
         if character_rarity_ordinal == COMMON_ORDINAL:
             common_item_clone = copy.deepcopy(random.choice(common))
+            approved = False
+            # while not approved:
+            #     for magic_item in magic_shop_list:
+                    
             magic_shop_list.append(common_item_clone)
         elif character_rarity_ordinal == UNCOMMON_ORDINAL:
             uncommon_item_clone = copy.deepcopy(random.choice(uncommon))
@@ -90,12 +90,15 @@ def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
             legendary_item_clone = copy.deepcopy(random.choice(legendary))
             magic_shop_list.append(legendary_item_clone)
 
-    remaining_number = (SHOP_MAX_NUMBER_OF_ITEMS - 1) - len(magic_shop_list)
+    remaining_number = SHOP_MAX_NUMBER_OF_ITEMS - len(magic_shop_list)
     if remaining_number > 0:
         rest_items = random.sample(filtered_items, remaining_number)
         for item in rest_items:
             magic_shop_list.append(item)
-    magic_shop_list.append(potion_of_healing)
+    counter = 1
+    for item in magic_shop_list:
+        print(f'{counter}) {item}')
+        counter = counter + 1
     return magic_shop_list
 
 

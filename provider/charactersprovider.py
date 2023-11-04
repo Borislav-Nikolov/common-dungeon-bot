@@ -3,7 +3,7 @@ from model.character import Character
 from model.characterclass import CharacterClass
 from model.inventoryitem import InventoryItem
 from model.rarity import rarity_strings_to_rarity
-from provider.sourcefields import *
+from source.sourcefields import *
 from source import playerssource
 
 
