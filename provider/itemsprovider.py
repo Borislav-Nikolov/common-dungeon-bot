@@ -1,12 +1,23 @@
 from source import itemssource
 from model.rarity import rarity_strings_to_rarity
-from provider.sourcefields import *
+from source.sourcefields import *
 from model.item import Item
 
 
 def get_all_items() -> list[Item]:
+    return map_item_data_to_item_list(itemssource.get_all_items())
+
+
+def get_all_major_items() -> list[Item]:
+    return map_item_data_to_item_list(itemssource.get_all_major_items())
+
+
+def get_all_minor_items() -> list[Item]:
+    return map_item_data_to_item_list(itemssource.get_all_minor_items())
+
+
+def map_item_data_to_item_list(items_data: list) -> list[Item]:
     items: list[Item] = list()
-    items_data: dict = itemssource.get_all_items()
     for item in items_data:
         items.append(
             Item(

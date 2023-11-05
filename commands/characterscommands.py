@@ -1,4 +1,3 @@
-import model.addsessiondata
 from controller import characters
 from provider import channelsprovider
 from util import utils, botutils
@@ -10,26 +9,34 @@ async def handle_character_commands(message, client):
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     if keywords[0] == characters_key:
         # ADMIN COMMANDS
-        if botutils.is_admin(message) and botutils.is_characters_info_channel(message):
-            if keywords[1] == "addsession":
-                await handle_addsession(client, message, session_data_csv=keywords[2])
-            elif keywords[1] == "addplayer":
-                await handle_addplayer(client, player_data_csv=keywords[2])
-            elif keywords[1] == "addcharacter":
-                await handle_addcharacter(client, data_csv=keywords[2])
-            elif keywords[1] == "deletecharacter":
-                await handle_deletecharacter(client, player_id_char_name_csv=keywords[2])
-            elif keywords[1] == "changename":
-                await handle_changename(client, player_id_names_csv=keywords[2])
-            elif keywords[1] == "swapclasslevels":
-                await handle_swapclasslevels(client, player_id_and_params_csv=keywords[2])
-            elif keywords[1] == "repost":
-                await handle_repost(message, player_tag=keywords[2])
+        if botutils.is_admin(message):
+            # CHARACTERS INFO CHANNEL
+            if botutils.is_characters_info_channel(message):
+                if keywords[1] == "addsession":
+                    await handle_addsession(client, message, session_data_csv=keywords[2])
+                elif keywords[1] == "addplayer":
+                    await handle_addplayer(client, player_data_csv=keywords[2])
+                elif keywords[1] == "addcharacter":
+                    await handle_addcharacter(client, data_csv=keywords[2])
+                elif keywords[1] == "deletecharacter":
+                    await handle_deletecharacter(client, player_id_char_name_csv=keywords[2])
+                elif keywords[1] == "changename":
+                    await handle_changename(client, player_id_names_csv=keywords[2])
+                elif keywords[1] == "swapclasslevels":
+                    await handle_swapclasslevels(client, player_id_and_params_csv=keywords[2])
+                elif keywords[1] == "repost":
+                    await handle_repost(message, player_tag=keywords[2])
+            # ALL CHANNELS - ADMIN COMMANDS
+            else:
+                if keywords[1] == "inventoryadd":
+                    await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
         # NON-ADMIN COMMANDS
         else:
             # ALL CHANNELS
             if keywords[1] == "inventory":
                 await handle_inventory_prompt(message)
+            elif keywords[1] == "inventoryremove":
+                await handle_remove_from_inventory_prompt(message, int(keywords[2]))
 
 
 # TODO: Do the same for the rest of the commands as for this function, meaning:
@@ -106,6 +113,25 @@ async def handle_repost(message, player_tag):
     channelsprovider.set_player_message_id(utils.strip_id_tag(content), new_player_message.id)
 
 
+async def handle_add_to_inventory(message, player_id_and_params_csv):
+    player_id_and_params = utils.split_strip(player_id_and_params_csv, ',')
+    player_id = utils.strip_id_tag(player_id_and_params[0])
+    characters.add_dummy_item_to_inventory(
+        player_id=player_id,
+        item_name=player_id_and_params[1],
+        item_rarity=player_id_and_params[2],
+        item_rarity_level=player_id_and_params[3]
+    )
+    await message.channel.send(f"{player_id_and_params[1]} was added to <@{player_id}>")
+
+
 async def handle_inventory_prompt(message):
     inventory_string = characters.get_inventory_string(message.author.id)
     await message.author.send(inventory_string)
+
+
+async def handle_remove_from_inventory_prompt(message, item_index):
+    if characters.remove_item_by_index(message.author.id, item_index):
+        await message.author.send(f"Item at {item_index} was subtracted.")
+    else:
+        await message.author.send("Item was not removed.")

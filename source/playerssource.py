@@ -11,7 +11,8 @@ def init_players_source(is_test: bool):
 
 
 def get_player(player_id) -> dict:
-    return players_ref.get()[f'{player_id}']
+    string_id = str(player_id)
+    return players_ref.order_by_key().equal_to(string_id).get()[string_id]
 
 
 def get_players(player_ids: list) -> dict:

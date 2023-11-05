@@ -1,5 +1,5 @@
 from model.shopitem import ShopItem
-from provider.sourcefields import *
+from source.sourcefields import *
 from model.rarity import rarity_strings_to_rarity
 from source import magicshopsource, channelssource
 
