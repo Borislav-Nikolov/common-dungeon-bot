@@ -53,3 +53,11 @@ def get_homebrew_item_confirmation_description(item: Item) -> str:
                   f'**Requires attunement:** {"Yes" if item.attunement else "No"}\n' \
                   f'**Banned:** {"Yes" if item.banned else "No"}\n' \
                   f'**Description:** {item.description}'
+
+
+def get_static_shop_message(item: Item) -> str:
+    return f'**{item.name}** - {tokens_per_rarity(item.rarity.rarity, item.rarity.rarity_level)}'
+
+
+def get_shop_item_description(item: ShopItem) -> list[str]:
+    return split_by_number_of_characters(get_item_info_message(item), 2000)

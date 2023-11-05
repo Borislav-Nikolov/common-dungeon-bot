@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import copy
+
 from controller import characters
 from provider import magicshopprovider, itemsprovider
 import random
@@ -70,35 +72,38 @@ def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
     magic_shop_list = list()
     for character_rarity_ordinal in character_rarity_ordinal_list:
         if character_rarity_ordinal == COMMON_ORDINAL:
-            common_item_clone = copy.deepcopy(random.choice(common))
-            approved = False
-            # while not approved:
-            #     for magic_item in magic_shop_list:
-                    
-            magic_shop_list.append(common_item_clone)
+            pop_random_copy_into(origin=common, destination=magic_shop_list)
         elif character_rarity_ordinal == UNCOMMON_ORDINAL:
-            uncommon_item_clone = copy.deepcopy(random.choice(uncommon))
-            magic_shop_list.append(uncommon_item_clone)
+            pop_random_copy_into(origin=uncommon, destination=magic_shop_list)
         elif character_rarity_ordinal == RARE_ORDINAL:
-            rare_item_clone = copy.deepcopy(random.choice(rare))
-            magic_shop_list.append(rare_item_clone)
+            pop_random_copy_into(origin=rare, destination=magic_shop_list)
         elif character_rarity_ordinal == VERY_RARE_ORDINAL:
-            very_rare_item_clone = copy.deepcopy(random.choice(very_rare))
-            magic_shop_list.append(very_rare_item_clone)
+            pop_random_copy_into(origin=very_rare, destination=magic_shop_list)
         elif character_rarity_ordinal == LEGENDARY_ORDINAL:
-            legendary_item_clone = copy.deepcopy(random.choice(legendary))
-            magic_shop_list.append(legendary_item_clone)
+            pop_random_copy_into(origin=legendary, destination=magic_shop_list)
 
     remaining_number = SHOP_MAX_NUMBER_OF_ITEMS - len(magic_shop_list)
     if remaining_number > 0:
+        filer_all_out(to_be_removed=magic_shop_list, to_remove_from=filtered_items)
         rest_items = random.sample(filtered_items, remaining_number)
         for item in rest_items:
             magic_shop_list.append(item)
-    counter = 1
-    for item in magic_shop_list:
-        print(f'{counter}) {item}')
-        counter = counter + 1
     return magic_shop_list
+
+
+def pop_random_copy_into(origin: list, destination: list):
+    original_element = random.choice(origin)
+    index: int = origin.index(original_element)
+    origin.pop(index)
+    element_clone = copy.deepcopy(original_element)
+    destination.append(element_clone)
+
+
+def filer_all_out(to_be_removed: list, to_remove_from: list):
+    for element in to_be_removed:
+        if element in to_remove_from:
+            index = to_remove_from.index(element)
+            to_remove_from.pop(index)
 
 
 def get_current_shop_string() -> str:
@@ -149,7 +154,7 @@ def get_shop_item_description(item_index) -> list:
     items = magicshopprovider.get_magic_shop_items()
     for item in items:
         if item.index == int(item_index):
-            return split_by_number_of_characters(itemutils.get_item_info_message(item), 2000)
+            return get_shop_item_description(item)
     return ["*couldn't find item description*"]
 
 
