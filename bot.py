@@ -1,9 +1,9 @@
 
 import discord
 
-from provider import magicshopprovider
+from provider import magicshopprovider, staticshopprovider
 from commands import homebrewcommands, magicshopcommands, serverinitializationcommands, characterscommands, \
-    magicshopreactions
+    magicshopreactions, staticshopcommands, staticshopreactions
 
 
 def run_discord_bot(bot_token):
@@ -29,6 +29,7 @@ def run_discord_bot(bot_token):
         if user_message.startswith('$'):
             await serverinitializationcommands.handle_server_initialization_prompts(message)
             await magicshopcommands.handle_shop_commands(message, client)
+            await staticshopcommands.handle_static_shop_commands(message)
             await characterscommands.handle_character_commands(message, client)
             await homebrewcommands.handle_homebrew_commands(message, client)
 
@@ -40,5 +41,7 @@ def run_discord_bot(bot_token):
         if channel.id == magicshopprovider.get_shop_channel_id()\
                 and payload.message_id == magicshopprovider.get_shop_message_id():
             await magicshopreactions.handle_magic_shop_reaction(payload, channel, client)
+        elif channel.id == staticshopprovider.get_static_shop_channel_id():
+            await staticshopreactions.handle_static_shop_reactions(payload, channel, client)
 
     client.run(bot_token)

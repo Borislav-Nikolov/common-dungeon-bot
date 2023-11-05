@@ -34,6 +34,10 @@ def get_characters_info_channel_id() -> int:
     return get_server_reference_id("character_info_channel_id")
 
 
+def get_static_shop_channel_id() -> int:
+    return get_server_reference_id("static_shop_channel_id")
+
+
 def get_server_reference_id(variable_name) -> int:
     return server_reference_ids_ref.get()[variable_name]
 
@@ -48,6 +52,10 @@ def set_shop_channel_id(shop_channel_id):
 
 def set_character_info_channel_id(character_info_channel_id):
     set_server_reference_id("character_info_channel_id", character_info_channel_id)
+
+
+def set_static_shop_channel_id(static_shop_channel_id):
+    set_server_reference_id("static_shop_channel_id", static_shop_channel_id)
 
 
 def set_server_reference_id(variable_name, reference_id):
