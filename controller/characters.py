@@ -5,6 +5,7 @@ from model.character import Character
 from model.inventoryitem import InventoryItem
 from model.characterclass import CharacterClass
 from model.addsessiondata import AddSessionData
+from model.rarity import rarity_strings_to_rarity
 
 
 PARAMETER_NAME = "name"
@@ -24,7 +25,29 @@ def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str)
     return False
 
 
-def add_item_to_inventory(player_id, new_item: InventoryItem):
+def add_dummy_item_to_inventory(player_id, item_name, item_rarity, item_rarity_level) -> bool:
+    rarity = rarity_strings_to_rarity(item_rarity, item_rarity_level)
+    if rarity is None:
+        return False
+    add_single_quantity_item_to_inventory(
+        player_id=player_id,
+        new_item=InventoryItem(
+                    name=item_name,
+                    description="*dummy item has no description*",
+                    price="*dummy item has no price in gold*",
+                    rarity=rarity,
+                    attunement=True,
+                    consumable=False,
+                    official=False,
+                    banned=True,
+                    quantity=1,
+                    index=0
+                )
+    )
+    return True
+
+
+def add_single_quantity_item_to_inventory(player_id, new_item: InventoryItem):
     player: Player = charactersprovider.get_player(player_id)
     repeats = False
     for item in player.inventory:
@@ -39,11 +62,44 @@ def add_item_to_inventory(player_id, new_item: InventoryItem):
 
 
 def get_inventory_string(player_id) -> str:
-    inventory = charactersprovider.get_player(player_id).inventory
+    player = charactersprovider.get_player(player_id)
+    fix_inventory(player)
+    inventory = player.inventory
     inventory_string = ""
     for item in inventory:
         inventory_string += get_inventory_item_row_string(magic_item=item)
     return inventory_string if len(inventory_string) != 0 else "*inventory is empty*"
+
+
+def refresh_inventory_by_id_if_needed(player_id) -> bool:
+    return refresh_inventory_if_needed(charactersprovider.get_player(player_id))
+
+
+def refresh_inventory_if_needed(player: Player) -> bool:
+    last_item = None
+    needs_refresh = False
+    for item in player.inventory:
+        if last_item is not None:
+            difference = item.index - last_item.index
+            if difference != 1:
+                needs_refresh = True
+                break
+        last_item = item
+    if needs_refresh:
+        new_index = 1
+        for item in player.inventory:
+            item.index = new_index
+            new_index += 1
+    return needs_refresh
+
+
+def fix_inventory_by_id(player_id):
+    fix_inventory(charactersprovider.get_player(player_id))
+
+
+def fix_inventory(player: Player):
+    if refresh_inventory_if_needed(player):
+        charactersprovider.add_or_update_player(player)
 
 
 def get_item_from_inventory(player_id, item_index) -> InventoryItem:
@@ -63,6 +119,15 @@ def refund_item_by_index(player_id, item_index: int) -> str:
         charactersprovider.add_or_update_player(player)
         return item.name
     return ""
+
+
+def remove_item_by_index(player_id, item_index: int) -> bool:
+    item: InventoryItem = get_item_from_inventory(player_id, item_index)
+    player: Player = charactersprovider.get_player(player_id)
+    subtracted = subtract_item_from_inventory(player, item)
+    if subtracted:
+        charactersprovider.add_or_update_player(player)
+    return subtracted
 
 
 def subtract_item_from_inventory(player: Player, item: InventoryItem) -> bool:

@@ -5,6 +5,7 @@ from model.inventoryitem import InventoryItem
 from model.rarity import rarity_strings_to_rarity
 from source.sourcefields import *
 from source import playerssource
+from util import utils
 
 
 def add_or_update_player(player: Player):
@@ -75,6 +76,9 @@ def get_players(player_ids: list) -> list[Player]:
 
 
 def map_player_object(player_id, player_data: dict) -> Player:
+    inventory_list = utils.filter_not_none(
+        list() if PLAYER_FIELD_INVENTORY not in player_data else player_data[PLAYER_FIELD_INVENTORY]
+    )
     return Player(
         player_id=player_id,
         name=player_data[PLAYER_FIELD_NAME],
@@ -118,7 +122,7 @@ def map_player_object(player_id, player_data: dict) -> Player:
                     quantity=item[INVENTORY_ITEM_FIELD_QUANTITY],
                     index=item[INVENTORY_ITEM_FIELD_INDEX]
                 ),
-                list() if PLAYER_FIELD_INVENTORY not in player_data else player_data[PLAYER_FIELD_INVENTORY]
+                inventory_list
             )
         )
     )

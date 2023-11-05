@@ -3,7 +3,6 @@ from __future__ import print_function
 from controller import characters
 from provider import magicshopprovider, itemsprovider
 import random
-import copy
 
 from util import itemutils
 from util.itemutils import *
@@ -131,7 +130,7 @@ def sell_item(player_id, item_index) -> str:
                 is_probably_consumable = "potion" not in item_name_lower and "scroll" not in item_name_lower\
                                          and "ammunition" not in item_name_lower
                 if item.consumable or is_probably_consumable:
-                    characters.add_item_to_inventory(player_id, copy.deepcopy(item))
+                    characters.add_single_quantity_item_to_inventory(player_id, copy.deepcopy(item))
                 sold_item_name = item.name
                 sold = True
     if sold:

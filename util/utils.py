@@ -1,3 +1,5 @@
+import copy
+
 COMMON = "common"
 COMMON_ORDINAL = 1
 UNCOMMON = "uncommon"
@@ -161,3 +163,15 @@ def emoji_to_index(emoji: str) -> int:
 def split_by_number_of_characters(text: str, number_of_characters: int) -> list:
     return [text[i:i + number_of_characters] for i in range(0, len(text), number_of_characters)]
 
+
+def filter_not_none(unfiltered_list: list) -> list:
+    list_copy = copy.deepcopy(unfiltered_list)
+    indices = list()
+    index = 0
+    for element in list_copy:
+        if element is None:
+            indices.append(index)
+        index += 1
+    for i in indices:
+        list_copy.pop(i)
+    return list_copy
