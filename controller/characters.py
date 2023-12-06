@@ -212,14 +212,11 @@ def add_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
         for character in player.characters:
             if character.character_name == player_id_to_data[player.player_id].character_name:
                 # assign tokens
-                player.common_tokens += 1
-                player.uncommon_tokens += 1
-                if character.character_level >= 6:
-                    player.rare_tokens += 1
-                if character.character_level >= 11:
-                    player.very_rare_tokens += 1
-                if character.character_level >= 16:
-                    player.legendary_tokens += 1
+                player.common_tokens += get_common_tokens(character.character_level)
+                player.uncommon_tokens += get_uncommon_tokens(character.character_level)
+                player.rare_tokens += get_rare_tokens(character.character_level)
+                player.very_rare_tokens += get_very_rare_tokens(character.character_level)
+                player.legendary_tokens += get_legendary_tokens(character.character_level)
                 # level up if needed
                 if character.character_level < 20:
                     sessions_needed_for_next_level = utils.sessions_to_next_level(character.character_level)
@@ -258,6 +255,55 @@ def add_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
     # upload in database
     charactersprovider.add_or_update_players(players)
     return True
+
+
+def get_common_tokens(character_level: int) -> int:
+    return 1
+
+
+def get_uncommon_tokens(character_level: int) -> int:
+    level_tier = get_character_level_tier(character_level)
+    if level_tier == 1:
+        return 3
+    if level_tier == 2:
+        return 2
+    return 1
+
+
+def get_rare_tokens(character_level: int) -> int:
+    level_tier = get_character_level_tier(character_level)
+    if level_tier == 1:
+        return 0
+    if level_tier == 2:
+        return 2
+    return 1
+
+
+def get_very_rare_tokens(character_level: int) -> int:
+    level_tier = get_character_level_tier(character_level)
+    if level_tier < 3:
+        return 0
+    if level_tier == 3:
+        return 2
+    return 1
+
+
+def get_legendary_tokens(character_level: int) -> int:
+    level_tier = get_character_level_tier(character_level)
+    if level_tier == 4:
+        return 2
+    return 0
+
+
+def get_character_level_tier(character_level: int) -> int:
+    if in_range(character_level, 1, 5):
+        return 1
+    if in_range(character_level, 6, 10):
+        return 2
+    if in_range(character_level, 11, 15):
+        return 3
+    if in_range(character_level, 16, 20):
+        return 4
 
 
 # expected: player_id: <@1234> player_data_list: name=SomeName,character=CharName,class=Rogue

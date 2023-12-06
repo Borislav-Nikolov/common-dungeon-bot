@@ -154,7 +154,7 @@ def get_shop_item_description(item_index) -> list:
     items = magicshopprovider.get_magic_shop_items()
     for item in items:
         if item.index == int(item_index):
-            return get_shop_item_description(item)
+            return itemutils.get_shop_item_description(item)
     return ["*couldn't find item description*"]
 
 
