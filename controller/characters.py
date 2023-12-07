@@ -257,55 +257,6 @@ def add_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
     return True
 
 
-def get_common_tokens(character_level: int) -> int:
-    return 1
-
-
-def get_uncommon_tokens(character_level: int) -> int:
-    level_tier = get_character_level_tier(character_level)
-    if level_tier == 1:
-        return 3
-    if level_tier == 2:
-        return 2
-    return 1
-
-
-def get_rare_tokens(character_level: int) -> int:
-    level_tier = get_character_level_tier(character_level)
-    if level_tier == 1:
-        return 0
-    if level_tier == 2:
-        return 2
-    return 1
-
-
-def get_very_rare_tokens(character_level: int) -> int:
-    level_tier = get_character_level_tier(character_level)
-    if level_tier < 3:
-        return 0
-    if level_tier == 3:
-        return 2
-    return 1
-
-
-def get_legendary_tokens(character_level: int) -> int:
-    level_tier = get_character_level_tier(character_level)
-    if level_tier == 4:
-        return 2
-    return 0
-
-
-def get_character_level_tier(character_level: int) -> int:
-    if in_range(character_level, 1, 5):
-        return 1
-    if in_range(character_level, 6, 10):
-        return 2
-    if in_range(character_level, 11, 15):
-        return 3
-    if in_range(character_level, 16, 20):
-        return 4
-
-
 # expected: player_id: <@1234> player_data_list: name=SomeName,character=CharName,class=Rogue
 def add_player(player_id: str, player_data_list: list):
     player_data = dict()
