@@ -74,13 +74,14 @@ def rarity_to_ordinal(rarity: str) -> int:
 
 
 def level_to_rarity_ordinal(level: int) -> int:
-    if in_range(level, 1, 5):
+    character_tier = character_level_to_tier(level)
+    if character_tier == CHARACTER_TIER_UNCOMMON:
         return UNCOMMON_ORDINAL
-    elif in_range(level, 6, 10):
+    elif character_tier == CHARACTER_TIER_RARE:
         return RARE_ORDINAL
-    elif in_range(level, 11, 15):
+    elif character_tier == CHARACTER_TIER_VERY_RARE:
         return VERY_RARE_ORDINAL
-    elif in_range(level, 16, 20):
+    elif character_tier == CHARACTER_TIER_LEGENDARY:
         return LEGENDARY_ORDINAL
     else:
         raise Exception(f'Level out of range: {level}')
@@ -134,7 +135,7 @@ def sessions_to_next_level(current_level) -> int:
 
 
 def get_common_tokens(character_level: int) -> int:
-    tier = get_character_level_tier(character_level)
+    tier = character_level_to_tier(character_level)
     if tier == CHARACTER_TIER_UNCOMMON or tier == CHARACTER_TIER_RARE or tier == CHARACTER_TIER_VERY_RARE\
             or tier == CHARACTER_TIER_LEGENDARY:
         return 1
@@ -142,7 +143,7 @@ def get_common_tokens(character_level: int) -> int:
 
 
 def get_uncommon_tokens(character_level: int) -> int:
-    tier = get_character_level_tier(character_level)
+    tier = character_level_to_tier(character_level)
     if tier == CHARACTER_TIER_UNCOMMON:
         return 3
     elif tier == CHARACTER_TIER_RARE:
@@ -153,7 +154,7 @@ def get_uncommon_tokens(character_level: int) -> int:
 
 
 def get_rare_tokens(character_level: int) -> int:
-    tier = get_character_level_tier(character_level)
+    tier = character_level_to_tier(character_level)
     if tier == CHARACTER_TIER_RARE:
         return 2
     elif tier == CHARACTER_TIER_VERY_RARE or tier == CHARACTER_TIER_LEGENDARY:
@@ -162,7 +163,7 @@ def get_rare_tokens(character_level: int) -> int:
 
 
 def get_very_rare_tokens(character_level: int) -> int:
-    tier = get_character_level_tier(character_level)
+    tier = character_level_to_tier(character_level)
     if tier == CHARACTER_TIER_VERY_RARE:
         return 2
     elif tier == CHARACTER_TIER_LEGENDARY:
@@ -171,13 +172,13 @@ def get_very_rare_tokens(character_level: int) -> int:
 
 
 def get_legendary_tokens(character_level: int) -> int:
-    tier = get_character_level_tier(character_level)
+    tier = character_level_to_tier(character_level)
     if tier == CHARACTER_TIER_LEGENDARY:
         return 2
     return 0
 
 
-def get_character_level_tier(character_level: int) -> int:
+def character_level_to_tier(character_level: int) -> int:
     if in_range(character_level, 1, 4):
         return CHARACTER_TIER_UNCOMMON
     elif in_range(character_level, 5, 9):
