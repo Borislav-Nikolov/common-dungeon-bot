@@ -51,6 +51,12 @@ letter_emojis = (EMOJI_A, EMOJI_B, EMOJI_C, EMOJI_D, EMOJI_E, EMOJI_F, EMOJI_G, 
                  EMOJI_W, EMOJI_X, EMOJI_Y, EMOJI_Z)
 
 
+CHARACTER_TIER_UNCOMMON = 1
+CHARACTER_TIER_RARE = 2
+CHARACTER_TIER_VERY_RARE = 3
+CHARACTER_TIER_LEGENDARY = 4
+
+
 def rarity_to_ordinal(rarity: str) -> int:
     rarity = rarity.lower()
     if rarity == COMMON:
@@ -125,6 +131,62 @@ def sessions_to_next_level(current_level) -> int:
         return 2
     else:
         return 3
+
+
+def get_common_tokens(character_level: int) -> int:
+    tier = get_character_level_tier(character_level)
+    if tier == CHARACTER_TIER_UNCOMMON or tier == CHARACTER_TIER_RARE or tier == CHARACTER_TIER_VERY_RARE\
+            or tier == CHARACTER_TIER_LEGENDARY:
+        return 1
+    return 0
+
+
+def get_uncommon_tokens(character_level: int) -> int:
+    tier = get_character_level_tier(character_level)
+    if tier == CHARACTER_TIER_UNCOMMON:
+        return 3
+    elif tier == CHARACTER_TIER_RARE:
+        return 2
+    elif tier == CHARACTER_TIER_VERY_RARE or tier == CHARACTER_TIER_LEGENDARY:
+        return 1
+    return 0
+
+
+def get_rare_tokens(character_level: int) -> int:
+    tier = get_character_level_tier(character_level)
+    if tier == CHARACTER_TIER_RARE:
+        return 2
+    elif tier == CHARACTER_TIER_VERY_RARE or tier == CHARACTER_TIER_LEGENDARY:
+        return 1
+    return 0
+
+
+def get_very_rare_tokens(character_level: int) -> int:
+    tier = get_character_level_tier(character_level)
+    if tier == CHARACTER_TIER_VERY_RARE:
+        return 2
+    elif tier == CHARACTER_TIER_LEGENDARY:
+        return 1
+    return 0
+
+
+def get_legendary_tokens(character_level: int) -> int:
+    tier = get_character_level_tier(character_level)
+    if tier == CHARACTER_TIER_LEGENDARY:
+        return 2
+    return 0
+
+
+def get_character_level_tier(character_level: int) -> int:
+    if in_range(character_level, 1, 4):
+        return CHARACTER_TIER_UNCOMMON
+    elif in_range(character_level, 5, 9):
+        return CHARACTER_TIER_RARE
+    elif in_range(character_level, 10, 14):
+        return CHARACTER_TIER_VERY_RARE
+    elif in_range(character_level, 15, 20):
+        return CHARACTER_TIER_LEGENDARY
+    return -1
 
 
 def in_range(compared, first, last) -> bool:
