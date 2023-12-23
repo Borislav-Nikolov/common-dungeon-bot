@@ -1,4 +1,5 @@
 import copy
+from typing import Callable
 
 COMMON = "common"
 COMMON_ORDINAL = 1
@@ -212,6 +213,14 @@ def first_line(string: str) -> str:
         return string[0:new_line_index]
 
 
+def remove_first_line(string: str) -> str:
+    new_line_index = string.find('\n')
+    if new_line_index == -1 or new_line_index == len(string) - 1:
+        return ''
+    else:
+        return string[new_line_index + 1:]
+
+
 def index_to_emoji(index: int) -> str:
     try:
         return letter_emojis[index - 1]
@@ -238,3 +247,19 @@ def filter_not_none(unfiltered_list: list) -> list:
     for i in indices:
         list_copy.pop(i)
     return list_copy
+
+
+def index_or_negative(searched_list: list, element) -> int:
+    try:
+        return searched_list.index(element)
+    except ValueError:
+        return -1
+
+
+def find_index(searched_list: list[object], selector: Callable[[object], bool]):
+    index = 0
+    for element in searched_list:
+        if selector(element):
+            return index
+        index += 1
+    return -1

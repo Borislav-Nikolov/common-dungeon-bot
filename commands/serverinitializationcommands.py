@@ -2,7 +2,7 @@ from util import botutils
 from provider import channelsprovider
 
 
-async def handle_server_initialization_prompts(message):
+async def handle_server_initialization_prompts(message) -> bool:
     init_key = '$init.'
     full_message = str(message.content)
     if full_message.startswith(init_key) and botutils.is_admin(message):
@@ -12,6 +12,8 @@ async def handle_server_initialization_prompts(message):
             await handle_shop_init(message)
         elif init_message == 'characters':
             await handle_characters_init(message)
+        return True
+    return False
 
 
 async def handle_shop_init(message):
