@@ -31,12 +31,11 @@ async def handle_character_commands(message, client) -> bool:
                 if keywords[1] == "inventoryadd":
                     await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
         # NON-ADMIN COMMANDS
-        else:
-            # ALL CHANNELS
-            if keywords[1] == "inventory":
-                await handle_inventory_prompt(message)
-            elif keywords[1] == "inventoryremove":
-                await handle_remove_from_inventory_prompt(message, int(keywords[2]))
+        # ALL CHANNELS
+        if keywords[1] == "inventory":
+            await handle_inventory_prompt(message)
+        elif keywords[1] == "inventoryremove":
+            await handle_remove_from_inventory_prompt(message, int(keywords[2]))
         return True
     return False
 
@@ -118,13 +117,15 @@ async def handle_repost(message, player_tag):
 async def handle_add_to_inventory(message, player_id_and_params_csv):
     player_id_and_params = utils.split_strip(player_id_and_params_csv, ',')
     player_id = utils.strip_id_tag(player_id_and_params[0])
-    characters.add_dummy_item_to_inventory(
+    if characters.add_dummy_item_to_inventory(
         player_id=player_id,
         item_name=player_id_and_params[1],
         item_rarity=player_id_and_params[2],
         item_rarity_level=player_id_and_params[3]
-    )
-    await message.channel.send(f"{player_id_and_params[1]} was added to <@{player_id}>")
+    ):
+        await message.channel.send(f"{player_id_and_params[1]} was added to <@{player_id}>")
+    else:
+        await message.channel.send(f"{player_id_and_params[1]} was not added to <@{player_id}>. Prompt may be wrong.")
 
 
 async def handle_inventory_prompt(message):

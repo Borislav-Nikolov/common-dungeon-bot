@@ -15,9 +15,11 @@ def get_post_section(post_section_id) -> PostSection:
 
 
 def post_section_exists(post_section_id) -> bool:
-    if postssource.get_posts(post_section_id) is None:
+    try:
+        postssource.get_posts(post_section_id)
+        return True
+    except KeyError:
         return False
-    return True
 
 
 def update_post_section(post_section_id: PostSection):
