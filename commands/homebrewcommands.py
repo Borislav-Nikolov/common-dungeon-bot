@@ -4,7 +4,7 @@ from controller import homebrew
 
 
 # TODO: Needs serious revision and finishing.
-async def handle_homebrew_commands(message, client):
+async def handle_homebrew_commands(message, client) -> bool:
     homebrew_key = '$homebrew'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     # `False` because temporarily disabled
@@ -148,6 +148,8 @@ async def handle_homebrew_commands(message, client):
                 await message.author.send(f'**{new_item[itemutils.ITEM_FIELD_NAME]}** was created.')
             else:
                 await message.author.send(f'**{new_item[itemutils.ITEM_FIELD_NAME]}** was NOT created.')
+        return True
+    return False
 
 
 async def item_creation_prompt(

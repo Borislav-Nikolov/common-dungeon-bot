@@ -4,7 +4,7 @@ from util import utils, botutils
 from model.addsessiondata import AddSessionData
 
 
-async def handle_character_commands(message, client):
+async def handle_character_commands(message, client) -> bool:
     characters_key = '$characters'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     if keywords[0] == characters_key:
@@ -37,6 +37,8 @@ async def handle_character_commands(message, client):
                 await handle_inventory_prompt(message)
             elif keywords[1] == "inventoryremove":
                 await handle_remove_from_inventory_prompt(message, int(keywords[2]))
+        return True
+    return False
 
 
 # TODO: Do the same for the rest of the commands as for this function, meaning:

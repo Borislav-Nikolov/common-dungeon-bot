@@ -3,7 +3,7 @@ from controller import characters, magicshop
 from provider import channelsprovider
 
 
-async def handle_shop_commands(message, client):
+async def handle_shop_commands(message, client) -> bool:
     shop_key = '$shop'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     # SHOP CHANNEL COMMANDS
@@ -25,6 +25,8 @@ async def handle_shop_commands(message, client):
             await handle_buy_item(client, message, command_message)
         elif command_message == 'help':
             await handle_item_help_request(message, item_index=keywords[2])
+        return True
+    return False
 
 
 async def handle_generate(message, character_levels_csv):
