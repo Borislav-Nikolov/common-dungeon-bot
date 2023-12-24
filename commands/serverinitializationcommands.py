@@ -5,7 +5,7 @@ from provider import channelsprovider
 async def handle_server_initialization_prompts(message) -> bool:
     init_key = '$init.'
     full_message = str(message.content)
-    if full_message.startswith(init_key) and botutils.is_admin(message):
+    if full_message.startswith(init_key) and botutils.is_admin_message(message):
         init_key_length = len(init_key)
         init_message = full_message[init_key_length:]
         if init_message == 'shop':

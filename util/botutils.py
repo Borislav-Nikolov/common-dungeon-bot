@@ -1,9 +1,13 @@
 from provider import channelsprovider
 
 
-def is_admin(message) -> bool:
+def is_admin_message(message) -> bool:
+    return is_admin(user=message.author)
+
+
+def is_admin(user) -> bool:
     try:
-        return message.author.guild_permissions.administrator
+        return user.guild_permissions.administrator
     except AttributeError:
         return False
 

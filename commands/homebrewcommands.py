@@ -8,7 +8,7 @@ async def handle_homebrew_commands(message, client) -> bool:
     homebrew_key = '$homebrew'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     # `False` because temporarily disabled
-    if False and keywords[0] == homebrew_key and botutils.is_admin(message):
+    if False and keywords[0] == homebrew_key and botutils.is_admin_message(message):
         if keywords[1] == 'item':
             new_item = dict()
             new_item[itemutils.ITEM_FIELD_OFFICIAL] = False

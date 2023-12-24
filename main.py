@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 if __name__ == '__main__':
-    bot_token = str(os.getenv('TOKEN'))
+    bot_token = str(os.getenv('TEST_TOKEN'))
     is_test = bot_token == str(os.getenv('TEST_TOKEN'))
     project_url = str(os.getenv('FIREBASE_PROJECT'))
     # initialize firebase realtime database components
