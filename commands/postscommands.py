@@ -7,7 +7,7 @@ from controller import posts
 async def handle_posts_commands(message) -> bool:
     posts_key = '$posts'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
-    if keywords[0] == posts_key and botutils.is_admin(message):
+    if keywords[0] == posts_key and botutils.is_admin_message(message):
         if keywords[1] == 'post':
             await handle_post_message(message)
         return True

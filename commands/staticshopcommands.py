@@ -6,7 +6,7 @@ from controller import staticshop
 async def handle_static_shop_commands(message) -> bool:
     static_shop_key = '$staticshop'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
-    if keywords[0] == static_shop_key and botutils.is_admin(message):
+    if keywords[0] == static_shop_key and botutils.is_admin_message(message):
         if keywords[1] == 'init':
             await handle_static_shop_initialization(message)
         return True

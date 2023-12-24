@@ -9,7 +9,7 @@ async def handle_character_commands(message, client) -> bool:
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     if keywords[0] == characters_key:
         # ADMIN COMMANDS
-        if botutils.is_admin(message):
+        if botutils.is_admin_message(message):
             # CHARACTERS INFO CHANNEL
             if botutils.is_characters_info_channel(message):
                 if keywords[1] == "addsession":

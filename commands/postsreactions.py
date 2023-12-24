@@ -8,20 +8,23 @@ from controller import posts
 from model.post import Post
 from typing import Optional
 from discord import NotFound
+from util import botutils
 
 
 async def handle_posts_reactions(payload, channel, client):
-    post_message = await channel.fetch_message(payload.message_id)
-    post_section = postsprovider.get_post_section(channel.id)
-    post_message_index = utils.find_index(post_section.posts, lambda post: post.post_id == post_message.id)
-    if post_message_index != -1:
-        payload_emoji = str(payload.emoji)
-        if payload_emoji == posts.arrow_up_emoji:
-            await handle_arrow_up_emoji(channel, post_message, payload)
-        elif payload_emoji == posts.arrow_down_emoji:
-            await handle_arrow_down_emoji(channel, post_message, payload)
-        elif payload_emoji == posts.edit_emoji:
-            await handle_edit_emoji(channel, post_message, payload, client)
+    if botutils.is_admin(payload.member):
+        post_message = await channel.fetch_message(payload.message_id)
+        if post_message.author == client.user:
+            post_section = postsprovider.get_post_section(channel.id)
+            post_message_index = utils.find_index(post_section.posts, lambda post: post.post_id == post_message.id)
+            if post_message_index != -1:
+                payload_emoji = str(payload.emoji)
+                if payload_emoji == posts.arrow_up_emoji:
+                    await handle_arrow_up_emoji(channel, post_message, payload)
+                elif payload_emoji == posts.arrow_down_emoji:
+                    await handle_arrow_down_emoji(channel, post_message, payload)
+                elif payload_emoji == posts.edit_emoji:
+                    await handle_edit_emoji(channel, post_message, payload, client)
 
 
 async def handle_arrow_up_emoji(channel, post_message, payload):
