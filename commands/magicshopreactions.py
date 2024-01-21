@@ -1,10 +1,9 @@
-import asyncio
-from util import utils
+from util import utils, botutils
 from controller import characters, magicshop
+from discord import Message
 
 
-async def handle_magic_shop_reaction(payload, channel, client):
-    shop_message = await channel.fetch_message(payload.message_id)
+async def handle_magic_shop_reaction(payload, channel, client, shop_message):
     accept_emoji = '\U00002705'
     decline_emoji = '\U0000274C'
     info_emoji = '\U00002754'
@@ -19,46 +18,46 @@ async def handle_magic_shop_reaction(payload, channel, client):
         await shop_message.remove_reaction(payload.emoji, payload.member)
         raise Exception("Item not found in shop.")
 
-    bot_message = None
+    async def provide_message() -> Message:
+        return await dm_channel.send(f'<@{payload.user_id}>, are you sure you want to buy **{item_name}**?\n'
+                                     f'You can select the {info_emoji} to learn about the item.')
 
-    def check_command_emoji(inner_payload):
-        user_id = inner_payload.user_id
-        emoji = inner_payload.emoji
-        return user_id == payload.user_id and bot_message.id == inner_payload.message_id and (
-                    str(emoji) == accept_emoji or str(emoji) == decline_emoji or str(emoji) == info_emoji)
-
-    bot_message = await dm_channel.send(f'<@{payload.user_id}>, are you sure you want to buy **{item_name}**?\n'
-                                        f'You can select the {info_emoji} to learn about the item.')
-    await bot_message.add_reaction(accept_emoji)
-    await bot_message.add_reaction(decline_emoji)
-    await bot_message.add_reaction(info_emoji)
-    try:
-        result_payload = None
-        timeout = 30.0
-        while result_payload is None:
-            result_payload = await client.wait_for('raw_reaction_add', timeout=timeout, check=check_command_emoji)
-            if str(result_payload.emoji) == accept_emoji:
-                sold_item_name = magicshop.sell_item(payload.user_id, item_index)
-                sold = len(sold_item_name) != 0
-                if sold:
-                    shop_string = magicshop.get_current_shop_string()
-                    await shop_message.edit(content=shop_string)
-                    await characters.refresh_player_message(client, payload.user_id)
-                    await channel.send(magicshop.get_sold_item_string(payload.user_id, sold_item_name))
-                    if magicshop.get_item_name_by_index(item_index) is not None:
-                        await shop_message.remove_reaction(payload.emoji, payload.member)
-                else:
-                    await dm_channel.send(magicshop.get_failed_to_buy_item_string(payload.user_id, item_name))
+    async def on_emoji_click(clicked_emoji: str) -> bool:
+        if clicked_emoji == accept_emoji:
+            sold_item_name = magicshop.sell_item(payload.user_id, item_index)
+            sold = len(sold_item_name) != 0
+            if sold:
+                shop_string = magicshop.get_current_shop_string()
+                await shop_message.edit(content=shop_string)
+                await characters.refresh_player_message(client, payload.user_id)
+                await channel.send(magicshop.get_sold_item_string(payload.user_id, sold_item_name))
+                if magicshop.get_item_name_by_index(item_index) is not None:
                     await shop_message.remove_reaction(payload.emoji, payload.member)
-            elif str(result_payload.emoji) == decline_emoji:
-                await dm_channel.send(f'Order of **{item_name}** was declined.')
+            else:
+                await dm_channel.send(magicshop.get_failed_to_buy_item_string(payload.user_id, item_name))
                 await shop_message.remove_reaction(payload.emoji, payload.member)
-            elif str(result_payload.emoji) == info_emoji:
-                result_payload = None
-                timeout = 300.0
-                item_description = magicshop.get_shop_item_description(item_index)
-                for description_part in item_description:
-                    await dm_channel.send(description_part)
-    except asyncio.TimeoutError:
+            return True
+        elif clicked_emoji == decline_emoji:
+            await dm_channel.send(f'Order of **{item_name}** was declined.')
+            await shop_message.remove_reaction(payload.emoji, payload.member)
+            return True
+        elif clicked_emoji == info_emoji:
+            item_description_info = magicshop.get_shop_item_description(item_index)
+            for description_info_part in item_description_info:
+                await dm_channel.send(description_info_part)
+            return False
+        await dm_channel.send(f'An unexpected reaction was handled. Prompt canceled.')
+        return True
+
+    async def on_timeout():
         await dm_channel.send(f'Order of **{item_name}** has timed out.')
         await shop_message.remove_reaction(payload.emoji, payload.member)
+
+    await botutils.create_emoji_prompt(
+        client=client,
+        user_id=payload.user_id,
+        emoji_list=[accept_emoji, decline_emoji, info_emoji],
+        prompt_message=provide_message,
+        on_emoji_click=on_emoji_click,
+        on_timeout=on_timeout
+    )

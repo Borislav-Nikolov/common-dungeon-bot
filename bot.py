@@ -44,12 +44,15 @@ def run_discord_bot(bot_token):
         if payload.user_id == client.user.id:
             return
         channel = client.get_channel(payload.channel_id)
+        message = await channel.fetch_message(payload.message_id)
+        if message.author.id != client.user.id:
+            return
         if channel.id == magicshopprovider.get_shop_channel_id()\
                 and payload.message_id == magicshopprovider.get_shop_message_id():
-            await magicshopreactions.handle_magic_shop_reaction(payload, channel, client)
+            await magicshopreactions.handle_magic_shop_reaction(payload, channel, client, message)
         elif channel.id == staticshopprovider.get_static_shop_channel_id():
-            await staticshopreactions.handle_static_shop_reactions(payload, channel, client)
+            await staticshopreactions.handle_static_shop_reactions(payload, client, message)
         elif postsprovider.post_section_exists(channel.id):
-            await postsreactions.handle_posts_reactions(payload, channel, client)
+            await postsreactions.handle_posts_reactions(payload, channel, client, message)
 
     client.run(bot_token)
