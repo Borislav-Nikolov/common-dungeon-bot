@@ -11,10 +11,13 @@ async def handle_magic_shop_reaction(payload, channel, client, shop_message):
     item_name = magicshop.get_item_name_by_index(item_index)
     dm_channel = await payload.member.create_dm()
     if item_name is None:
-        item_description = magicshop.get_shop_item_description(item_index)
-        await dm_channel.send('That item has already been sold.')
-        for description_part in item_description:
-            await dm_channel.send(description_part)
+        if item_index == -1:
+            await dm_channel.send('Item not found.')
+        else:
+            item_description = magicshop.get_shop_item_description(item_index)
+            await dm_channel.send('That item has already been sold.')
+            for description_part in item_description:
+                await dm_channel.send(description_part)
         await shop_message.remove_reaction(payload.emoji, payload.member)
         raise Exception("Item not found in shop.")
 

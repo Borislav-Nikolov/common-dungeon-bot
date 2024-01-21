@@ -6,7 +6,8 @@ from model.item import Item
 
 
 def get_inventory_item_row_string(magic_item: InventoryItem) -> str:
-    magic_item_string = f'{magic_item.index}) **{magic_item.name}** - '
+    emoji = utils.index_to_emoji(magic_item.index)
+    magic_item_string = f'{magic_item.index} - {emoji}) **{magic_item.name}** - '
     item_quantity = magic_item.quantity
     if item_quantity != 1 and item_quantity != 0:
         magic_item_string += 'quantity: '

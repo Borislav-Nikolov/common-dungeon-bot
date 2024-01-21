@@ -1,3 +1,5 @@
+import discord
+
 from provider import channelsprovider
 from typing import Callable, Awaitable
 from discord import Message
@@ -56,3 +58,7 @@ async def create_emoji_prompt(
             current_timeout = timeout_after_interaction
     except asyncio.TimeoutError:
         await on_timeout()
+
+
+def is_dm_channel(channel) -> bool:
+    return isinstance(channel, discord.DMChannel)

@@ -229,7 +229,10 @@ def index_to_emoji(index: int) -> str:
 
 
 def emoji_to_index(emoji: str) -> int:
-    return letter_emojis.index(emoji) + 1
+    try:
+        return letter_emojis.index(emoji) + 1
+    except ValueError:
+        return -1
 
 
 def split_by_number_of_characters(text: str, number_of_characters: int) -> list:
@@ -263,3 +266,7 @@ def find_index(searched_list: list[object], selector: Callable[[object], bool]):
             return index
         index += 1
     return -1
+
+
+def dict_first_key(queried_dict):
+    return next(iter(queried_dict))

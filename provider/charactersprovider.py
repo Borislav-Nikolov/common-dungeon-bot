@@ -2,6 +2,7 @@ from model.player import Player
 from model.character import Character
 from model.characterclass import CharacterClass
 from model.inventoryitem import InventoryItem
+from model.inventorymessage import InventoryMessage
 from model.rarity import rarity_strings_to_rarity
 from source.sourcefields import *
 from source import playerssource
@@ -60,7 +61,9 @@ def add_or_update_players(players: list[Player]):
                     },
                     player.inventory
                 )
-            )
+            ),
+            PLAYER_FIELD_INVENTORY_MESSAGES: {f'i{inventory_message.beginning_index}': inventory_message.message_id
+                                              for inventory_message in player.inventory_messages}
         }
     playerssource.update_in_players(player_data)
 
@@ -124,5 +127,14 @@ def map_player_object(player_id, player_data: dict) -> Player:
                 ),
                 inventory_list
             )
-        )
+        ),
+        inventory_messages=list(
+            map(
+                lambda key: InventoryMessage(
+                    beginning_index=int(key[1:]),
+                    message_id=player_data[PLAYER_FIELD_INVENTORY_MESSAGES][key]
+                ),
+                player_data[PLAYER_FIELD_INVENTORY_MESSAGES]
+            )
+        ) if PLAYER_FIELD_INVENTORY_MESSAGES in player_data else list()
     )
