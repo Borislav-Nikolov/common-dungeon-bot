@@ -2,6 +2,7 @@ from controller import characters
 from provider import channelsprovider
 from util import utils, botutils
 from model.addsessiondata import AddSessionData
+from bridge import charactersbridge
 
 
 async def handle_character_commands(message, client) -> bool:
@@ -33,7 +34,7 @@ async def handle_character_commands(message, client) -> bool:
         # NON-ADMIN COMMANDS
         # ALL CHANNELS
         if keywords[1] == "inventory":
-            await handle_inventory_prompt(message)
+            await handle_inventory_prompt(message.author)
         elif keywords[1] == "inventoryremove":
             await handle_remove_from_inventory_prompt(message, int(keywords[2]))
         return True
@@ -128,9 +129,17 @@ async def handle_add_to_inventory(message, player_id_and_params_csv):
         await message.channel.send(f"{player_id_and_params[1]} was not added to <@{player_id}>. Prompt may be wrong.")
 
 
-async def handle_inventory_prompt(message):
-    inventory_string = characters.get_inventory_string(message.author.id)
-    await message.author.send(inventory_string)
+async def handle_inventory_prompt(author):
+
+    strings = characters.get_inventory_strings(author.id)
+    if len(strings) <= 0:
+        await author.send("*inventory is empty*")
+        return
+
+    async def send_message(string):
+        return await author.send(string)
+
+    await charactersbridge.send_inventory_messages(author, strings, send_message)
 
 
 async def handle_remove_from_inventory_prompt(message, item_index):

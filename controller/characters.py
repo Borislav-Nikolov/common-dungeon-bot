@@ -5,7 +5,9 @@ from model.character import Character
 from model.inventoryitem import InventoryItem
 from model.characterclass import CharacterClass
 from model.addsessiondata import AddSessionData
+from model.inventorymessage import InventoryMessage
 from model.rarity import rarity_strings_to_rarity
+from typing import Optional
 
 
 PARAMETER_NAME = "name"
@@ -61,14 +63,44 @@ def add_single_quantity_item_to_inventory(player_id, new_item: InventoryItem):
     charactersprovider.add_or_update_player(player)
 
 
-def get_inventory_string(player_id) -> str:
+def get_inventory_strings(player_id) -> list[dict[int, str]]:
     player = charactersprovider.get_player(player_id)
-    fix_inventory(player)
+    if fix_inventory(player):
+        # refresh player reference if there were changes
+        player = charactersprovider.get_player(player_id)
     inventory = player.inventory
     inventory_string = ""
+    count = 0
+    count_to_string = list()
     for item in inventory:
+        count += 1
         inventory_string += get_inventory_item_row_string(magic_item=item)
-    return inventory_string if len(inventory_string) != 0 else "*inventory is empty*"
+        if count % 20 == 0 or count == len(inventory):
+            count_to_string.append({20 if count % 20 == 0 else count % 20: inventory_string})
+            inventory_string = ""
+    return count_to_string
+
+
+def set_inventory_messages(player_id, inventory_messages: list[InventoryMessage]):
+    player = charactersprovider.get_player(player_id)
+    player.inventory_messages = inventory_messages
+    charactersprovider.add_or_update_player(player)
+
+
+def get_inventory_messages(player_id) -> list[InventoryMessage]:
+    return charactersprovider.get_player(player_id).inventory_messages
+
+
+def get_inventory_item_by_reaction_index(item_index_relative, message_id, player_id) -> Optional[InventoryItem]:
+    player = charactersprovider.get_player(player_id)
+    for inventory_message in player.inventory_messages:
+        if inventory_message.message_id == message_id:
+            item_index = inventory_message.beginning_index + (item_index_relative - 1)
+            try:
+                return get_item_from_inventory(player, item_index)
+            except ValueError:
+                return None
+    raise ValueError("Inventory message not found.")
 
 
 def refresh_inventory_by_id_if_needed(player_id) -> bool:
@@ -93,25 +125,27 @@ def refresh_inventory_if_needed(player: Player) -> bool:
     return needs_refresh
 
 
-def fix_inventory_by_id(player_id):
-    fix_inventory(charactersprovider.get_player(player_id))
-
-
-def fix_inventory(player: Player):
+def fix_inventory(player: Player) -> bool:
     if refresh_inventory_if_needed(player):
         charactersprovider.add_or_update_player(player)
+        return True
+    return False
 
 
-def get_item_from_inventory(player_id, item_index) -> InventoryItem:
-    inventory = charactersprovider.get_player(player_id).inventory
+def get_item_from_inventory(player: Player, item_index) -> InventoryItem:
+    inventory = player.inventory
     for item in inventory:
         if item.index == item_index:
             return item
-    raise Exception("Item was not found")
+    raise ValueError("Item was not found")
+
+
+def get_item_from_inventory_by_id(player_id, item_index) -> InventoryItem:
+    return get_item_from_inventory(charactersprovider.get_player(player_id), item_index)
 
 
 def refund_item_by_index(player_id, item_index: int) -> str:
-    item: InventoryItem = get_item_from_inventory(player_id, item_index)
+    item: InventoryItem = get_item_from_inventory_by_id(player_id, item_index)
     player: Player = charactersprovider.get_player(player_id)
     subtracted = subtract_item_from_inventory(player, item)
     if subtracted:
@@ -122,7 +156,7 @@ def refund_item_by_index(player_id, item_index: int) -> str:
 
 
 def remove_item_by_index(player_id, item_index: int) -> bool:
-    item: InventoryItem = get_item_from_inventory(player_id, item_index)
+    item: InventoryItem = get_item_from_inventory_by_id(player_id, item_index)
     player: Player = charactersprovider.get_player(player_id)
     subtracted = subtract_item_from_inventory(player, item)
     if subtracted:
@@ -296,7 +330,8 @@ def add_player(player_id: str, player_data_list: list):
                 last_dm="no one yet",
                 sessions_on_this_level=0
             )],
-            inventory=list[InventoryItem]()
+            inventory=list[InventoryItem](),
+            inventory_messages=list()
         )
     )
 

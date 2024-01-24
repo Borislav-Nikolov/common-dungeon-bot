@@ -11,9 +11,8 @@ from discord import NotFound
 from util import botutils
 
 
-async def handle_posts_reactions(payload, channel, client):
+async def handle_posts_reactions(payload, channel, client, post_message):
     if botutils.is_admin(payload.member):
-        post_message = await channel.fetch_message(payload.message_id)
         if post_message.author == client.user:
             post_section = postsprovider.get_post_section(channel.id)
             post_message_index = utils.find_index(post_section.posts, lambda post: post.post_id == post_message.id)

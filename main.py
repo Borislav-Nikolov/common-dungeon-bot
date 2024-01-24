@@ -1,7 +1,8 @@
 import bot
 import firebase
 import os
-from source import itemssource, magicshopsource, channelssource, playerssource, staticshopsource, postssource
+from source import itemssource, magicshopsource, channelssource, playerssource, staticshopsource, postssource, \
+    consolesource
 
 from dotenv import load_dotenv
 
@@ -19,5 +20,6 @@ if __name__ == '__main__':
     playerssource.init_players_source(is_test)
     staticshopsource.init_static_shop_source(is_test)
     postssource.init_posts_source(is_test)
+    consolesource.init_console_source(is_test)
     # start bot
     bot.run_discord_bot(bot_token)
