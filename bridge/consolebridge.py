@@ -12,7 +12,7 @@ CONSOLE_INVENTORY_MESSAGE = 'I can show you your inventory in a private message.
 
 
 async def construct_console_inventory_prompt(send_message: Callable[[View], Awaitable[Message]]):
-    view = View()
+    view = View(timeout=None)
 
     async def send_inventory(interaction: Interaction):
         return await characterscommands.handle_inventory_prompt(interaction.user)
