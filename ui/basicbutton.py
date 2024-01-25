@@ -9,5 +9,4 @@ class BasicButton(Button):
         self.on_click = on_click
 
     async def callback(self, interaction: Interaction):
-        await interaction.response.defer()
         await self.on_click(interaction)

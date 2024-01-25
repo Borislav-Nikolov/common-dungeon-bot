@@ -18,12 +18,12 @@ def run_discord_bot(bot_token):
     @client.event
     async def on_ready():
         print(f'{client.user} is now running!')
-        await reinitialize_console_messages(client)
+        await consolebridge.reinitialize_console_messages(client)
 
     @client.event
     async def on_resumed():
         print(f'{client.user} has been resumed.')
-        await reinitialize_console_messages(client)
+        await consolebridge.reinitialize_console_messages(client)
 
     @client.event
     async def on_disconnect():
@@ -53,7 +53,7 @@ def run_discord_bot(bot_token):
             if not handled:
                 await homebrewcommands.handle_homebrew_commands(message, client)
             if not handled:
-                await consolecommands.handle_console_commands(message)
+                await consolecommands.handle_console_commands(message, client)
 
     @client.event
     async def on_raw_reaction_add(payload):
@@ -81,7 +81,3 @@ def run_discord_bot(bot_token):
             await postsreactions.handle_posts_reactions(payload, channel, client, message)
 
     client.run(bot_token)
-
-
-async def reinitialize_console_messages(client):
-    await consolebridge.reinitialize_console_inventory_if_needed(client)
