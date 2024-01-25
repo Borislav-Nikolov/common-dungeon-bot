@@ -6,6 +6,7 @@ from commands import characterscommands, magicshopcommands
 from discord import ButtonStyle, Message
 from discord.ui import View
 from ui.basicmodal import BasicModal
+from util import botutils
 
 
 CONSOLE_INVENTORY_MESSAGE = 'I can show you your inventory in a private message.\n' \
@@ -41,6 +42,8 @@ async def construct_console_shop_generate_prompt(send_message: Callable[[View], 
     view = View(timeout=None)
 
     async def generate_shop(interaction: Interaction):
+        if not botutils.is_admin(interaction.user):
+            return await interaction.response.send_message("You're not an admin.", ephemeral=True)
 
         async def handle_input(modal_interaction: Interaction, levels_separated_by_comma: str):
             channel_id = channelsprovider.get_shop_channel_id()
