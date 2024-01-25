@@ -11,7 +11,7 @@ async def handle_shop_commands(message, client) -> bool:
         command_message = keywords[1]
         # ADMIN COMMANDS
         if command_message == 'generate' and botutils.is_admin_message(message):
-            await handle_generate(message, character_levels_csv=keywords[2])
+            await handle_generate(message.channel, character_levels_csv=keywords[2])
         elif command_message == 'refresh' and botutils.is_admin_message(message):
             await handle_refresh(message)
         elif command_message == 'repost' and botutils.is_admin_message(message):
@@ -29,8 +29,8 @@ async def handle_shop_commands(message, client) -> bool:
     return False
 
 
-async def handle_generate(message, character_levels_csv):
-    new_shop_message = await message.channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
+async def handle_generate(shop_channel, character_levels_csv):
+    new_shop_message = await shop_channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
     channelsprovider.set_shop_message_id(new_shop_message.id)
     for index in range(1, magicshop.SHOP_MAX_NUMBER_OF_ITEMS + 1):
         await new_shop_message.add_reaction(utils.index_to_emoji(index))

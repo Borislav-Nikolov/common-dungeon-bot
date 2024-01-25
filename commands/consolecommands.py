@@ -4,7 +4,7 @@ from discord.ui import View
 from bridge import consolebridge
 
 
-async def handle_console_commands(message) -> bool:
+async def handle_console_commands(message, client) -> bool:
     console_key = '$console'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     if keywords[0] == console_key:
@@ -13,6 +13,10 @@ async def handle_console_commands(message) -> bool:
             if keywords[1] == 'inventory':
                 await handle_console_inventory_prompt(message.channel)
                 return True
+            if keywords[1] == 'shopgenerate':
+                await handle_console_shop_generate_prompt(message.channel, client)
+            if keywords[1] == 'reinitialize':
+                await handle_console_reinitialize(message, client)
     return False
 
 
@@ -25,3 +29,19 @@ async def handle_console_inventory_prompt(channel: TextChannel):
         )
 
     await consolebridge.construct_console_inventory_prompt(send_message)
+
+
+async def handle_console_shop_generate_prompt(channel: TextChannel, client):
+
+    async def send_message(view: View) -> Message:
+        return await channel.send(
+            consolebridge.CONSOLE_SHOP_GENERATE_MESSAGE,
+            view=view
+        )
+
+    await consolebridge.construct_console_shop_generate_prompt(send_message, client)
+
+
+async def handle_console_reinitialize(message, client):
+    await consolebridge.reinitialize_console_messages(client)
+    await message.delete()
