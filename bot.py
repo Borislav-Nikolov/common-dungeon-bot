@@ -18,7 +18,16 @@ def run_discord_bot(bot_token):
     @client.event
     async def on_ready():
         print(f'{client.user} is now running!')
-        await on_bot_initialized(client)
+        await reinitialize_console_messages(client)
+
+    @client.event
+    async def on_resumed():
+        print(f'{client.user} has been resumed.')
+        await reinitialize_console_messages(client)
+
+    @client.event
+    async def on_disconnect():
+        print(f'{client.user} has been disconnected.')
 
     @client.event
     async def on_message(message):
@@ -74,5 +83,5 @@ def run_discord_bot(bot_token):
     client.run(bot_token)
 
 
-async def on_bot_initialized(client):
+async def reinitialize_console_messages(client):
     await consolebridge.reinitialize_console_inventory_if_needed(client)
