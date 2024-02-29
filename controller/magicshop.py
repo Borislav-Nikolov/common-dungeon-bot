@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import copy
-
+import re
 from controller import characters
 from provider import magicshopprovider, itemsprovider
 import random
@@ -40,6 +40,8 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
 
 
 def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
+    # temporary way to ban '+4' weapons; should be removed when banning functionality is implemented
+    plus_4_pattern = r'\+\s*4'
     character_levels_list: list = split_strip(character_levels_csv, ',')
     if len(character_levels_list) >= SHOP_MAX_NUMBER_OF_ITEMS:
         raise Exception("Too many character levels. Can't generate that many items.")
@@ -66,7 +68,8 @@ def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
         elif rarity.rarity == VERY_RARE and max_rarity_ordinal >= VERY_RARE_ORDINAL:
             very_rare.append(item)
             filtered_items.append(item)
-        elif rarity.rarity == LEGENDARY and max_rarity_ordinal >= LEGENDARY_ORDINAL:
+        elif rarity.rarity == LEGENDARY and max_rarity_ordinal >= LEGENDARY_ORDINAL and not re.search(plus_4_pattern,
+                                                                                                      item.name):
             legendary.append(item)
             filtered_items.append(item)
     magic_shop_list = list()
@@ -99,11 +102,13 @@ def pop_random_copy_into(origin: list, destination: list):
     destination.append(element_clone)
 
 
-def filer_all_out(to_be_removed: list, to_remove_from: list):
-    for element in to_be_removed:
-        if element in to_remove_from:
-            index = to_remove_from.index(element)
-            to_remove_from.pop(index)
+def filer_all_out(to_be_removed: list[Item], to_remove_from: list[Item]):
+    for item_to_compare in to_be_removed:
+        for item_to_remove in to_remove_from:
+            if item_to_compare.name == item_to_remove.name:
+                index = to_remove_from.index(item_to_remove)
+                to_remove_from.pop(index)
+                break
 
 
 def get_current_shop_string() -> str:
