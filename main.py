@@ -22,4 +22,4 @@ if __name__ == '__main__':
     postssource.init_posts_source(is_test)
     consolesource.init_console_source(is_test)
     # start bot
-    bot.run_discord_bot(bot_token)
+    bot.run_discord_bot(bot_token=bot_token, allowed_guild_id=str(os.getenv('ALLOWED_GUILD_ID')))

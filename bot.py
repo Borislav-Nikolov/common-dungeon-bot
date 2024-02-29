@@ -10,7 +10,7 @@ from util import botutils
 from discord.ext import commands
 
 
-def run_discord_bot(bot_token):
+def run_discord_bot(bot_token, allowed_guild_id: str):
     intents = discord.Intents.default()
     intents.message_content = True
     client = commands.Bot(command_prefix='$', intents=intents)
@@ -33,6 +33,9 @@ def run_discord_bot(bot_token):
     async def on_message(message):
         if message.author == client.user:
             return
+        if message.guild:
+            if str(message.guild.id) != allowed_guild_id:
+                return
 
         username = str(message.author.id)
         user_message = str(message.content)
@@ -59,6 +62,9 @@ def run_discord_bot(bot_token):
     async def on_raw_reaction_add(payload):
         if payload.user_id == client.user.id:
             return
+        if payload.guild_id:
+            if str(payload.guild_id) != allowed_guild_id:
+                return
         # use `user` in case payload.member is None - happens in DM channels
         user = await client.fetch_user(payload.user_id)
         try:
