@@ -2,7 +2,7 @@ import bot
 import firebase
 import os
 from source import itemssource, magicshopsource, channelssource, playerssource, staticshopsource, postssource, \
-    consolesource
+    consolesource, rolepermissionssourse
 
 from dotenv import load_dotenv
 
@@ -21,5 +21,6 @@ if __name__ == '__main__':
     staticshopsource.init_static_shop_source(is_test)
     postssource.init_posts_source(is_test)
     consolesource.init_console_source(is_test)
+    rolepermissionssourse.init_role_permissions_source(is_test)
     # start bot
     bot.run_discord_bot(bot_token=bot_token, allowed_guild_id=str(os.getenv('ALLOWED_GUILD_ID')))

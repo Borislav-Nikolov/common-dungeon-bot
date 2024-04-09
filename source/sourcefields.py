@@ -35,3 +35,6 @@ CHARACTER_FIELD_SESSIONS = "sessions_on_this_level"
 CLASS_FIELD_NAME = "class_name"
 CLASS_FIELD_LEVEL = "level"
 CLASS_FIELD_IS_PRIMARY = "is_primary"
+
+POST_FIELD_GROUP_NAME = "group_name"
+POST_FIELD_LAST_EDITOR = "last_editor"
