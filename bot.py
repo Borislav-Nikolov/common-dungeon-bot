@@ -1,7 +1,7 @@
 
 import discord
 
-from provider import magicshopprovider, staticshopprovider, postsprovider, consoleprovider
+from provider import magicshopprovider, staticshopprovider, postsprovider
 from commands import homebrewcommands, magicshopcommands, serverinitializationcommands, characterscommands, \
     magicshopreactions, staticshopcommands, staticshopreactions, postscommands, postsreactions, charactersreactions, \
     consolecommands

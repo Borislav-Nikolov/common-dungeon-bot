@@ -12,11 +12,13 @@ from util import botutils
 
 
 async def handle_posts_reactions(payload, channel, client, post_message):
-    if botutils.is_admin(payload.member):
-        if post_message.author == client.user:
-            post_section = postsprovider.get_post_section(channel.id)
-            post_message_index = utils.find_index(post_section.posts, lambda post: post.post_id == post_message.id)
-            if post_message_index != -1:
+    if post_message.author == client.user:
+        post_section = postsprovider.get_post_section_group(channel.id, post_message.id)
+        post_message_index = utils.find_index(post_section.posts, lambda post: post.post_id == str(post_message.id))
+        if post_message_index != -1:
+            role_ids = list(map(lambda it: it.id, payload.member.roles))
+            post_group_name = post_section.posts[post_message_index].post_group_name
+            if botutils.is_admin(payload.member) or posts.any_has_permissions(post_group_name, role_ids):
                 payload_emoji = str(payload.emoji)
                 if payload_emoji == posts.arrow_up_emoji:
                     await handle_arrow_up_emoji(channel, post_message, payload)

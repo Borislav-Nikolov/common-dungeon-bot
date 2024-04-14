@@ -62,3 +62,11 @@ async def create_emoji_prompt(
 
 def is_dm_channel(channel) -> bool:
     return isinstance(channel, discord.DMChannel)
+
+
+def get_role_id_tag(role_id) -> str:
+    return f'<@&{role_id}>'
+
+
+def strip_role_id_tag(role_id_tag: str) -> str:
+    return role_id_tag.strip()[3:role_id_tag.find('>')]
