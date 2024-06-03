@@ -230,6 +230,67 @@ def get_up_to_date_player_message(player_id) -> str:
     return f'{player_string}{characters_string}'
 
 
+def remove_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
+    player_ids = list(player_id_to_data.keys())
+    players: list[Player] = charactersprovider.get_players(player_ids)
+    if len(players) != len(player_ids):
+        raise Exception("Invalid player data provided.")
+    for player in players:
+        for character in player.characters:
+            # find character
+            if character.character_name == player_id_to_data[player.player_id].character_name:
+                if character.character_level == 1:
+                    raise Exception(f"Level 1 character {character.character_name} cannot lose a session.")
+                # determine level before previous session
+                should_remove_level = character.sessions_on_this_level == 0
+                previous_level = (character.character_level - 1) if should_remove_level else character.character_level
+                character.character_level = previous_level
+                # determine class to remove level from
+                if should_remove_level:
+                    default_class = ''
+                    default_class_level = -1
+                    class_counter = 0
+                    total_classes = len(character.classes)
+                    has_class_param = player_id_to_data[player.player_id].class_name is not None
+                    class_param = '' if not has_class_param else player_id_to_data[player.player_id].class_name
+                    for character_class in character.classes:
+                        class_counter += 1
+                        if character_class.class_name == class_param:
+                            character_class.level -= 1
+                            if character_class.level == 0:
+                                # remove class from character
+                                class_index = utils.find_index(
+                                    character.classes,
+                                    lambda it: it.class_name == character_class.class_name
+                                )
+                                character.classes.pop(class_index)
+                                break
+                        if character_class.is_primary:
+                            default_class = character_class.class_name
+                            default_class_level = character_class.level
+                        if class_counter == total_classes:
+                            if len(class_param) != 0:
+                                raise Exception(f"Class was not found: {class_param}")
+                            if default_class_level < 2:
+                                raise Exception(f"Default class of level 1 cannot be removed.")
+                            # remove level from default class
+                            default_class_index = utils.find_index(
+                                character.classes,
+                                lambda it: it.class_name == default_class
+                            )
+                            default_class_object = character.classes[default_class_index]
+                            default_class_object.level -= 1
+                    # de-assign tokens
+                    player.common_tokens -= get_common_tokens(previous_level)
+                    player.uncommon_tokens -= get_uncommon_tokens(previous_level)
+                    player.rare_tokens -= get_rare_tokens(previous_level)
+                    player.very_rare_tokens -= get_very_rare_tokens(previous_level)
+                    player.legendary_tokens -= get_legendary_tokens(previous_level)
+    # upload in database
+    charactersprovider.add_or_update_players(players)
+    return True
+
+
 def add_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
     player_ids = list(player_id_to_data.keys())
     players: list[Player] = charactersprovider.get_players(player_ids)

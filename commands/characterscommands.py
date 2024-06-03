@@ -15,6 +15,8 @@ async def handle_character_commands(message, client) -> bool:
             if botutils.is_characters_info_channel(message):
                 if keywords[1] == "addsession":
                     await handle_addsession(client, message, session_data_csv=keywords[2])
+                if keywords[1] == "removesession":
+                    await handle_removesession(client, message, session_data_csv=keywords[2])
                 elif keywords[1] == "addplayer":
                     await handle_addplayer(client, player_data_csv=keywords[2])
                 elif keywords[1] == "addcharacter":
@@ -56,6 +58,16 @@ async def handle_addsession(client, message, session_data_csv):
     """
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
     if characters.add_session(id_to_data):
+        for player_id in id_to_data:
+            await characters.refresh_player_message(client, player_id)
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
+
+
+async def handle_removesession(client, message, session_data_csv):
+    id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
+    if characters.remove_session(id_to_data):
         for player_id in id_to_data:
             await characters.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
