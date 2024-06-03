@@ -245,8 +245,18 @@ def remove_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
                 should_remove_level = character.sessions_on_this_level == 0
                 previous_level = (character.character_level - 1) if should_remove_level else character.character_level
                 character.character_level = previous_level
-                # determine class to remove level from
+                # re-adjust current sessions
+                current_sessions = (utils.sessions_to_next_level(
+                    previous_level) if should_remove_level else character.sessions_on_this_level) - 1
+                character.sessions_on_this_level = current_sessions
+                # de-assign tokens
+                player.common_tokens -= get_common_tokens(previous_level)
+                player.uncommon_tokens -= get_uncommon_tokens(previous_level)
+                player.rare_tokens -= get_rare_tokens(previous_level)
+                player.very_rare_tokens -= get_very_rare_tokens(previous_level)
+                player.legendary_tokens -= get_legendary_tokens(previous_level)
                 if should_remove_level:
+                    # determine class to remove level from
                     default_class = ''
                     default_class_level = -1
                     class_counter = 0
@@ -280,12 +290,6 @@ def remove_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
                             )
                             default_class_object = character.classes[default_class_index]
                             default_class_object.level -= 1
-                    # de-assign tokens
-                    player.common_tokens -= get_common_tokens(previous_level)
-                    player.uncommon_tokens -= get_uncommon_tokens(previous_level)
-                    player.rare_tokens -= get_rare_tokens(previous_level)
-                    player.very_rare_tokens -= get_very_rare_tokens(previous_level)
-                    player.legendary_tokens -= get_legendary_tokens(previous_level)
     # upload in database
     charactersprovider.add_or_update_players(players)
     return True
