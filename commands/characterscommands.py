@@ -15,8 +15,10 @@ async def handle_character_commands(message, client) -> bool:
             if botutils.is_characters_info_channel(message):
                 if keywords[1] == "addsession":
                     await handle_addsession(client, message, session_data_csv=keywords[2])
-                if keywords[1] == "removesession":
+                elif keywords[1] == "removesession":
                     await handle_removesession(client, message, session_data_csv=keywords[2])
+                elif keywords[1] == "refreshmessage":
+                    await handle_refresh_player_message(client, player_ids_csv=keywords[2])
                 elif keywords[1] == "addplayer":
                     await handle_addplayer(client, player_data_csv=keywords[2])
                 elif keywords[1] == "addcharacter":
@@ -41,6 +43,13 @@ async def handle_character_commands(message, client) -> bool:
             await handle_remove_from_inventory_prompt(message, int(keywords[2]))
         return True
     return False
+
+
+async def handle_refresh_player_message(client, player_ids_csv):
+    player_data_list = utils.split_strip(player_ids_csv, ',')
+    for player_tag in player_data_list:
+        player_id = utils.strip_id_tag(player_tag)
+        await characters.refresh_player_message(client, player_id)
 
 
 # TODO: Do the same for the rest of the commands as for this function, meaning:
