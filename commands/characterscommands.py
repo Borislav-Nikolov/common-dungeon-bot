@@ -31,6 +31,8 @@ async def handle_character_commands(message, client) -> bool:
                     await handle_swapclasslevels(client, player_id_and_params_csv=keywords[2])
                 elif keywords[1] == "repost":
                     await handle_repost(message, player_tag=keywords[2])
+                elif keywords[1] == "initplayerlevel":
+                    await handle_initplayerlevel(client)
             # ALL CHANNELS - ADMIN COMMANDS
             else:
                 if keywords[1] == "inventoryadd":
@@ -50,6 +52,10 @@ async def handle_refresh_player_message(client, player_ids_csv):
     for player_tag in player_data_list:
         player_id = utils.strip_id_tag(player_tag)
         await characters.refresh_player_message(client, player_id)
+
+
+async def handle_initplayerlevel(client):
+    await characters.initialize_player_level(client)
 
 
 # TODO: Do the same for the rest of the commands as for this function, meaning:

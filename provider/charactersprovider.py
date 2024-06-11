@@ -18,6 +18,8 @@ def add_or_update_players(players: list[Player]):
     for player in players:
         player_data[player.player_id] = {
             PLAYER_FIELD_NAME: player.name,
+            PLAYER_FIELD_PLAYER_LEVEL: player.player_level,
+            PLAYER_FIELD_SESSIONS_ON_THIS_LEVEL: player.sessions_on_this_level,
             PLAYER_FIELD_COMMON_TOKENS: player.common_tokens,
             PLAYER_FIELD_UNCOMMON_TOKENS: player.uncommon_tokens,
             PLAYER_FIELD_RARE_TOKENS: player.rare_tokens,
@@ -78,6 +80,11 @@ def get_players(player_ids: list) -> list[Player]:
     return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
 
 
+def get_all_players() -> list[Player]:
+    players_data = playerssource.get_all_players()
+    return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
+
+
 def map_player_object(player_id, player_data: dict) -> Player:
     inventory_list = utils.filter_not_none(
         list() if PLAYER_FIELD_INVENTORY not in player_data else player_data[PLAYER_FIELD_INVENTORY]
@@ -85,6 +92,9 @@ def map_player_object(player_id, player_data: dict) -> Player:
     return Player(
         player_id=player_id,
         name=player_data[PLAYER_FIELD_NAME],
+        player_level=-1 if PLAYER_FIELD_PLAYER_LEVEL not in player_data else player_data[PLAYER_FIELD_PLAYER_LEVEL],
+        sessions_on_this_level=-1 if PLAYER_FIELD_SESSIONS_ON_THIS_LEVEL not in player_data else player_data[
+            PLAYER_FIELD_SESSIONS_ON_THIS_LEVEL],
         common_tokens=player_data[PLAYER_FIELD_COMMON_TOKENS],
         uncommon_tokens=player_data[PLAYER_FIELD_UNCOMMON_TOKENS],
         rare_tokens=player_data[PLAYER_FIELD_RARE_TOKENS],

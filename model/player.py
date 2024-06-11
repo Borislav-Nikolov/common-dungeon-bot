@@ -5,11 +5,14 @@ from util.utils import *
 
 
 class Player:
-    def __init__(self, player_id, name: str, common_tokens: int, uncommon_tokens: int, rare_tokens: int,
-                 very_rare_tokens: int, legendary_tokens: int, characters: list[Character],
-                 inventory: list[InventoryItem], inventory_messages: list[InventoryMessage]):
+    def __init__(self, player_id, name: str, player_level: int, sessions_on_this_level: int, common_tokens: int,
+                 uncommon_tokens: int, rare_tokens: int, very_rare_tokens: int, legendary_tokens: int,
+                 characters: list[Character], inventory: list[InventoryItem],
+                 inventory_messages: list[InventoryMessage]):
         self.player_id = player_id
         self.name: str = name
+        self.player_level: int = player_level
+        self.sessions_on_this_level: int = sessions_on_this_level
         self.common_tokens: int = common_tokens
         self.uncommon_tokens: int = uncommon_tokens
         self.rare_tokens: int = rare_tokens

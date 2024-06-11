@@ -18,13 +18,14 @@ def get_player(player_id) -> dict:
 def get_players(player_ids: list) -> dict:
     player_list = dict()
     all_players = players_ref.get()
-    index = 0
-    for player in all_players:
-        player_id = list(all_players.keys())[index]
+    for player_id in all_players:
         if player_id in player_ids:
-            player_list[player] = all_players[player]
-        index += 1
+            player_list[player_id] = all_players[player_id]
     return player_list
+
+
+def get_all_players() -> dict:
+    return players_ref.get()
 
 
 def update_in_players(player_data):
