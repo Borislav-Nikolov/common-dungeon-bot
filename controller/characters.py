@@ -1,3 +1,5 @@
+import discord
+
 from provider import charactersprovider, channelsprovider
 from util.itemutils import *
 from model.player import Player
@@ -202,8 +204,10 @@ def add_tokens_to_player_for_rarity(player: Player, rarity: str, rarity_level: s
 
 def get_up_to_date_player_message(player_id) -> str:
     player: Player = charactersprovider.get_player(player_id)
+    level = player.player_level
     player_string = f'<@{player.player_id}>\n' \
                     f'**Player:** {player.name}\n' \
+                    f'**Level:** {level} - {player.sessions_on_this_level}/6 to level {level + 1}\n' \
                     f'**Tokens:** {player.common_tokens} common, ' \
                     f'{player.uncommon_tokens} uncommon, ' \
                     f'{player.rare_tokens} rare, ' \
@@ -236,6 +240,11 @@ def remove_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
     if len(players) != len(player_ids):
         raise Exception("Invalid player data provided.")
     for player in players:
+        if player.sessions_on_this_level == 0:
+            player.player_level -= 1
+            player.sessions_on_this_level = 5
+        else:
+            player.sessions_on_this_level -= 1
         for character in player.characters:
             # find character
             if character.character_name == player_id_to_data[player.player_id].character_name:
@@ -307,6 +316,11 @@ def add_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
             dungeon_master = potential_dm
             break
     for player in players:
+        if player.sessions_on_this_level == 5:
+            player.player_level += 1
+            player.sessions_on_this_level = 0
+        else:
+            player.sessions_on_this_level += 1
         character_loop_index = 0
         for character in player.characters:
             if character.character_name == player_id_to_data[player.player_id].character_name:
@@ -379,6 +393,8 @@ def add_player(player_id: str, player_data_list: list):
         Player(
             player_id=player_id,
             name=player_name,
+            player_level=1,
+            sessions_on_this_level=0,
             common_tokens=0,
             uncommon_tokens=0,
             rare_tokens=0,
@@ -505,6 +521,8 @@ def add_class_to_character_data(character: Character, classes_to_levels: dict, i
         character.classes.append(new_character_class)
 
 
+# TODO: the below functions use "client" which is not correct. Functions that know about Discord should not be here.
+
 async def refresh_player_message(client, player_id):
     await update_player_message(client, player_id, get_up_to_date_player_message(player_id))
 
@@ -512,5 +530,33 @@ async def refresh_player_message(client, player_id):
 async def update_player_message(client, player_id, new_message):
     players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
     player_message_id = channelsprovider.get_player_message_id(player_id)
-    player_message = await players_channel.fetch_message(player_message_id)
-    await player_message.edit(content=new_message)
+    try:
+        player_message = await players_channel.fetch_message(player_message_id)
+        await player_message.edit(content=new_message)
+    except discord.NotFound:
+        print(f'Message for player ID {player_id} was not found.')
+
+
+async def initialize_player_level(client):
+    all_players: list[Player] = charactersprovider.get_all_players()
+    for player in all_players:
+        strongest_character: Optional[Character] = None
+        for character in player.characters:
+            current_level = -1 if strongest_character is None else strongest_character.character_level
+            if character.character_level == current_level and character.sessions_on_this_level > strongest_character\
+                    .sessions_on_this_level:
+                strongest_character = character
+            elif character.character_level > current_level:
+                strongest_character = character
+        player_level = int(strongest_character.character_level / 2)
+        remainder = strongest_character.character_level % 2
+        excess_sessions = strongest_character.sessions_on_this_level
+        if remainder == 1:
+            even_level = strongest_character.character_level - 1
+            sessions_played_to_reach_current_level = utils.sessions_to_next_level(even_level)
+            excess_sessions += sessions_played_to_reach_current_level
+        player.player_level = player_level
+        player.sessions_on_this_level = excess_sessions
+    charactersprovider.add_or_update_players(all_players)
+    for player in all_players:
+        await refresh_player_message(client, player.player_id)
