@@ -535,28 +535,3 @@ async def update_player_message(client, player_id, new_message):
         await player_message.edit(content=new_message)
     except discord.NotFound:
         print(f'Message for player ID {player_id} was not found.')
-
-
-async def initialize_player_level(client):
-    all_players: list[Player] = charactersprovider.get_all_players()
-    for player in all_players:
-        strongest_character: Optional[Character] = None
-        for character in player.characters:
-            current_level = -1 if strongest_character is None else strongest_character.character_level
-            if character.character_level == current_level and character.sessions_on_this_level > strongest_character\
-                    .sessions_on_this_level:
-                strongest_character = character
-            elif character.character_level > current_level:
-                strongest_character = character
-        player_level = int(strongest_character.character_level / 2)
-        remainder = strongest_character.character_level % 2
-        excess_sessions = strongest_character.sessions_on_this_level
-        if remainder == 1:
-            even_level = strongest_character.character_level - 1
-            sessions_played_to_reach_current_level = utils.sessions_to_next_level(even_level)
-            excess_sessions += sessions_played_to_reach_current_level
-        player.player_level = player_level
-        player.sessions_on_this_level = excess_sessions
-    charactersprovider.add_or_update_players(all_players)
-    for player in all_players:
-        await refresh_player_message(client, player.player_id)
