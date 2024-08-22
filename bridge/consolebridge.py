@@ -79,17 +79,15 @@ async def construct_console_shop_generate_prompt(send_message: Callable[[View], 
 
 
 async def construct_console_character_status_change_prompt(send_message: Callable[[View], Awaitable[Message]], client):
-    async def handle_input(modal_interaction: Interaction, character_name: str, character_status: str):
-        await modal_interaction.response.defer()
+    async def handle_input(interaction: Interaction, character_name: str, character_status: str):
+        await interaction.response.defer()
         return await charactersbridge.update_character_status(
             client=client,
             member=interaction.user,
             character_name=character_name,
             status=character_status
         )
-    view = CharacterStatusView()
-
-    view.add_item(button)
+    view = CharacterStatusView(on_submit_callback=handle_input)
     sent_message: Message = await send_message(view)
     consoleprovider.set_character_status_console_message_id(sent_message.id, sent_message.channel.id)
 

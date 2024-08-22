@@ -418,7 +418,8 @@ def add_player(player_id: str, player_data_list: list):
                     is_primary=True
                 )],
                 last_dm="no one yet",
-                sessions_on_this_level=0
+                sessions_on_this_level=0,
+                status=charactersutils.CHARACTER_STATUS_ACTIVE
             )],
             inventory=list[InventoryItem](),
             inventory_messages=list()
