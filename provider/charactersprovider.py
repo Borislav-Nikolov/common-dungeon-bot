@@ -6,7 +6,7 @@ from model.inventorymessage import InventoryMessage
 from model.rarity import rarity_strings_to_rarity
 from source.sourcefields import *
 from source import playerssource
-from util import utils
+from util import utils, charactersutils
 
 
 def add_or_update_player(player: Player):
@@ -41,7 +41,8 @@ def add_or_update_players(players: list[Player]):
                             )
                         ),
                         CHARACTER_FIELD_LAST_DM: character.last_dm,
-                        CHARACTER_FIELD_SESSIONS: character.sessions_on_this_level
+                        CHARACTER_FIELD_SESSIONS: character.sessions_on_this_level,
+                        CHARACTER_FIELD_STATUS: character.status
                     },
                     player.characters
                 )
@@ -116,7 +117,9 @@ def map_player_object(player_id, player_data: dict) -> Player:
                         )
                     ),
                     last_dm=character[CHARACTER_FIELD_LAST_DM],
-                    sessions_on_this_level=character[CHARACTER_FIELD_SESSIONS]
+                    sessions_on_this_level=character[CHARACTER_FIELD_SESSIONS],
+                    status=charactersutils.CHARACTER_STATUS_ACTIVE if CHARACTER_FIELD_STATUS not in character else
+                    character[CHARACTER_FIELD_STATUS]
                 ),
                 player_data[PLAYER_FIELD_CHARACTERS]
             )

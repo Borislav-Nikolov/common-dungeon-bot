@@ -24,3 +24,15 @@ def get_shop_generate_console_message_id() -> Optional[str]:
 
 def get_shop_generate_console_channel_id() -> Optional[str]:
     return consolesource.get_shop_generate_console_channel_id()
+
+
+def set_character_status_console_message_id(message_id, channel_id):
+    consolesource.set_character_status_console_message_id(message_id, channel_id)
+
+
+def get_character_status_console_message_id() -> Optional[str]:
+    return consolesource.get_character_status_console_message_id()
+
+
+def get_character_status_console_channel_id() -> Optional[str]:
+    return consolesource.get_character_status_console_channel_id()

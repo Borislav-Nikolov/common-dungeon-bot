@@ -19,3 +19,9 @@ async def send_inventory_messages(member, inventory_strings: list[dict[int, str]
         inventory_messages.append(
             InventoryMessage(beginning_index=beginning_index, message_id=inventory_message.id))
     characters.set_inventory_messages(player_id, inventory_messages)
+
+
+async def update_character_status(client, member, character_name: str, status: str):
+    player_id = member.id
+    if characters.update_character_status(player_id, character_name, status):
+        await characters.refresh_player_message(client, player_id)

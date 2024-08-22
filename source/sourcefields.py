@@ -33,6 +33,7 @@ CHARACTER_FIELD_LEVEL = "character_level"
 CHARACTER_FIELD_CLASSES = "classes"
 CHARACTER_FIELD_LAST_DM = "last_dm"
 CHARACTER_FIELD_SESSIONS = "sessions_on_this_level"
+CHARACTER_FIELD_STATUS = "status"
 
 CLASS_FIELD_NAME = "class_name"
 CLASS_FIELD_LEVEL = "level"

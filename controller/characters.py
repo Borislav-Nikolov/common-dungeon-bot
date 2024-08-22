@@ -10,12 +10,23 @@ from model.addsessiondata import AddSessionData
 from model.inventorymessage import InventoryMessage
 from model.rarity import rarity_strings_to_rarity
 from typing import Optional
+from util import charactersutils
 
 
 PARAMETER_NAME = "name"
 PARAMETER_CHARACTER = "character"
 PARAMETER_CLASS = "class"
 PARAMETER_LEVEL = "level"
+
+
+def update_character_status(player_id, character_name: str, status: str) -> bool:
+    if not charactersutils.is_character_status_valid(status):
+        return False
+    player: Player = charactersprovider.get_player(player_id)
+    character: Character = find_character_or_throw(player, character_name)
+    character.status = status
+    charactersprovider.add_or_update_player(player)
+    return True
 
 
 def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> bool:
@@ -214,9 +225,8 @@ def get_up_to_date_player_message(player_id) -> str:
                     f'{player.very_rare_tokens} very rare, ' \
                     f'{player.legendary_tokens} legendary'
     characters_string = '\n**Characters:**\n'
-    counter = 1
     for character in player.characters:
-        characters_string += f'{counter}) {character.character_name} - '
+        characters_string += f'{charactersutils.status_emoji(character.status)} {character.character_name} - '
         class_index = 0
         for character_class in character.classes:
             characters_string += f'{character_class.class_name} {character_class.level}'
@@ -230,7 +240,6 @@ def get_up_to_date_player_message(player_id) -> str:
                                  f'{character_level + 1}'
         characters_string += f' - Last DM: {character.last_dm}'
         characters_string += '\n'
-        counter += 1
     return f'{player_string}{characters_string}'
 
 

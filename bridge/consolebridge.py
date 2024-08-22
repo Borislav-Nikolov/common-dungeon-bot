@@ -6,7 +6,9 @@ from commands import characterscommands, magicshopcommands
 from discord import ButtonStyle, Message
 from discord.ui import View
 from ui.basicmodal import BasicModal
+from ui.characterstatusmodal import CharacterStatusView
 from util import botutils
+from bridge import charactersbridge
 
 
 CONSOLE_INVENTORY_MESSAGE = 'I can show you your inventory in a private message.\n' \
@@ -15,10 +17,13 @@ CONSOLE_INVENTORY_MESSAGE = 'I can show you your inventory in a private message.
 CONSOLE_SHOP_GENERATE_MESSAGE = 'Generate a new magic shop.\n' \
                                 'This command is only available to the **Admin Pantheon**, praise them.'
 
+CONSOLE_CHANGE_CHARACTER_STATUS_MESSAGE = 'Change the status of one of your characters.'
+
 
 async def reinitialize_console_messages(client):
     await reinitialize_console_inventory_if_needed(client)
     await reinitialize_console_shop_generate_if_needed(client)
+    await reinitialize_character_status_change_if_needed(client)
 
 
 async def construct_console_inventory_prompt(send_message: Callable[[View], Awaitable[Message]]):
@@ -73,6 +78,22 @@ async def construct_console_shop_generate_prompt(send_message: Callable[[View], 
     consoleprovider.set_shop_generate_console_message_id(sent_message.id, sent_message.channel.id)
 
 
+async def construct_console_character_status_change_prompt(send_message: Callable[[View], Awaitable[Message]], client):
+    async def handle_input(modal_interaction: Interaction, character_name: str, character_status: str):
+        await modal_interaction.response.defer()
+        return await charactersbridge.update_character_status(
+            client=client,
+            member=interaction.user,
+            character_name=character_name,
+            status=character_status
+        )
+    view = CharacterStatusView()
+
+    view.add_item(button)
+    sent_message: Message = await send_message(view)
+    consoleprovider.set_character_status_console_message_id(sent_message.id, sent_message.channel.id)
+
+
 async def reinitialize_console_inventory_if_needed(client):
     old_console_inventory_message_id = consoleprovider.get_inventory_console_message_id()
     old_console_inventory_channel_id = consoleprovider.get_inventory_console_channel_id()
@@ -105,3 +126,20 @@ async def reinitialize_console_shop_generate_if_needed(client):
             )
 
         await construct_console_shop_generate_prompt(edited_shop_generate_message, client)
+
+
+async def reinitialize_character_status_change_if_needed(client):
+    old_console_character_status_message_id = consoleprovider.get_character_status_console_message_id()
+    old_console_character_status_channel_id = consoleprovider.get_character_status_console_channel_id()
+    if old_console_character_status_message_id is not None and old_console_character_status_channel_id is not None:
+        console_character_status_channel = client.get_channel(int(old_console_character_status_channel_id))
+        console_character_status_message: Message = await console_character_status_channel.fetch_message(
+            old_console_character_status_message_id)
+
+        async def edited_character_status_message(view: View) -> Message:
+            return await console_character_status_message.edit(
+                content=CONSOLE_CHANGE_CHARACTER_STATUS_MESSAGE,
+                view=view
+            )
+
+        await construct_console_character_status_change_prompt(edited_character_status_message, client)
