@@ -87,7 +87,11 @@ async def construct_console_character_status_change_prompt(send_message: Callabl
             character_name=character_name,
             status=character_status
         )
-    view = CharacterStatusView(on_submit_callback=handle_input)
+
+    async def handle_error(interaction: Interaction):
+        await interaction.response.defer()
+
+    view = CharacterStatusView(on_submit_callback=handle_input, on_handle_error=handle_error)
     sent_message: Message = await send_message(view)
     consoleprovider.set_character_status_console_message_id(sent_message.id, sent_message.channel.id)
 

@@ -11,24 +11,37 @@ from ui.basicmodal import BasicModal
 class CharacterStatusView(View):
     def __init__(
             self,
-            on_submit_callback: Callable[[Interaction, str, str], Awaitable]
+            on_submit_callback: Callable[[Interaction, str, str], Awaitable],
+            on_handle_error: Callable[[Interaction], Awaitable]
     ):
         super().__init__(timeout=None)
         self.on_submit_callback = on_submit_callback
+        self.on_handle_error = on_handle_error
+
+        status_selection_per_user = dict()
 
         async def on_status_select(interaction: Interaction, status: str):
+            print(f'onstatusselect: user_id={interaction.user.id}, status: {status}')
+            status_selection_per_user[interaction.user.id] = status
             return await interaction.response.defer()
 
         self.status_selection = StatusSelect(on_submit_callback=on_status_select)
 
         async def on_submit(interaction: Interaction, character_name: str):
-            return await self.on_submit_callback(
-                # TODO: test if self.status_selection.values doesn't somehow select something that was selected from another user
-                interaction, character_name, self.status_selection.values[0]
-            )
+            print(f'onsubmit: user_id={interaction.user.id}, character_name={character_name}, from dict={status_selection_per_user[interaction.user.id]}')
+            if interaction.user.id in status_selection_per_user and len(
+                    status_selection_per_user[interaction.user.id]) > 0:
+                new_status = status_selection_per_user.pop(interaction.user.id, None)
+                if new_status is None:
+                    return await self.on_handle_error(interaction)
+                return await self.on_submit_callback(interaction, character_name, new_status)
+            else:
+                return await self.on_handle_error(interaction)
 
         async def button_click(button_interaction: Interaction):
-            if len(self.status_selection.values) > 0:
+            print(f'button_click: user_id={button_interaction.user.id}, from dict={status_selection_per_user[button_interaction.user.id]}')
+            if button_interaction.user.id in status_selection_per_user and len(
+                    status_selection_per_user[button_interaction.user.id]) > 0:
                 return await button_interaction.response.send_modal(
                     BasicModal(
                         title='Character status change',
