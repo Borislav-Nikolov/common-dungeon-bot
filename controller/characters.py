@@ -511,7 +511,7 @@ def find_character_or_throw(player: Player, character_name) -> Character:
     for character in player.characters:
         if character.character_name == character_name:
             return character
-    raise Exception("Character not found.")
+    raise ValueError("Character not found.")
 
 
 def add_class_to_character_data(character: Character, classes_to_levels: dict, is_first_primary: bool):

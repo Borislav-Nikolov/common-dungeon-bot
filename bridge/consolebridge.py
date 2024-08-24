@@ -79,14 +79,20 @@ async def construct_console_shop_generate_prompt(send_message: Callable[[View], 
 
 
 async def construct_console_character_status_change_prompt(send_message: Callable[[View], Awaitable[Message]], client):
-    async def handle_input(interaction: Interaction, character_name: str, character_status: str):
-        await interaction.response.defer()
-        return await charactersbridge.update_character_status(
-            client=client,
-            member=interaction.user,
-            character_name=character_name,
-            status=character_status
-        )
+    async def handle_input(interaction: Interaction, character_name: str, character_status: str) -> bool:
+        try:
+            await charactersbridge.update_character_status(
+                client=client,
+                member=interaction.user,
+                character_name=character_name,
+                status=character_status
+            )
+            await interaction.response.defer()
+            return True
+        except ValueError:
+            print(f'Character not found for character_name={character_name}, at character status change.')
+            await interaction.response.send_message(f'Wrong character name: {character_name}', ephemeral=True)
+            return False
 
     async def handle_error(interaction: Interaction):
         await interaction.response.defer()

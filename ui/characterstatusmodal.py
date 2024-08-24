@@ -11,7 +11,7 @@ from ui.basicmodal import BasicModal
 class CharacterStatusView(View):
     def __init__(
             self,
-            on_submit_callback: Callable[[Interaction, str, str], Awaitable],
+            on_submit_callback: Callable[[Interaction, str, str], Awaitable[bool]],
             on_handle_error: Callable[[Interaction], Awaitable]
     ):
         super().__init__(timeout=None)
@@ -32,16 +32,20 @@ class CharacterStatusView(View):
             if interaction.user.id in status_selection_per_user and len(
                     status_selection_per_user[interaction.user.id]) > 0:
                 new_status = status_selection_per_user.pop(interaction.user.id, None)
+                print(f'new status extracted = {interaction.user.id in status_selection_per_user}')
                 if new_status is None:
                     return await self.on_handle_error(interaction)
-                return await self.on_submit_callback(interaction, character_name, new_status)
+                if not await self.on_submit_callback(interaction, character_name, new_status):
+                    # reinitialize the value as it could not be used
+                    if len(self.status_selection.values) > 0:
+                        status_selection_per_user[interaction.user.id] = self.status_selection.values[0]
             else:
                 return await self.on_handle_error(interaction)
 
         async def button_click(button_interaction: Interaction):
-            print(f'button_click: user_id={button_interaction.user.id}, from dict={status_selection_per_user[button_interaction.user.id]}')
             if button_interaction.user.id in status_selection_per_user and len(
                     status_selection_per_user[button_interaction.user.id]) > 0:
+                print(f'button_click: user_id={button_interaction.user.id}, from dict={status_selection_per_user[button_interaction.user.id]}')
                 return await button_interaction.response.send_modal(
                     BasicModal(
                         title='Character status change',
