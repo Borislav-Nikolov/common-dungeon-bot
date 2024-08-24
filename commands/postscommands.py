@@ -5,9 +5,11 @@ from controller import posts
 
 
 async def handle_posts_commands(message) -> bool:
+    # both "posts" and "post" are valid
     posts_key = '$posts'
+    post_key = '$post'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
-    if keywords[0] == posts_key:
+    if keywords[0] == posts_key or keywords[0] == post_key:
         post_group_name = keywords[1]
         if posts.is_group_allowed(post_group_name):
             if len(keywords) > 2 and botutils.is_admin_message(message):

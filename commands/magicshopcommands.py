@@ -1,6 +1,7 @@
 from util import utils, botutils
 from controller import characters, magicshop
 from provider import channelsprovider
+from bridge import charactersbridge
 
 
 async def handle_shop_commands(message, client) -> bool:
@@ -55,7 +56,7 @@ async def handle_buy_item(client, message, command_message):
     if sold:
         shop_string = magicshop.get_current_shop_string()
         await shop_message.edit(content=shop_string)
-        await characters.refresh_player_message(client, message.author.id)
+        await charactersbridge.refresh_player_message(client, message.author.id)
         await message.add_reaction('🪙')
         await message.channel.send(magicshop.get_sold_item_string(message.author.id, sold_item_name))
     else:
@@ -68,7 +69,7 @@ async def handle_sell_item_by_rarity(client, message, tag_rarity_raritylevel_csv
     player_id = utils.strip_id_tag(sell_data[0])
     sold = magicshop.refund_item(player_id, sell_data[1], sell_data[2])
     if sold:
-        await characters.refresh_player_message(client, player_id)
+        await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
     else:
         await message.add_reaction('❌')
@@ -79,7 +80,7 @@ async def handle_sell_item_by_inventory_ordinal(client, message, item_ordinal):
     item_name = characters.refund_item_by_index(player_id, item_ordinal)
     sold = len(item_name) > 0
     if sold:
-        await characters.refresh_player_message(client, player_id)
+        await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
         await message.channel.send(magicshop.get_refunded_item_string(player_id, item_name))
     else:

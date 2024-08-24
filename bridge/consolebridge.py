@@ -6,7 +6,7 @@ from commands import characterscommands, magicshopcommands
 from discord import ButtonStyle, Message
 from discord.ui import View
 from ui.basicmodal import BasicModal
-from ui.characterstatusmodal import CharacterStatusView
+from ui.characterstatusview import CharacterStatusView
 from util import botutils
 from bridge import charactersbridge
 
@@ -17,7 +17,12 @@ CONSOLE_INVENTORY_MESSAGE = 'I can show you your inventory in a private message.
 CONSOLE_SHOP_GENERATE_MESSAGE = 'Generate a new magic shop.\n' \
                                 'This command is only available to the **Admin Pantheon**, praise them.'
 
-CONSOLE_CHANGE_CHARACTER_STATUS_MESSAGE = 'Change the status of one of your characters.'
+CONSOLE_CHANGE_CHARACTER_STATUS_MESSAGE = '### Character status change\n'\
+                                          'Change the status of one of your characters.\n\n' \
+                                          'Instructions:\n' \
+                                          '1) Choose a status from the dropdown menu below.\n' \
+                                          '2) Click on the button.\n' \
+                                          '3) Input your character\'s name in the pop-up window and submit.'
 
 
 async def reinitialize_console_messages(client):
@@ -83,7 +88,7 @@ async def construct_console_character_status_change_prompt(send_message: Callabl
         try:
             await charactersbridge.update_character_status(
                 client=client,
-                member=interaction.user,
+                player_id=interaction.user.id,
                 character_name=character_name,
                 status=character_status
             )

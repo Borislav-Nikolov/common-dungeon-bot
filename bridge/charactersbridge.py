@@ -3,6 +3,10 @@ from typing import Callable, Awaitable
 from discord import Message
 from util import utils
 from controller import characters
+from discord import NotFound
+from provider import channelsprovider, charactersprovider
+from ui.playerview import PlayerView
+from discord.interactions import Interaction
 
 
 async def send_inventory_messages(member, inventory_strings: list[dict[int, str]],
@@ -21,9 +25,50 @@ async def send_inventory_messages(member, inventory_strings: list[dict[int, str]
     characters.set_inventory_messages(player_id, inventory_messages)
 
 
-async def update_character_status(client, member, character_name: str, status: str) -> bool:
-    player_id = member.id
+async def update_character_status(client, player_id, character_name: str, status: str) -> bool:
     if characters.update_character_status(player_id, character_name, status):
-        await characters.refresh_player_message(client, player_id)
+        await refresh_player_message(client, player_id)
         return True
     return False
+
+
+async def refresh_player_message(client, player_id):
+    players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
+    player_message_id = channelsprovider.get_player_message_id(player_id)
+    try:
+        player_message = await players_channel.fetch_message(player_message_id)
+        await edit_player_message(player_message, player_id)
+    except NotFound:
+        print(f'Message for player ID {player_id} was not found.')
+
+
+async def send_player_message(channel, player_id) -> Message:
+    return await channel.send(
+        characters.get_up_to_date_player_message(player_id),
+        view=get_player_view(player_id)
+    )
+
+
+async def edit_player_message(player_message, player_id) -> Message:
+    return await player_message.edit(
+        content=characters.get_up_to_date_player_message(player_id),
+        view=get_player_view(player_id)
+    )
+
+
+def get_player_view(player_id) -> PlayerView:
+
+    async def on_view_details(interaction: Interaction):
+        await interaction.response.defer()
+        dm_channel = await interaction.user.create_dm()
+        await dm_channel.send(characters.get_detailed_player_message(player_id))
+
+    return PlayerView(
+        on_view_details_click=on_view_details
+    )
+
+
+async def reinitialize_character_messages(client):
+    all_players = charactersprovider.get_all_players()
+    for player in all_players:
+        await refresh_player_message(client, player.player_id)

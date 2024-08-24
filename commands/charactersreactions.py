@@ -107,7 +107,7 @@ async def handle_inventory_reaction(payload, user, channel, client, inventory_me
                         shop_channel_id = magicshopprovider.get_shop_channel_id()
                         shop_channel = client.get_channel(shop_channel_id)
                         await shop_channel.send(magicshop.get_refunded_item_string(player_id, sold_item_name))
-                        await characters.refresh_player_message(client, player_id)
+                        await charactersbridge.refresh_player_message(client, player_id)
                         await refresh_inventory_messages()
                     else:
                         await channel.send("Item could not be sold.")

@@ -1,5 +1,6 @@
 from provider import staticshopprovider, channelsprovider
-from controller import staticshop, characters, magicshop
+from controller import staticshop, magicshop
+from bridge import charactersbridge
 from util import itemutils, botutils
 from discord import Message
 
@@ -21,7 +22,7 @@ async def handle_static_shop_reactions(payload, client, item_message):
         if clicked_emoji == accept_emoji:
             sold = staticshop.sell_item(payload.user_id, static_shop_item)
             if sold:
-                await characters.refresh_player_message(client, payload.user_id)
+                await charactersbridge.refresh_player_message(client, payload.user_id)
                 await general_shop_channel.send(magicshop.get_sold_item_string(payload.user_id, static_shop_item.name))
                 await item_message.remove_reaction(payload.emoji, payload.member)
             else:

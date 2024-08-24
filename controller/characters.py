@@ -213,12 +213,11 @@ def add_tokens_to_player_for_rarity(player: Player, rarity: str, rarity_level: s
     player.set_tokens_with_rarity_string(rarity, current_tokens + tokens_to_add)
 
 
-def get_up_to_date_player_message(player_id) -> str:
+def get_detailed_player_message(player_id) -> str:
     player: Player = charactersprovider.get_player(player_id)
     level = player.player_level
-    player_string = f'<@{player.player_id}>\n' \
-                    f'**Player:** {player.name}\n' \
-                    f'**Level:** {level} - {player.sessions_on_this_level}/6 to level {level + 1}\n' \
+    player_string = f'# Player: {player.name}\n' \
+                    f'**Player level:** {level} - {player.sessions_on_this_level}/6 to level {level + 1}\n' \
                     f'**Tokens:** {player.common_tokens} common, ' \
                     f'{player.uncommon_tokens} uncommon, ' \
                     f'{player.rare_tokens} rare, ' \
@@ -226,21 +225,46 @@ def get_up_to_date_player_message(player_id) -> str:
                     f'{player.legendary_tokens} legendary'
     characters_string = '\n**Characters:**\n'
     for character in player.characters:
-        characters_string += f'{charactersutils.status_emoji(character.status)} {character.character_name} - '
-        class_index = 0
-        for character_class in character.classes:
-            characters_string += f'{character_class.class_name} {character_class.level}'
-            if class_index != len(character.classes) - 1:
-                characters_string += ' - '
-            class_index += 1
-        if character.character_level < 20:
-            character_level = character.character_level
-            current_sessions = character.sessions_on_this_level
-            characters_string += f' - {current_sessions}/{utils.sessions_to_next_level(character_level)} to level ' \
-                                 f'{character_level + 1}'
-        characters_string += f' - Last DM: {character.last_dm}'
-        characters_string += '\n'
+        characters_string += f'{charactersutils.status_emoji(character.status)} ' \
+                             f'{get_character_row_string(character, detailed=True)}\n'
     return f'{player_string}{characters_string}'
+
+
+def get_up_to_date_player_message(player_id) -> str:
+    player: Player = charactersprovider.get_player(player_id)
+    level = player.player_level
+    player_string = f'# Player: {player.name} <@{player.player_id}>\n' \
+                    f'**Player level:** {level} - {player.sessions_on_this_level}/6 to level {level + 1}\n'
+    characters_string = '\n**Characters:**\n'
+    hidden_characters_count = 0
+    for character in player.characters:
+        if character.status == charactersutils.CHARACTER_STATUS_ACTIVE:
+            characters_string += f'* {get_character_row_string(character, detailed=False)}\n'
+        else:
+            hidden_characters_count += 1
+    if hidden_characters_count > 0:
+        string_based_on_number = 'character is' if hidden_characters_count == 1 else 'characters are'
+        characters_string += f'*({hidden_characters_count} {string_based_on_number} hidden)*'
+    return f'{player_string}{characters_string}'
+
+
+def get_character_row_string(character: Character, detailed: bool) -> str:
+    character_string = f'{character.character_name} (level **{character.character_level}**) - '
+    class_index = 0
+    for character_class in character.classes:
+        character_string += f'{character_class.class_name} {character_class.level}'
+        if class_index != len(character.classes) - 1:
+            character_string += ' - '
+        class_index += 1
+    if character.character_level < 20:
+        character_level = character.character_level
+        current_sessions = character.sessions_on_this_level
+        games_to_next_level = utils.sessions_to_next_level(character_level) - current_sessions
+        game_word = 'game' if games_to_next_level == 1 else 'games'
+        character_string += f' - {games_to_next_level} {game_word} to next level'
+    if detailed:
+        character_string += f' - Last DM: {character.last_dm}'
+    return character_string
 
 
 def remove_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
@@ -457,7 +481,8 @@ def add_character(player_id: str, character_data_list: list):
         character_level=character_level,
         classes=list[CharacterClass](),
         last_dm='no one yet',
-        sessions_on_this_level=0
+        sessions_on_this_level=0,
+        status=charactersutils.CHARACTER_STATUS_ACTIVE
     )
     add_class_to_character_data(new_character, classes_to_level, True)
     player.characters.append(new_character)
@@ -529,19 +554,3 @@ def add_class_to_character_data(character: Character, classes_to_levels: dict, i
         if is_primary:
             is_primary = False
         character.classes.append(new_character_class)
-
-
-# TODO: the below functions use "client" which is not correct. Functions that know about Discord should not be here.
-
-async def refresh_player_message(client, player_id):
-    await update_player_message(client, player_id, get_up_to_date_player_message(player_id))
-
-
-async def update_player_message(client, player_id, new_message):
-    players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
-    player_message_id = channelsprovider.get_player_message_id(player_id)
-    try:
-        player_message = await players_channel.fetch_message(player_message_id)
-        await player_message.edit(content=new_message)
-    except discord.NotFound:
-        print(f'Message for player ID {player_id} was not found.')

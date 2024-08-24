@@ -1,6 +1,7 @@
 from util import utils, botutils
-from controller import characters, magicshop
+from controller import magicshop
 from discord import Message
+from bridge import charactersbridge
 
 
 async def handle_magic_shop_reaction(payload, channel, client, shop_message):
@@ -32,7 +33,7 @@ async def handle_magic_shop_reaction(payload, channel, client, shop_message):
             if sold:
                 shop_string = magicshop.get_current_shop_string()
                 await shop_message.edit(content=shop_string)
-                await characters.refresh_player_message(client, payload.user_id)
+                await charactersbridge.refresh_player_message(client, payload.user_id)
                 await channel.send(magicshop.get_sold_item_string(payload.user_id, sold_item_name))
                 if magicshop.get_item_name_by_index(item_index) is not None:
                     await shop_message.remove_reaction(payload.emoji, payload.member)

@@ -31,6 +31,8 @@ async def handle_character_commands(message, client) -> bool:
                     await handle_swapclasslevels(client, player_id_and_params_csv=keywords[2])
                 elif keywords[1] == "repost":
                     await handle_repost(message, player_tag=keywords[2])
+                elif keywords[1] == "characterstatus":
+                    await handle_character_status_change(client, player_id_and_params_csv=keywords[2])
             # ALL CHANNELS - ADMIN COMMANDS
             else:
                 if keywords[1] == "inventoryadd":
@@ -49,7 +51,7 @@ async def handle_refresh_player_message(client, player_ids_csv):
     player_data_list = utils.split_strip(player_ids_csv, ',')
     for player_tag in player_data_list:
         player_id = utils.strip_id_tag(player_tag)
-        await characters.refresh_player_message(client, player_id)
+        await charactersbridge.refresh_player_message(client, player_id)
 
 
 # TODO: Do the same for the rest of the commands as for this function, meaning:
@@ -68,7 +70,7 @@ async def handle_addsession(client, message, session_data_csv):
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
     if characters.add_session(id_to_data):
         for player_id in id_to_data:
-            await characters.refresh_player_message(client, player_id)
+            await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
     else:
         await message.add_reaction('❌')
@@ -78,7 +80,7 @@ async def handle_removesession(client, message, session_data_csv):
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
     if characters.remove_session(id_to_data):
         for player_id in id_to_data:
-            await characters.refresh_player_message(client, player_id)
+            await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
     else:
         await message.add_reaction('❌')
@@ -90,9 +92,8 @@ async def handle_addplayer(client, player_data_csv):
     player_data_list.pop(0)
     characters.add_player(player_id, player_data_list)
     players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
-    new_player_message = await players_channel.send(characters.get_up_to_date_player_message(player_id))
-    content = str(new_player_message.content)
-    channelsprovider.set_player_message_id(utils.strip_id_tag(content), new_player_message.id)
+    new_player_message = await charactersbridge.send_player_message(players_channel, player_id)
+    channelsprovider.set_player_message_id(player_id, new_player_message.id)
 
 
 async def handle_addcharacter(client, data_csv):
@@ -100,21 +101,21 @@ async def handle_addcharacter(client, data_csv):
     player_id = utils.strip_id_tag(data_list[0])
     data_list.pop(0)
     characters.add_character(player_id, data_list)
-    await characters.refresh_player_message(client, player_id)
+    await charactersbridge.refresh_player_message(client, player_id)
 
 
 async def handle_deletecharacter(client, player_id_char_name_csv):
     player_id_to_character_name = utils.split_strip(player_id_char_name_csv, ',')
     player_id = utils.strip_id_tag(player_id_to_character_name[0])
     characters.delete_character(player_id, player_id_to_character_name[1])
-    await characters.refresh_player_message(client, player_id)
+    await charactersbridge.refresh_player_message(client, player_id)
 
 
 async def handle_changename(client, player_id_names_csv):
     player_id_and_names = utils.split_strip(player_id_names_csv, ',')
     player_id = utils.strip_id_tag(player_id_and_names[0])
     characters.change_character_name(player_id, player_id_and_names[1], player_id_and_names[2])
-    await characters.refresh_player_message(client, player_id)
+    await charactersbridge.refresh_player_message(client, player_id)
 
 
 async def handle_swapclasslevels(client, player_id_and_params_csv):
@@ -126,14 +127,13 @@ async def handle_swapclasslevels(client, player_id_and_params_csv):
         class_to_remove_from=player_id_and_params[2],
         class_to_add_to=player_id_and_params[3]
     )
-    await characters.refresh_player_message(client, player_id)
+    await charactersbridge.refresh_player_message(client, player_id)
 
 
 async def handle_repost(message, player_tag):
     player_id = utils.strip_id_tag(player_tag)
-    new_player_message = await message.channel.send(characters.get_up_to_date_player_message(player_id))
-    content = str(new_player_message.content)
-    channelsprovider.set_player_message_id(utils.strip_id_tag(content), new_player_message.id)
+    new_player_message = await charactersbridge.send_player_message(message.channel, player_id)
+    channelsprovider.set_player_message_id(player_id, new_player_message.id)
 
 
 async def handle_add_to_inventory(message, player_id_and_params_csv):
@@ -168,3 +168,10 @@ async def handle_remove_from_inventory_prompt(message, item_index):
         await message.author.send(f"Item at {item_index} was subtracted.")
     else:
         await message.author.send("Item was not removed.")
+
+
+async def handle_character_status_change(client, player_id_and_params_csv):
+    player_id_and_params = utils.split_strip(player_id_and_params_csv, ',')
+    player_id = utils.strip_id_tag(player_id_and_params[0])
+    await charactersbridge.update_character_status(
+        client, player_id, character_name=player_id_and_params[1], status=player_id_and_params[2])

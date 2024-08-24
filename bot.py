@@ -5,7 +5,7 @@ from provider import magicshopprovider, staticshopprovider, postsprovider
 from commands import homebrewcommands, magicshopcommands, serverinitializationcommands, characterscommands, \
     magicshopreactions, staticshopcommands, staticshopreactions, postscommands, postsreactions, charactersreactions, \
     consolecommands
-from bridge import consolebridge
+from bridge import consolebridge, charactersbridge
 from util import botutils
 from discord.ext import commands
 
@@ -19,11 +19,13 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
     async def on_ready():
         print(f'{client.user} is now running!')
         await consolebridge.reinitialize_console_messages(client)
+        await charactersbridge.reinitialize_character_messages(client)
 
     @client.event
     async def on_resumed():
         print(f'{client.user} has been resumed.')
         await consolebridge.reinitialize_console_messages(client)
+        await charactersbridge.reinitialize_character_messages(client)
 
     @client.event
     async def on_disconnect():
