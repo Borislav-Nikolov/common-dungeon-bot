@@ -137,9 +137,10 @@ def sell_item(player_id, item_index) -> str:
                     item.sold = True
             if characters.subtract_player_tokens_for_rarity(player_id, item.rarity.rarity, item.rarity.rarity_level):
                 item_name_lower = item.name.lower()
-                is_probably_consumable = "potion" not in item_name_lower and "scroll" not in item_name_lower\
-                                         and "ammunition" not in item_name_lower
-                if item.consumable or is_probably_consumable:
+                is_probably_not_consumable = "potion" not in item_name_lower and "scroll" not in item_name_lower \
+                                             and "ammunition" not in item_name_lower
+
+                if not item.consumable and is_probably_not_consumable:
                     characters.add_single_quantity_item_to_inventory(player_id, copy.deepcopy(item))
                 sold_item_name = item.name
                 sold = True
