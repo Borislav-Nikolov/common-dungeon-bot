@@ -75,6 +75,24 @@ def init_in_firebase():
     items_ref_2.set(new_items)
 
 
+def extract_to_json():
+    data = {
+        "items": []
+    }
+    with open('items_update.json', 'r', encoding='utf-8') as items:
+        items_json = json.load(items)
+        items_list = items_json['item']
+        grouped_items_list = items_json['itemGroup']
+        for item in items_list:
+            if field_source in item and item[field_source] in permitted_sources:
+                data["items"].append(item)
+        for item in grouped_items_list:
+            if field_source in item and item[field_source] in permitted_sources:
+                data["items"].append(item)
+    with open('filtered_items.json', 'w', encoding='utf-8') as items_file_write:
+        json.dump(data, items_file_write, indent=4)
+
+
 def append_new_item(new_items: list, item):
     if field_name in item and len(item[field_name]) > 0 and field_source in item and item[
             field_source] in permitted_sources and field_rarity in item and item[field_rarity] in permitted_rarities:
@@ -103,10 +121,10 @@ def description_from_entries(entries: list[str, dict]) -> str:
             final_string += f'{entry}\n'
         elif isinstance(entry, dict):
             if field_type in entry and entry[field_type] == 'entries' and field_entries in entry:
-                final_string += f'{description_from_entries(entry[field_entries])}\n'
+                final_string += f'**{entry[field_name]}**\n{description_from_entries(entry[field_entries])}\n'
             elif field_type in entry and entry[field_type] == 'list':
                 for description_entry in entry[field_items]:
-                    final_string += f'{description_entry}\n'
+                    final_string += f'- {description_entry}\n'
     return final_string
 
 
@@ -121,10 +139,9 @@ field_items = 'items'
 field_rarity_level = "rarity_level"
 
 permitted_sources = ['PHB', 'DMG', 'MM', 'VGM', 'XGE', 'MTF', 'TCE', 'FTD', 'MPMM', 'BGG', 'BMT',
-                     'SCAG', 'GGR', 'AI', 'ERLW', 'EGW', 'MOT', 'VRGR', 'SCC', 'AAG', 'SatO',
-                     'HotDQ', 'RoT', 'PotA', 'OotA', 'CoS', 'SKT', 'TftYP', 'ToA', 'WDH', 'WDMM',
-                     'GoS', 'BGDiA', 'IDRotF', 'CM', 'WBtW', 'CRCotN', 'JTtRC', 'DSotDQ', 'KftGV',
-                     'PaBTSO']
+                     'ERLW', 'EGW', 'MOT', 'SCC', 'AAG', 'SatO',
+                     'HotDQ', 'PotA', 'OotA', 'SKT', 'TftYP', 'ToA', 'WDH', 'WDMM',
+                     'GoS', 'BGDiA', 'IDRotF', 'CM', 'WBtW', 'CRCotN', 'DSotDQ', 'PaBTSO']
 
 
 init_COMMON = "common"
