@@ -2,6 +2,7 @@ from firebase_admin import db
 from source.sourcefields import *
 import json
 import copy
+import re
 
 global items_ref
 global items_ref_2
@@ -125,7 +126,21 @@ def description_from_entries(entries: list[str, dict]) -> str:
             elif field_type in entry and entry[field_type] == 'list':
                 for description_entry in entry[field_items]:
                     final_string += f'- {description_entry}\n'
-    return final_string
+            elif field_type in entry and entry[field_type] == 'table':
+                col_labels: list[str] = entry['colLabels']
+                number_of_cols = len(col_labels)
+                rows: list[list[str]] = entry['rows']
+                for row in rows:
+                    for i in range(0, number_of_cols):
+                        label = col_labels[i]
+                        value = row[i]
+                        final_string += f'**{label}:** {value}\n'
+                    final_string += '\n'
+    return replace_text(final_string)
+
+
+def replace_text(input_string):
+    return re.sub(r'{@\w+ ([^|}]*)[^}]*}', r'\1', input_string)
 
 
 field_name = 'name'
