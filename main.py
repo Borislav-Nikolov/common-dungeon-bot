@@ -56,9 +56,11 @@ def run_all_test_calls():
     sse_thread = threading.Thread(target=stream_updates)
     sse_thread.daemon = True  # Make sure the thread exits when the main program does
     sse_thread.start()
-    while True:
+    updates_count = 0
+    while updates_count < 2:
+        updates_count += 1
         update_request_test()
-        time.sleep(5)
+        time.sleep(14)
 
 
 load_dotenv()
