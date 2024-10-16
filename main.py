@@ -13,7 +13,7 @@ import time
 
 
 def get_request_test():
-    url = 'http://127.0.0.1:5000/data'
+    url = 'https://common-dnd-backend.fly.dev/data'
     response = requests.get(url)
     if response.status_code == 200:
         print("GET request successful.")
@@ -23,7 +23,7 @@ def get_request_test():
 
 
 def update_request_test():
-    url = 'http://127.0.0.1:5000/update'
+    url = 'https://common-dnd-backend.fly.dev/update'
     response = requests.get(url)
     if response.status_code == 200:
         print("Update request successful!")
@@ -33,7 +33,7 @@ def update_request_test():
 
 
 def post_requests_test():
-    url = 'http://127.0.0.1:5000/post'
+    url = 'https://common-dnd-backend.fly.dev/post'
     data = {"key": "value", "number": 123}
     response = requests.post(url, json=data)
     if response.status_code == 200:
@@ -44,7 +44,7 @@ def post_requests_test():
 
 
 def stream_updates():
-    response = requests.get('http://127.0.0.1:5000/stream', stream=True)
+    response = requests.get('https://common-dnd-backend.fly.dev/stream', stream=True)
     for line in response.iter_lines():
         if line:
             print('Update:', line.decode('utf-8'))
