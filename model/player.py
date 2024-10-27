@@ -1,13 +1,14 @@
 from model.character import Character
 from model.inventoryitem import InventoryItem
 from model.inventorymessage import InventoryMessage
+from model.item import Item
 from util.utils import *
 
 
 class Player:
     def __init__(self, player_id, name: str, player_level: int, sessions_on_this_level: int, common_tokens: int,
                  uncommon_tokens: int, rare_tokens: int, very_rare_tokens: int, legendary_tokens: int,
-                 characters: list[Character], inventory: list[InventoryItem],
+                 characters: list[Character], inventory: list[InventoryItem], reserved_items: list[Item],
                  inventory_messages: list[InventoryMessage]):
         self.player_id = player_id
         self.name: str = name
@@ -20,6 +21,7 @@ class Player:
         self.legendary_tokens: int = legendary_tokens
         self.characters: list[Character] = characters
         self.inventory: list[InventoryItem] = inventory
+        self.reserved_items: list[Item] = reserved_items
         self.inventory_messages: list[InventoryMessage] = inventory_messages
 
     def get_tokens_with_rarity_string(self, rarity: str) -> int:

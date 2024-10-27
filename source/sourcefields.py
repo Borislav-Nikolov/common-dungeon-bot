@@ -26,6 +26,7 @@ PLAYER_FIELD_VERY_RARE_TOKENS = "very_rare_tokens"
 PLAYER_FIELD_LEGENDARY_TOKENS = "legendary_tokens"
 PLAYER_FIELD_CHARACTERS = "characters"
 PLAYER_FIELD_INVENTORY = "inventory"
+PLAYER_FIELD_RESERVED_ITEMS = "reserved_items"
 PLAYER_FIELD_INVENTORY_MESSAGES = "inventory_messages"
 
 CHARACTER_FIELD_NAME = "character_name"

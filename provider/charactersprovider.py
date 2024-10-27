@@ -2,6 +2,7 @@ from model.player import Player
 from model.character import Character
 from model.characterclass import CharacterClass
 from model.inventoryitem import InventoryItem
+from model.item import Item
 from model.inventorymessage import InventoryMessage
 from model.rarity import rarity_strings_to_rarity
 from source.sourcefields import *
@@ -65,6 +66,22 @@ def add_or_update_players(players: list[Player]):
                     player.inventory
                 )
             ),
+            PLAYER_FIELD_RESERVED_ITEMS: list(
+                map(
+                    lambda item: {
+                        ITEM_FIELD_NAME: item.name,
+                        ITEM_FIELD_DESCRIPTION: item.description,
+                        ITEM_FIELD_PRICE: item.price,
+                        ITEM_FIELD_RARITY: item.rarity.rarity,
+                        ITEM_FIELD_RARITY_LEVEL: item.rarity.rarity_level,
+                        ITEM_FIELD_ATTUNEMENT: item.attunement,
+                        ITEM_FIELD_CONSUMABLE: item.consumable,
+                        ITEM_FIELD_OFFICIAL: item.official,
+                        ITEM_FIELD_BANNED: item.banned
+                    },
+                    player.reserved_items
+                )
+            ),
             PLAYER_FIELD_INVENTORY_MESSAGES: {f'i{inventory_message.beginning_index}': inventory_message.message_id
                                               for inventory_message in player.inventory_messages}
         }
@@ -89,6 +106,9 @@ def get_all_players() -> list[Player]:
 def map_player_object(player_id, player_data: dict) -> Player:
     inventory_list = utils.filter_not_none(
         list() if PLAYER_FIELD_INVENTORY not in player_data else player_data[PLAYER_FIELD_INVENTORY]
+    )
+    reserved_items = utils.filter_not_none(
+        list() if PLAYER_FIELD_RESERVED_ITEMS not in player_data else player_data[PLAYER_FIELD_RESERVED_ITEMS]
     )
     return Player(
         player_id=player_id,
@@ -139,6 +159,21 @@ def map_player_object(player_id, player_data: dict) -> Player:
                     index=item[INVENTORY_ITEM_FIELD_INDEX]
                 ),
                 inventory_list
+            )
+        ),
+        reserved_items=list(
+            map(
+                lambda item: Item(
+                    name=item[ITEM_FIELD_NAME],
+                    description=item[ITEM_FIELD_DESCRIPTION],
+                    price=item[ITEM_FIELD_PRICE],
+                    rarity=rarity_strings_to_rarity(item[ITEM_FIELD_RARITY], item[ITEM_FIELD_RARITY_LEVEL]),
+                    attunement=item[ITEM_FIELD_ATTUNEMENT],
+                    consumable=False if ITEM_FIELD_CONSUMABLE not in item else item[ITEM_FIELD_CONSUMABLE],
+                    official=False if ITEM_FIELD_OFFICIAL not in item else item[ITEM_FIELD_OFFICIAL],
+                    banned=False if ITEM_FIELD_BANNED not in item else item[ITEM_FIELD_BANNED]
+                ),
+                reserved_items
             )
         ),
         inventory_messages=list(

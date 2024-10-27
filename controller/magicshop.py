@@ -4,6 +4,7 @@ import copy
 import re
 from controller import characters
 from provider import magicshopprovider, itemsprovider
+from typing import Optional
 import random
 
 from util import itemutils
@@ -162,6 +163,14 @@ def get_shop_item_description(item_index) -> list:
         if item.index == int(item_index):
             return itemutils.get_shop_item_description(item)
     return ["*couldn't find item description*"]
+
+
+def get_shop_item(item_index) -> Optional[Item]:
+    items = magicshopprovider.get_magic_shop_items()
+    for item in items:
+        if item.index == int(item_index):
+            return item
+    return None
 
 
 def refund_item(player_id, item_rarity, item_rarity_level) -> bool:
