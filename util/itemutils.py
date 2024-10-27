@@ -32,7 +32,7 @@ def get_sold_item_row_string(magic_item: ShopItem) -> str:
 
 def get_unsold_item_row_string_emoji(magic_item: ShopItem) -> str:
     emoji = utils.index_to_emoji(magic_item.index)
-    magic_item_string = f'{magic_item.index} - {emoji}) **{magic_item.name}** - '
+    magic_item_string = f'{emoji} **{magic_item.name}** - '
     magic_item_string += f'{tokens_per_rarity(magic_item.rarity.rarity, magic_item.rarity.rarity_level)}\n'
     return magic_item_string
 
