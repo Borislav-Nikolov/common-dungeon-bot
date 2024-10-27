@@ -554,3 +554,19 @@ def add_class_to_character_data(character: Character, classes_to_levels: dict, i
         if is_primary:
             is_primary = False
         character.classes.append(new_character_class)
+
+
+def get_player_reserved_item(player_id) -> Optional[Item]:
+    player = charactersprovider.get_player(player_id)
+    if len(player.reserved_items) > 0:
+        return player.reserved_items[0]
+    else:
+        return None
+
+
+def set_reserved_item(player_id, item: Item) -> bool:
+    item_copy = copy.deepcopy(item)
+    player = charactersprovider.get_player(player_id)
+    player.reserved_items = [item_copy]
+    charactersprovider.add_or_update_player(player)
+    return True
