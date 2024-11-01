@@ -39,3 +39,7 @@ def get_shop_message_id() -> int:
 
 def get_player_message_id(player_id) -> str:
     return channelssource.get_player_message_id(player_id)
+
+
+def delete_player_message_id(player_id):
+    channelssource.delete_player_message_id(player_id)

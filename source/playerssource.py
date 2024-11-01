@@ -2,12 +2,15 @@ from firebase_admin import db
 
 
 global players_ref
+global players_path
 
 
 def init_players_source(is_test: bool):
     prefix = "/test" if is_test else ""
+    global players_path
+    players_path = f"{prefix}/players"
     global players_ref
-    players_ref = db.reference(f"{prefix}/players")
+    players_ref = db.reference(players_path)
 
 
 def get_player(player_id) -> dict:
@@ -30,3 +33,8 @@ def get_all_players() -> dict:
 
 def update_in_players(player_data):
     players_ref.update(player_data)
+
+
+def delete_player(player_id):
+    player_ref = db.reference(f'{players_path}/{player_id}')
+    player_ref.delete()

@@ -103,6 +103,10 @@ def get_all_players() -> list[Player]:
     return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
 
 
+def delete_player(player_id):
+    playerssource.delete_player(player_id)
+
+
 def map_player_object(player_id, player_data: dict) -> Player:
     inventory_list = utils.filter_not_none(
         list() if PLAYER_FIELD_INVENTORY not in player_data else player_data[PLAYER_FIELD_INVENTORY]

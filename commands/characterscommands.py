@@ -33,6 +33,8 @@ async def handle_character_commands(message, client) -> bool:
                     await handle_repost(message, player_tag=keywords[2])
                 elif keywords[1] == "characterstatus":
                     await handle_character_status_change(client, player_id_and_params_csv=keywords[2])
+                elif keywords[1] == "changeid":
+                    await handle_change_id(client, player_ids_csv=keywords[2])
             # ALL CHANNELS - ADMIN COMMANDS
             else:
                 if keywords[1] == "inventoryadd":
@@ -175,3 +177,14 @@ async def handle_character_status_change(client, player_id_and_params_csv):
     player_id = utils.strip_id_tag(player_id_and_params[0])
     await charactersbridge.update_character_status(
         client, player_id, character_name=player_id_and_params[1], status=player_id_and_params[2])
+
+
+async def handle_change_id(client, player_ids_csv):
+    player_data_list = utils.split_strip(player_ids_csv, ',')
+    old_id = utils.strip_id_tag(player_data_list[0])
+    new_id = utils.strip_id_tag(player_data_list[1])
+    characters.change_player_id(old_id, new_id)
+    player_message_id = channelsprovider.get_player_message_id(str(old_id))
+    channelsprovider.set_player_message_id(str(new_id), player_message_id)
+    channelsprovider.delete_player_message_id(str(old_id))
+    await charactersbridge.refresh_player_message(client, new_id)

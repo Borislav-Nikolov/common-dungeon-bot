@@ -446,6 +446,7 @@ def add_player(player_id: str, player_data_list: list):
                 status=charactersutils.CHARACTER_STATUS_ACTIVE
             )],
             inventory=list[InventoryItem](),
+            reserved_items=list[Item](),
             inventory_messages=list()
         )
     )
@@ -570,3 +571,12 @@ def set_reserved_item(player_id, item: Item) -> bool:
     player.reserved_items = [item_copy]
     charactersprovider.add_or_update_player(player)
     return True
+
+
+def change_player_id(old_id, new_id):
+    old_id_str = str(old_id)
+    new_id_str = str(new_id)
+    player_data = charactersprovider.get_player(old_id_str)
+    player_data.player_id = new_id_str
+    charactersprovider.add_or_update_player(player_data)
+    charactersprovider.delete_player(old_id_str)

@@ -2,12 +2,15 @@ from firebase_admin import db
 
 
 global server_reference_ids_ref
+global server_reference_ids_path
 
 
 def init_channels_source(is_test: bool):
     prefix = "/test" if is_test else ""
+    global server_reference_ids_path
+    server_reference_ids_path = f"{prefix}/server_reference_ids"
     global server_reference_ids_ref
-    server_reference_ids_ref = db.reference(f"{prefix}/server_reference_ids")
+    server_reference_ids_ref = db.reference(server_reference_ids_path)
 
 
 def set_player_message_id(player_id, message_id):
@@ -20,6 +23,10 @@ def set_player_message_id(player_id, message_id):
 
 def get_player_message_id(player_id) -> str:
     return server_reference_ids_ref.get()['player_message_ids'][f'{player_id}']
+
+
+def delete_player_message_id(player_id):
+    db.reference(f'{server_reference_ids_path}/player_message_ids/{player_id}').delete()
 
 
 def get_shop_message_id() -> int:
