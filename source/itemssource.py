@@ -67,7 +67,7 @@ def init_in_firebase():
     for item in items_list:
         append_new_item(new_items, item)
     for item in grouped_items_list:
-        if field_items in item and len(item[field_items]) > 0:
+        if field_items in item and len(item[field_items]) > 0 and field_entries in item:
             for specific_name in item[field_items]:
                 fixed_name = specific_name.split("|")[0]
                 item_copy = copy.deepcopy(item)
@@ -95,8 +95,9 @@ def extract_to_json():
 
 
 def append_new_item(new_items: list, item):
-    if field_name in item and len(item[field_name]) > 0 and field_source in item and item[
-            field_source] in permitted_sources and field_rarity in item and item[field_rarity] in permitted_rarities:
+    if field_name in item and len(item[field_name]) > 0 and item[field_name] not in prohibited_items_by_name and \
+            field_source in item and item[field_source] in permitted_sources and field_rarity in item and item[
+            field_rarity] in permitted_rarities:
         translation_table = str.maketrans('', '', '$#[]/.')
         item_name = item['name'].translate(translation_table)
         new_items.append({
@@ -111,7 +112,7 @@ def append_new_item(new_items: list, item):
             field_rarity_level: item[field_tier] if field_tier in item and item[field_tier] in permitted_rarity_levels
             else init_TYPE_MAJOR,
             "description": description_from_entries(item[field_entries]) if field_entries in item
-            else "missing description"
+            else "*missing description*"
         })
 
 
@@ -125,7 +126,13 @@ def description_from_entries(entries: list[str, dict]) -> str:
                 final_string += f'**{entry[field_name]}**\n{description_from_entries(entry[field_entries])}\n'
             elif field_type in entry and entry[field_type] == 'list':
                 for description_entry in entry[field_items]:
-                    final_string += f'- {description_entry}\n'
+                    description_value = description_entry
+                    if isinstance(description_value, dict) and field_type in description_value and description_value[
+                            field_type] == 'item' and field_name in description_value and field_entries in\
+                            description_value:
+                        description_value = f'**{description_value[field_name]}.** ' \
+                                            f'{description_from_entries(description_value[field_entries])}'
+                    final_string += f'- {description_value}\n'
             elif field_type in entry and entry[field_type] == 'table':
                 col_labels: list[str] = entry['colLabels']
                 number_of_cols = len(col_labels)
@@ -134,6 +141,8 @@ def description_from_entries(entries: list[str, dict]) -> str:
                     for i in range(0, number_of_cols):
                         label = col_labels[i]
                         value = row[i]
+                        if isinstance(value, dict) and 'roll' in value and 'exact' in value['roll']:
+                            value = value['roll']['exact']
                         final_string += f'**{label}:** {value}\n'
                     final_string += '\n'
     return replace_text(final_string)
@@ -158,6 +167,9 @@ permitted_sources = ['PHB', 'DMG', 'MM', 'VGM', 'XGE', 'MTF', 'TCE', 'FTD', 'MPM
                      'HotDQ', 'PotA', 'OotA', 'SKT', 'TftYP', 'ToA', 'WDH', 'WDMM',
                      'GoS', 'BGDiA', 'IDRotF', 'CM', 'WBtW', 'CRCotN', 'DSotDQ', 'PaBTSO']
 
+prohibited_items_by_name = [
+    'Horned Ring', 'Korolnor Scepter'
+]
 
 init_COMMON = "common"
 init_UNCOMMON = "uncommon"
