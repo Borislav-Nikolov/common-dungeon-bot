@@ -84,7 +84,11 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
         elif channel.id == staticshopprovider.get_static_shop_channel_id():
             await staticshopreactions.handle_static_shop_reactions(payload, client, message)
         elif botutils.is_dm_channel(channel):
-            await charactersreactions.handle_inventory_reaction(payload, user, channel, client, message)
+            dm_reaction_handled =\
+                await charactersreactions.handle_inventory_reaction(payload, user, channel, client, message)
+            if not dm_reaction_handled:
+                dm_reaction_handled =\
+                    await charactersreactions.handle_reserved_item_reaction(payload, user, channel, client, message)
         elif postsprovider.post_section_exists(channel.id):
             await postsreactions.handle_posts_reactions(payload, channel, client, message)
 

@@ -83,7 +83,10 @@ def add_or_update_players(players: list[Player]):
                 )
             ),
             PLAYER_FIELD_INVENTORY_MESSAGES: {f'i{inventory_message.beginning_index}': inventory_message.message_id
-                                              for inventory_message in player.inventory_messages}
+                                              for inventory_message in player.inventory_messages},
+            PLAYER_FIELD_RESERVED_ITEMS_MESSAGES: {
+                f'i{reserved_items_message.beginning_index}': reserved_items_message.message_id
+                for reserved_items_message in player.reserved_items_messages}
         }
     playerssource.update_in_players(player_data)
 
@@ -188,5 +191,14 @@ def map_player_object(player_id, player_data: dict) -> Player:
                 ),
                 player_data[PLAYER_FIELD_INVENTORY_MESSAGES]
             )
-        ) if PLAYER_FIELD_INVENTORY_MESSAGES in player_data else list()
+        ) if PLAYER_FIELD_INVENTORY_MESSAGES in player_data else list(),
+        reserved_items_messages=list(
+            map(
+                lambda key: InventoryMessage(
+                    beginning_index=int(key[1:]),
+                    message_id=player_data[PLAYER_FIELD_RESERVED_ITEMS_MESSAGES][key]
+                ),
+                player_data[PLAYER_FIELD_RESERVED_ITEMS_MESSAGES]
+            )
+        ) if PLAYER_FIELD_RESERVED_ITEMS_MESSAGES in player_data else list(),
     )

@@ -8,6 +8,7 @@ from model.inventoryitem import InventoryItem
 from model.characterclass import CharacterClass
 from model.addsessiondata import AddSessionData
 from model.inventorymessage import InventoryMessage
+from model.reserveditemmessage import ReservedItemMessage
 from model.rarity import rarity_strings_to_rarity
 from typing import Optional
 from util import charactersutils
@@ -94,14 +95,40 @@ def get_inventory_strings(player_id) -> list[dict[int, str]]:
     return count_to_string
 
 
+def get_reserved_item_string(player_id) -> Optional[str]:
+    item_string: Optional[str] = None
+    player = charactersprovider.get_player(player_id)
+    item = player.reserved_items[0] if len(player.reserved_items) > 0 else None
+    if item:
+        item_string = get_reserved_item_message(item)
+    return item_string
+
+
 def set_inventory_messages(player_id, inventory_messages: list[InventoryMessage]):
     player = charactersprovider.get_player(player_id)
     player.inventory_messages = inventory_messages
     charactersprovider.add_or_update_player(player)
 
 
+def set_reserved_item_message(player_id, reserved_item_message_id):
+    player = charactersprovider.get_player(player_id)
+    player.reserved_items_messages = [ReservedItemMessage(beginning_index=1, message_id=reserved_item_message_id)]
+    charactersprovider.add_or_update_player(player)
+
+
+def remove_reserved_item_and_message(player_id):
+    player = charactersprovider.get_player(player_id)
+    player.reserved_items = list()
+    player.reserved_items_messages = list()
+    charactersprovider.add_or_update_player(player)
+
+
 def get_inventory_messages(player_id) -> list[InventoryMessage]:
     return charactersprovider.get_player(player_id).inventory_messages
+
+
+def get_reserved_items_messages(player_id) -> list[ReservedItemMessage]:
+    return charactersprovider.get_player(player_id).reserved_items_messages
 
 
 def get_inventory_item_by_reaction_index(item_index_relative, message_id, player_id) -> Optional[InventoryItem]:
@@ -447,7 +474,8 @@ def add_player(player_id: str, player_data_list: list):
             )],
             inventory=list[InventoryItem](),
             reserved_items=list[Item](),
-            inventory_messages=list()
+            inventory_messages=list(),
+            reserved_items_messages=list()
         )
     )
 

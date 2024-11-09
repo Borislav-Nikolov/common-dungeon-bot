@@ -24,11 +24,14 @@ CONSOLE_CHANGE_CHARACTER_STATUS_MESSAGE = '### Character status change\n'\
                                           '2) Click on the button.\n' \
                                           '3) Input your character\'s name in the pop-up window and submit.'
 
+CONSOLE_RESERVED_ITEM_MESSAGE = 'Manage your reserved item.'
+
 
 async def reinitialize_console_messages(client):
     await reinitialize_console_inventory_if_needed(client)
     await reinitialize_console_shop_generate_if_needed(client)
     await reinitialize_character_status_change_if_needed(client)
+    await reinitialize_console_reserved_items_if_needed(client)
 
 
 async def construct_console_inventory_prompt(send_message: Callable[[View], Awaitable[Message]]):
@@ -107,6 +110,23 @@ async def construct_console_character_status_change_prompt(send_message: Callabl
     consoleprovider.set_character_status_console_message_id(sent_message.id, sent_message.channel.id)
 
 
+async def construct_console_reserved_items_prompt(send_message: Callable[[View], Awaitable[Message]]):
+    view = View(timeout=None)
+
+    async def send_reserved_items(interaction: Interaction):
+        await interaction.response.defer()
+        return await characterscommands.handle_reserved_item_prompt(interaction.user)
+
+    button = BasicButton(
+        label='Manage reserved item',
+        style=ButtonStyle.primary,
+        on_click=send_reserved_items
+    )
+    view.add_item(button)
+    sent_message: Message = await send_message(view)
+    consoleprovider.set_reserved_items_console_message_id(sent_message.id, sent_message.channel.id)
+
+
 async def reinitialize_console_inventory_if_needed(client):
     old_console_inventory_message_id = consoleprovider.get_inventory_console_message_id()
     old_console_inventory_channel_id = consoleprovider.get_inventory_console_channel_id()
@@ -156,3 +176,20 @@ async def reinitialize_character_status_change_if_needed(client):
             )
 
         await construct_console_character_status_change_prompt(edited_character_status_message, client)
+
+
+async def reinitialize_console_reserved_items_if_needed(client):
+    old_console_reserved_items_message_id = consoleprovider.get_reserved_items_console_message_id()
+    old_console_reserved_items_channel_id = consoleprovider.get_reserved_items_console_channel_id()
+    if old_console_reserved_items_message_id is not None and old_console_reserved_items_channel_id is not None:
+        console_reserved_items_channel = client.get_channel(int(old_console_reserved_items_channel_id))
+        console_reserved_items_message: Message = await console_reserved_items_channel.fetch_message(
+            old_console_reserved_items_message_id)
+
+        async def edited_inventory_message(view: View) -> Message:
+            return await console_reserved_items_message.edit(
+                content=CONSOLE_RESERVED_ITEM_MESSAGE,
+                view=view
+            )
+
+        await construct_console_reserved_items_prompt(edited_inventory_message)

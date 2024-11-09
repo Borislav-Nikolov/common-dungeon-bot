@@ -136,18 +136,38 @@ def sell_item(player_id, item_index) -> str:
                     raise Exception("Item already sold.")
                 if quantity == 0:
                     item.sold = True
-            if characters.subtract_player_tokens_for_rarity(player_id, item.rarity.rarity, item.rarity.rarity_level):
-                item_name_lower = item.name.lower()
-                is_probably_not_consumable = "potion" not in item_name_lower and "scroll" not in item_name_lower \
-                                             and "ammunition" not in item_name_lower
-
-                if not item.consumable and is_probably_not_consumable:
-                    characters.add_single_quantity_item_to_inventory(player_id, copy.deepcopy(item))
+            sold = sell_item_general(player_id, item)
+            if sold:
                 sold_item_name = item.name
-                sold = True
     if sold:
         magicshopprovider.set_in_magic_shop(items)
     return sold_item_name
+
+
+def sell_item_general(player_id, item: Item) -> bool:
+    inventory_item = item
+    if not isinstance(inventory_item, InventoryItem):
+        inventory_item = InventoryItem(
+            name=item.name,
+            description=item.description,
+            rarity=item.rarity,
+            attunement=item.attunement,
+            consumable=item.consumable,
+            official=item.official,
+            banned=item.banned,
+            quantity=1,
+            index=-1,  # Expected to be set by the item adding function
+            price="no price set"
+        )
+    if characters.subtract_player_tokens_for_rarity(player_id, item.rarity.rarity, item.rarity.rarity_level):
+        item_name_lower = item.name.lower()
+        is_probably_not_consumable = "potion" not in item_name_lower and "scroll" not in item_name_lower \
+                                     and "ammunition" not in item_name_lower
+
+        if not item.consumable and is_probably_not_consumable:
+            characters.add_single_quantity_item_to_inventory(player_id, copy.deepcopy(inventory_item))
+        return True
+    return False
 
 
 def get_item_name_by_index(index: int) -> str:
