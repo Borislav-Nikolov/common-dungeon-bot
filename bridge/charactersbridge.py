@@ -27,6 +27,20 @@ async def send_inventory_messages(member, inventory_strings: list[dict[int, str]
     characters.set_inventory_messages(player_id, inventory_messages)
 
 
+async def send_reserved_item_message(member, item_string: str, send_message: Callable[[str], Awaitable[Message]]):
+    buy_emoji = '\U00002705'
+    info_emoji = '\U00002754'
+    reserved_item_message = await send_message(
+        'What would you like to do with:\n'
+        f'{item_string}\n'
+        f'Click {buy_emoji} to buy it.\n'
+        f'Click {info_emoji} for the item description.'
+    )
+    await reserved_item_message.add_reaction(buy_emoji)
+    await reserved_item_message.add_reaction(info_emoji)
+    characters.set_reserved_item_message(member.id, reserved_item_message.id)
+
+
 async def update_character_status(client, player_id, character_name: str, status: str) -> bool:
     if characters.update_character_status(player_id, character_name, status):
         await refresh_player_message(client, player_id)

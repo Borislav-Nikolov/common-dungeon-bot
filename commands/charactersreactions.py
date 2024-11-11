@@ -1,24 +1,31 @@
 from util import utils, botutils
 from controller import characters, magicshop
 from discord import Message, HTTPException, Forbidden, NotFound
-from provider import magicshopprovider
+from provider import magicshopprovider, channelsprovider
 from model.inventorymessage import InventoryMessage
 from bridge import charactersbridge
+from util import itemutils
 
 
-async def handle_inventory_reaction(payload, user, channel, client, inventory_message):
+async def handle_inventory_reaction(payload, user, channel, client, inventory_message) -> bool:
+    player_id = payload.user_id
+    is_inventory_message = False
+    for player_inventory_message in characters.get_inventory_messages(player_id):
+        if inventory_message.id == player_inventory_message.message_id:
+            is_inventory_message = True
+    if not is_inventory_message:
+        return False
     item_index_relative = utils.emoji_to_index(str(payload.emoji))
     if item_index_relative == -1:
-        return
-    player_id = payload.user_id
+        return True
     try:
         inventory_item = characters.get_inventory_item_by_reaction_index(
             item_index_relative, inventory_message.id, player_id)
     except ValueError:
-        return
+        return True
     if inventory_item is None:
         await channel.send("Item was not found.")
-        return
+        return True
 
     sell_emoji = '\U0001FA99'
     destroy_emoji = '\U0001F5D1'
@@ -164,3 +171,38 @@ async def handle_inventory_reaction(payload, user, channel, client, inventory_me
         on_timeout=on_timeout,
         timeout=60.0
     )
+    return True
+
+
+async def handle_reserved_item_reaction(payload, user, channel, client, reserved_item_message) -> bool:
+    player_id = payload.user_id
+    is_reserved_item_message = False
+    for player_inventory_message in characters.get_reserved_items_messages(player_id):
+        if reserved_item_message.id == player_inventory_message.message_id:
+            is_reserved_item_message = True
+    if not is_reserved_item_message:
+        return False
+
+    # TODO: transfer to a general/global reference
+    buy_emoji = '\U00002705'
+    info_emoji = '\U00002754'
+
+    clicked_emoji = str(payload.emoji)
+
+    if clicked_emoji == buy_emoji:
+        reserved_item = characters.get_player_reserved_item(player_id)
+        if reserved_item:
+            if magicshop.sell_item_general(player_id, reserved_item):
+                characters.remove_reserved_item_and_message(player_id)
+                await charactersbridge.refresh_player_message(client, payload.user_id)
+                shop_channel_id = channelsprovider.get_shop_channel_id()
+                shop_channel = client.get_channel(shop_channel_id)
+                await shop_channel.send(magicshop.get_sold_item_string(payload.user_id, reserved_item.name))
+            else:
+                await channel.send(f"Failed to buy {reserved_item.name}. Check if you have enough tokens.")
+    elif clicked_emoji == info_emoji:
+        reserved_item = characters.get_player_reserved_item(player_id)
+        item_description_info = itemutils.get_shop_item_description(reserved_item)
+        for description_info_part in item_description_info:
+            await channel.send(description_info_part)
+    return True

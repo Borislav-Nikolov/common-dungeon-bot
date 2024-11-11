@@ -18,6 +18,8 @@ async def handle_console_commands(message, client) -> bool:
                 return True
             if keywords[1] == 'characterstatus':
                 await handle_console_change_status_prompt(message.channel, client)
+            if keywords[1] == 'reserveditems':
+                await handle_console_reserved_items_prompt(message.channel)
             if keywords[1] == 'reinitialize':
                 await handle_console_reinitialize(message, client)
                 return True
@@ -60,3 +62,15 @@ async def handle_console_change_status_prompt(channel: TextChannel, client):
 async def handle_console_reinitialize(message, client):
     await consolebridge.reinitialize_console_messages(client)
     await message.delete()
+
+
+async def handle_console_reserved_items_prompt(channel: TextChannel):
+
+    async def send_message(view: View) -> Message:
+        return await channel.send(
+            consolebridge.CONSOLE_RESERVED_ITEM_MESSAGE,
+            view=view
+        )
+
+    await consolebridge.construct_console_reserved_items_prompt(send_message)
+

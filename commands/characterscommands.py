@@ -165,6 +165,19 @@ async def handle_inventory_prompt(author):
     await charactersbridge.send_inventory_messages(author, strings, send_message)
 
 
+async def handle_reserved_item_prompt(author):
+
+    item_string = characters.get_reserved_item_string(author.id)
+    if not item_string:
+        await author.send("*you have no reserved items*")
+        return
+
+    async def send_message(string):
+        return await author.send(string)
+
+    await charactersbridge.send_reserved_item_message(author, item_string, send_message)
+
+
 async def handle_remove_from_inventory_prompt(message, item_index):
     if characters.remove_item_by_index(message.author.id, item_index):
         await message.author.send(f"Item at {item_index} was subtracted.")

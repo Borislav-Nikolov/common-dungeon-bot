@@ -28,6 +28,7 @@ PLAYER_FIELD_CHARACTERS = "characters"
 PLAYER_FIELD_INVENTORY = "inventory"
 PLAYER_FIELD_RESERVED_ITEMS = "reserved_items"
 PLAYER_FIELD_INVENTORY_MESSAGES = "inventory_messages"
+PLAYER_FIELD_RESERVED_ITEMS_MESSAGES = "reserved_items_messages"
 
 CHARACTER_FIELD_NAME = "character_name"
 CHARACTER_FIELD_LEVEL = "character_level"
