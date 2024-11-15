@@ -88,5 +88,5 @@ async def reinitialize_character_messages(client):
     all_players = charactersprovider.get_all_players()
     for player in all_players:
         await refresh_player_message(client, player.player_id)
-        time.sleep(1)
+        time.sleep(5)
     print('All available player messages have been initialized.')
