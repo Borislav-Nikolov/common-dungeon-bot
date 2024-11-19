@@ -35,7 +35,7 @@ async def handle_generate(shop_channel, character_levels_csv):
     new_shop_message = await shop_channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
     channelsprovider.set_shop_message_id(new_shop_message.id)
     for index in range(1, magicshop.SHOP_MAX_NUMBER_OF_ITEMS + 1):
-        time.sleep(1)
+        time.sleep(5)
         await new_shop_message.add_reaction(utils.index_to_emoji(index))
 
 
