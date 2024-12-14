@@ -20,7 +20,7 @@ async def send_inventory_messages(member, inventory_strings: list[dict[int, str]
         inventory_string = item_count_to_string[item_count]
         inventory_message = await send_message(inventory_string)
         for index in range(1, item_count + 1):
-            time.sleep(1)
+            time.sleep(5)
             await inventory_message.add_reaction(utils.index_to_emoji(index))
         inventory_messages.append(
             InventoryMessage(beginning_index=beginning_index, message_id=inventory_message.id))
@@ -88,5 +88,5 @@ async def reinitialize_character_messages(client):
     all_players = charactersprovider.get_all_players()
     for player in all_players:
         await refresh_player_message(client, player.player_id)
-        time.sleep(1)
+        time.sleep(5)
     print('All available player messages have been initialized.')

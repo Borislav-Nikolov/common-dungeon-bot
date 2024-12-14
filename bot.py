@@ -8,6 +8,7 @@ from commands import homebrewcommands, magicshopcommands, serverinitializationco
 from bridge import consolebridge, charactersbridge
 from util import botutils
 from discord.ext import commands
+from api import testapicommunication
 
 
 def run_discord_bot(bot_token, allowed_guild_id: str):
@@ -45,6 +46,11 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
 
         print(f'{username} said: "{user_message}" ({channel})')
 
+        if user_message == '!testapicommunication':
+            if testapicommunication.test_api_communication():
+                await message.add_reaction('🪙')
+            else:
+                await message.add_reaction('❌')
         if user_message.startswith('$'):
             handled: bool = await serverinitializationcommands.handle_server_initialization_prompts(message)
             if not handled:

@@ -83,7 +83,8 @@ def get_inventory_strings(player_id) -> list[dict[int, str]]:
         # refresh player reference if there were changes
         player = charactersprovider.get_player(player_id)
     inventory = player.inventory
-    inventory_string = ""
+    inventory_string = f'# Inventory\n' \
+                       f'{tokens_string(player)}\n\n'
     count = 0
     count_to_string = list()
     for item in inventory:
@@ -245,16 +246,20 @@ def get_detailed_player_message(player_id) -> str:
     level = player.player_level
     player_string = f'# Player: {player.name}\n' \
                     f'**Player level:** {level} - {player.sessions_on_this_level}/6 to level {level + 1}\n' \
-                    f'**Tokens:** {player.common_tokens} common, ' \
-                    f'{player.uncommon_tokens} uncommon, ' \
-                    f'{player.rare_tokens} rare, ' \
-                    f'{player.very_rare_tokens} very rare, ' \
-                    f'{player.legendary_tokens} legendary'
+                    f'{tokens_string(player)}'
     characters_string = '\n**Characters:**\n'
     for character in player.characters:
         characters_string += f'{charactersutils.status_emoji(character.status)} ' \
                              f'{get_character_row_string(character, detailed=True)}\n'
     return f'{player_string}{characters_string}'
+
+
+def tokens_string(player: Player) -> str:
+    return f'**Tokens:** {player.common_tokens} common, ' \
+           f'{player.uncommon_tokens} uncommon, ' \
+           f'{player.rare_tokens} rare, ' \
+           f'{player.very_rare_tokens} very rare, ' \
+           f'{player.legendary_tokens} legendary'
 
 
 def get_up_to_date_player_message(player_id) -> str:

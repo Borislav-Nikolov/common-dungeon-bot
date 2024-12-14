@@ -3,6 +3,7 @@ from provider import channelsprovider
 from util import utils, botutils
 from model.addsessiondata import AddSessionData
 from bridge import charactersbridge
+from api import charactersrequests
 
 
 async def handle_character_commands(message, client) -> bool:
@@ -70,7 +71,7 @@ async def handle_addsession(client, message, session_data_csv):
         '@<1234> - Bob, @<5678> - Alice - Rogue, @<9012> - Dave'
     """
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
-    if characters.add_session(id_to_data):
+    if charactersrequests.make_add_session_request(id_to_data):
         for player_id in id_to_data:
             await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
