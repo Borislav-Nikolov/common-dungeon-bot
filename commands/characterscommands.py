@@ -2,6 +2,7 @@ from controller import characters
 from provider import channelsprovider
 from util import utils, botutils
 from model.addsessiondata import AddSessionData
+from model.addplayerdata import AddPlayerData
 from bridge import charactersbridge
 from api import charactersrequests
 
@@ -21,7 +22,7 @@ async def handle_character_commands(message, client) -> bool:
                 elif keywords[1] == "refreshmessage":
                     await handle_refresh_player_message(client, player_ids_csv=keywords[2])
                 elif keywords[1] == "addplayer":
-                    await handle_addplayer(client, player_data_csv=keywords[2])
+                    await handle_addplayer(client, message, player_data_csv=keywords[2])
                 elif keywords[1] == "addcharacter":
                     await handle_addcharacter(client, data_csv=keywords[2])
                 elif keywords[1] == "deletecharacter":
@@ -81,7 +82,7 @@ async def handle_addsession(client, message, session_data_csv):
 
 async def handle_removesession(client, message, session_data_csv):
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
-    if characters.remove_session(id_to_data):
+    if charactersrequests.make_remove_session_request(id_to_data):
         for player_id in id_to_data:
             await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
@@ -89,14 +90,19 @@ async def handle_removesession(client, message, session_data_csv):
         await message.add_reaction('❌')
 
 
-async def handle_addplayer(client, player_data_csv):
+async def handle_addplayer(client, message, player_data_csv):
     player_data_list = utils.split_strip(player_data_csv, ',')
     player_id = utils.strip_id_tag(player_data_list[0])
     player_data_list.pop(0)
-    characters.add_player(player_id, player_data_list)
-    players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
-    new_player_message = await charactersbridge.send_player_message(players_channel, player_id)
-    channelsprovider.set_player_message_id(player_id, new_player_message.id)
+
+    add_player_data = AddPlayerData.from_command(player_id=player_id, player_data_list=player_data_list)
+    if charactersrequests.make_add_player_request(add_player_data):
+        players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
+        new_player_message = await charactersbridge.send_player_message(players_channel, player_id)
+        channelsprovider.set_player_message_id(player_id, new_player_message.id)
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
 
 
 async def handle_addcharacter(client, data_csv):

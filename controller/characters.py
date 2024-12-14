@@ -1,23 +1,14 @@
-import discord
-
-from provider import charactersprovider, channelsprovider
+from provider import charactersprovider
 from util.itemutils import *
 from model.player import Player
 from model.character import Character
 from model.inventoryitem import InventoryItem
 from model.characterclass import CharacterClass
-from model.addsessiondata import AddSessionData
 from model.inventorymessage import InventoryMessage
 from model.reserveditemmessage import ReservedItemMessage
 from model.rarity import rarity_strings_to_rarity
 from typing import Optional
 from util import charactersutils
-
-
-PARAMETER_NAME = "name"
-PARAMETER_CHARACTER = "character"
-PARAMETER_CLASS = "class"
-PARAMETER_LEVEL = "level"
 
 
 def update_character_status(player_id, character_name: str, status: str) -> bool:
@@ -299,192 +290,6 @@ def get_character_row_string(character: Character, detailed: bool) -> str:
     return character_string
 
 
-def remove_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
-    player_ids = list(player_id_to_data.keys())
-    players: list[Player] = charactersprovider.get_players(player_ids)
-    if len(players) != len(player_ids):
-        raise Exception("Invalid player data provided.")
-    for player in players:
-        if player.sessions_on_this_level == 0:
-            player.player_level -= 1
-            player.sessions_on_this_level = 5
-        else:
-            player.sessions_on_this_level -= 1
-        for character in player.characters:
-            # find character
-            if character.character_name == player_id_to_data[player.player_id].character_name:
-                if character.character_level == 1:
-                    raise Exception(f"Level 1 character {character.character_name} cannot lose a session.")
-                # determine level before previous session
-                should_remove_level = character.sessions_on_this_level == 0
-                previous_level = (character.character_level - 1) if should_remove_level else character.character_level
-                character.character_level = previous_level
-                # re-adjust current sessions
-                current_sessions = (utils.sessions_to_next_level(
-                    previous_level) if should_remove_level else character.sessions_on_this_level) - 1
-                character.sessions_on_this_level = current_sessions
-                # de-assign tokens
-                player.common_tokens -= get_common_tokens(previous_level)
-                player.uncommon_tokens -= get_uncommon_tokens(previous_level)
-                player.rare_tokens -= get_rare_tokens(previous_level)
-                player.very_rare_tokens -= get_very_rare_tokens(previous_level)
-                player.legendary_tokens -= get_legendary_tokens(previous_level)
-                if should_remove_level:
-                    # determine class to remove level from
-                    default_class = ''
-                    default_class_level = -1
-                    class_counter = 0
-                    total_classes = len(character.classes)
-                    has_class_param = player_id_to_data[player.player_id].class_name is not None
-                    class_param = '' if not has_class_param else player_id_to_data[player.player_id].class_name
-                    for character_class in character.classes:
-                        class_counter += 1
-                        if character_class.class_name == class_param:
-                            character_class.level -= 1
-                            if character_class.level == 0:
-                                # remove class from character
-                                class_index = utils.find_index(
-                                    character.classes,
-                                    lambda it: it.class_name == character_class.class_name
-                                )
-                                character.classes.pop(class_index)
-                                break
-                        if character_class.is_primary:
-                            default_class = character_class.class_name
-                            default_class_level = character_class.level
-                        if class_counter == total_classes:
-                            if len(class_param) != 0:
-                                raise Exception(f"Class was not found: {class_param}")
-                            if default_class_level < 2:
-                                raise Exception(f"Default class of level 1 cannot be removed.")
-                            # remove level from default class
-                            default_class_index = utils.find_index(
-                                character.classes,
-                                lambda it: it.class_name == default_class
-                            )
-                            default_class_object = character.classes[default_class_index]
-                            default_class_object.level -= 1
-    # upload in database
-    charactersprovider.add_or_update_players(players)
-    return True
-
-
-def add_session(player_id_to_data: dict[str, AddSessionData]) -> bool:
-    player_ids = list(player_id_to_data.keys())
-    players: list[Player] = charactersprovider.get_players(player_ids)
-    if len(players) != len(player_ids):
-        raise Exception("Invalid player data provided.")
-    dungeon_master = None
-    # Find dungeon master
-    for potential_dm in players:
-        if player_id_to_data[potential_dm.player_id].is_dm:
-            dungeon_master = potential_dm
-            break
-    for player in players:
-        if player.sessions_on_this_level == 5:
-            player.player_level += 1
-            player.sessions_on_this_level = 0
-        else:
-            player.sessions_on_this_level += 1
-        character_loop_index = 0
-        for character in player.characters:
-            if character.character_name == player_id_to_data[player.player_id].character_name:
-                # assign tokens
-                player.common_tokens += get_common_tokens(character.character_level)
-                player.uncommon_tokens += get_uncommon_tokens(character.character_level)
-                player.rare_tokens += get_rare_tokens(character.character_level)
-                player.very_rare_tokens += get_very_rare_tokens(character.character_level)
-                player.legendary_tokens += get_legendary_tokens(character.character_level)
-                # level up if needed
-                if character.character_level < 20:
-                    sessions_needed_for_next_level = utils.sessions_to_next_level(character.character_level)
-                    character.sessions_on_this_level += 1
-                    should_level_up = character.sessions_on_this_level >= sessions_needed_for_next_level
-                    leveled_up = False
-                    if should_level_up:
-                        character.character_level += 1
-                        character.sessions_on_this_level = 0
-                        class_index = 0
-                        for character_class in character.classes:
-                            is_last_class = class_index == (len(character.classes) - 1)
-                            has_class_param = player_id_to_data[player.player_id].class_name is not None
-                            class_param = '' if not has_class_param else player_id_to_data[player.player_id].class_name
-                            if has_class_param and class_param == character_class.class_name:
-                                character_class.level += 1
-                                leveled_up = True
-                            elif has_class_param and is_last_class:
-                                add_class_to_character_data(character, {class_param: 1}, False)
-                                leveled_up = True
-                            elif character_class.is_primary and not has_class_param:
-                                character_class.level += 1
-                                leveled_up = True
-                            if leveled_up:
-                                break
-                            class_index += 1
-                    if not leveled_up and should_level_up:
-                        raise Exception("Invalid character class name provided.")
-                    # assign last DM
-                    if player.player_id != dungeon_master.player_id:
-                        character.last_dm = dungeon_master.name
-                break
-            character_loop_index += 1
-            if character_loop_index > (len(player.characters) - 1):
-                raise Exception(f"Character name not found for player {player.name}")
-    # upload in database
-    charactersprovider.add_or_update_players(players)
-    return True
-
-
-# expected: player_id: <@1234> player_data_list: name=SomeName,character=CharName,class=Rogue
-def add_player(player_id: str, player_data_list: list):
-    player_data = dict()
-    player_data[player_id] = dict()
-    player_name = ''
-    character_name = ''
-    character_class = ''
-    for parameter in player_data_list:
-        field_to_argument = split_strip(parameter, '=')
-        field = field_to_argument[0]
-        argument = field_to_argument[1]
-        if field == PARAMETER_NAME:
-            player_name = argument
-        elif field == PARAMETER_CHARACTER:
-            character_name = argument
-        elif field == PARAMETER_CLASS:
-            character_class = argument
-    if len(player_name) == 0 or len(character_name) == 0 or len(character_class) == 0:
-        raise Exception("Invalid new player input provided.")
-    charactersprovider.add_or_update_player(
-        Player(
-            player_id=player_id,
-            name=player_name,
-            player_level=1,
-            sessions_on_this_level=0,
-            common_tokens=0,
-            uncommon_tokens=0,
-            rare_tokens=0,
-            very_rare_tokens=0,
-            legendary_tokens=0,
-            characters=[Character(
-                character_name=character_name,
-                character_level=1,
-                classes=[CharacterClass(
-                    class_name=character_class,
-                    level=1,
-                    is_primary=True
-                )],
-                last_dm="no one yet",
-                sessions_on_this_level=0,
-                status=charactersutils.CHARACTER_STATUS_ACTIVE
-            )],
-            inventory=list[InventoryItem](),
-            reserved_items=list[Item](),
-            inventory_messages=list(),
-            reserved_items_messages=list()
-        )
-    )
-
-
 # expected: player_id: <@1234> character_data_list: name=SomeName,class=Rogue,level=2
 def add_character(player_id: str, character_data_list: list):
     character_name = ''
@@ -492,11 +297,11 @@ def add_character(player_id: str, character_data_list: list):
     classes_to_level = dict()
     for parameter in character_data_list:
         key_to_value = split_strip(parameter, '=')
-        if key_to_value[0] == PARAMETER_NAME:
+        if key_to_value[0] == charactersutils.PARAMETER_NAME:
             character_name = key_to_value[1]
-        elif key_to_value[0] == PARAMETER_CLASS:
+        elif key_to_value[0] == charactersutils.PARAMETER_CLASS:
             classes_to_level[key_to_value[1]] = 0
-        elif key_to_value[0] == PARAMETER_LEVEL:
+        elif key_to_value[0] == charactersutils.PARAMETER_LEVEL:
             for class_name in classes_to_level:
                 if classes_to_level[class_name] == 0:
                     classes_to_level[class_name] = int(key_to_value[1])

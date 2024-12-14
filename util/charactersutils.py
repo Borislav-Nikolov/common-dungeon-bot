@@ -4,6 +4,12 @@ CHARACTER_STATUS_DEAD = "dead"
 VALID_CHARACTER_STATUSES = [CHARACTER_STATUS_ACTIVE, CHARACTER_STATUS_INACTIVE, CHARACTER_STATUS_DEAD]
 
 
+PARAMETER_NAME = "name"
+PARAMETER_CHARACTER = "character"
+PARAMETER_CLASS = "class"
+PARAMETER_LEVEL = "level"
+
+
 def character_status_to_visibility(status: str) -> bool:
     return status == CHARACTER_STATUS_ACTIVE
 
