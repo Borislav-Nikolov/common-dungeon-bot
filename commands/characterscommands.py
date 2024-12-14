@@ -4,7 +4,7 @@ from util import utils, botutils
 from model.addsessiondata import AddSessionData
 from model.addplayerdata import AddPlayerData
 from bridge import charactersbridge
-from api import charactersrequests
+from api import charactersrequests, channelsrequests
 
 
 async def handle_character_commands(message, client) -> bool:
@@ -97,9 +97,9 @@ async def handle_addplayer(client, message, player_data_csv):
 
     add_player_data = AddPlayerData.from_command(player_id=player_id, player_data_list=player_data_list)
     if charactersrequests.make_add_player_request(add_player_data):
-        players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
+        players_channel = client.get_channel(channelsrequests.get_characters_info_channel_id())
         new_player_message = await charactersbridge.send_player_message(players_channel, player_id)
-        channelsprovider.set_player_message_id(player_id, new_player_message.id)
+        channelsrequests.set_player_message_id(player_id, new_player_message.id)
         await message.add_reaction('🪙')
     else:
         await message.add_reaction('❌')
