@@ -290,44 +290,6 @@ def get_character_row_string(character: Character, detailed: bool) -> str:
     return character_string
 
 
-# expected: player_id: <@1234> character_data_list: name=SomeName,class=Rogue,level=2
-def add_character(player_id: str, character_data_list: list):
-    character_name = ''
-    character_level = 0
-    classes_to_level = dict()
-    for parameter in character_data_list:
-        key_to_value = split_strip(parameter, '=')
-        if key_to_value[0] == charactersutils.PARAMETER_NAME:
-            character_name = key_to_value[1]
-        elif key_to_value[0] == charactersutils.PARAMETER_CLASS:
-            classes_to_level[key_to_value[1]] = 0
-        elif key_to_value[0] == charactersutils.PARAMETER_LEVEL:
-            for class_name in classes_to_level:
-                if classes_to_level[class_name] == 0:
-                    classes_to_level[class_name] = int(key_to_value[1])
-                    character_level += int(key_to_value[1])
-    if len(character_name.strip()) == 0 or len(classes_to_level) == 0:
-        raise Exception('Invalid new character data provided')
-    for class_name in classes_to_level:
-        if classes_to_level[class_name] == 0 and len(classes_to_level) == 1:
-            classes_to_level[class_name] = 1
-            character_level += 1
-        elif classes_to_level[class_name] == 0:
-            raise Exception(f'Level not specified for class: {class_name}')
-    player: Player = charactersprovider.get_player(player_id)
-    new_character = Character(
-        character_name=character_name,
-        character_level=character_level,
-        classes=list[CharacterClass](),
-        last_dm='no one yet',
-        sessions_on_this_level=0,
-        status=charactersutils.CHARACTER_STATUS_ACTIVE
-    )
-    add_class_to_character_data(new_character, classes_to_level, True)
-    player.characters.append(new_character)
-    charactersprovider.add_or_update_player(player)
-
-
 def delete_character(player_id, character_name):
     player: Player = charactersprovider.get_player(player_id)
     index = -1
