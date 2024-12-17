@@ -67,3 +67,41 @@ def make_add_character_request(add_character_data: AddCharacterData) -> bool:
     }
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
     return response.status_code == 200
+
+
+def make_delete_character_request(player_id, character_name: str) -> bool:
+    url = api_url('delete_character')
+    data = {
+        'player_id': player_id,
+        'character_name': character_name
+    }
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.status_code == 200
+
+
+def make_change_character_name_request(player_id, old_character_name: str, new_character_name: str) -> bool:
+    url = api_url('change_character_name')
+    data = {
+        'player_id': player_id,
+        'old_character_name': old_character_name,
+        'new_character_name': new_character_name
+    }
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.status_code == 200
+
+
+def make_swap_character_class_levels_request(
+        player_id,
+        character_name: str,
+        class_to_remove_from: str,
+        class_to_add_to: str
+) -> bool:
+    url = api_url('swap_character_class_levels')
+    data = {
+        'player_id': player_id,
+        'character_name': character_name,
+        'class_to_remove_from': class_to_remove_from,
+        'class_to_add_to': class_to_add_to
+    }
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.status_code == 200

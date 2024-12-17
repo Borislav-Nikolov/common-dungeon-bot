@@ -1,5 +1,5 @@
 from util import botutils
-from provider import channelsprovider
+from api import channelsrequests
 
 
 async def handle_server_initialization_prompts(message) -> bool:
@@ -17,10 +17,10 @@ async def handle_server_initialization_prompts(message) -> bool:
 
 
 async def handle_shop_init(message):
-    channelsprovider.initialize_shop_channel(message.channel.id)
+    channelsrequests.initialize_shop_channel(message.channel.id)
     await message.channel.send('Channel initialized as the Shop channel.')
 
 
 async def handle_characters_init(message):
-    channelsprovider.initialize_characters_channel(message.channel.id)
+    channelsrequests.initialize_characters_channel(message.channel.id)
     await message.channel.send('Channel initialized as the Characters Info channel.')

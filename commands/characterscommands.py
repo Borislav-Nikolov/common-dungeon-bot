@@ -1,5 +1,4 @@
 from controller import characters
-from provider import channelsprovider
 from util import utils, botutils
 from model.addsessiondata import AddSessionData
 from model.addplayerdata import AddPlayerData
@@ -121,21 +120,21 @@ async def handle_addcharacter(client, message, data_csv):
 async def handle_deletecharacter(client, player_id_char_name_csv):
     player_id_to_character_name = utils.split_strip(player_id_char_name_csv, ',')
     player_id = utils.strip_id_tag(player_id_to_character_name[0])
-    characters.delete_character(player_id, player_id_to_character_name[1])
+    charactersrequests.make_delete_character_request(player_id, player_id_to_character_name[1])
     await charactersbridge.refresh_player_message(client, player_id)
 
 
 async def handle_changename(client, player_id_names_csv):
     player_id_and_names = utils.split_strip(player_id_names_csv, ',')
     player_id = utils.strip_id_tag(player_id_and_names[0])
-    characters.change_character_name(player_id, player_id_and_names[1], player_id_and_names[2])
+    charactersrequests.make_change_character_name_request(player_id, player_id_and_names[1], player_id_and_names[2])
     await charactersbridge.refresh_player_message(client, player_id)
 
 
 async def handle_swapclasslevels(client, player_id_and_params_csv):
     player_id_and_params = utils.split_strip(player_id_and_params_csv, ',')
     player_id = utils.strip_id_tag(player_id_and_params[0])
-    characters.swap_class_levels(
+    charactersrequests.make_swap_character_class_levels_request(
         player_id=player_id,
         character_name=player_id_and_params[1],
         class_to_remove_from=player_id_and_params[2],
@@ -147,7 +146,7 @@ async def handle_swapclasslevels(client, player_id_and_params_csv):
 async def handle_repost(message, player_tag):
     player_id = utils.strip_id_tag(player_tag)
     new_player_message = await charactersbridge.send_player_message(message.channel, player_id)
-    channelsprovider.set_player_message_id(player_id, new_player_message.id)
+    channelsrequests.set_player_message_id(player_id, new_player_message.id)
 
 
 async def handle_add_to_inventory(message, player_id_and_params_csv):
@@ -209,7 +208,7 @@ async def handle_change_id(client, player_ids_csv):
     old_id = utils.strip_id_tag(player_data_list[0])
     new_id = utils.strip_id_tag(player_data_list[1])
     characters.change_player_id(old_id, new_id)
-    player_message_id = channelsprovider.get_player_message_id(str(old_id))
-    channelsprovider.set_player_message_id(str(new_id), player_message_id)
-    channelsprovider.delete_player_message_id(str(old_id))
+    player_message_id = channelsrequests.get_player_message_id(str(old_id))
+    channelsrequests.set_player_message_id(str(new_id), player_message_id)
+    channelsrequests.delete_player_message_id(str(old_id))
     await charactersbridge.refresh_player_message(client, new_id)

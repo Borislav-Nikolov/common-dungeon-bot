@@ -4,7 +4,8 @@ from discord import Message
 from util import utils
 from controller import characters
 from discord import NotFound
-from provider import channelsprovider, charactersprovider
+from provider import charactersprovider
+from api import channelsrequests
 from ui.playerview import PlayerView
 from discord.interactions import Interaction
 import time
@@ -49,8 +50,8 @@ async def update_character_status(client, player_id, character_name: str, status
 
 
 async def refresh_player_message(client, player_id):
-    players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
-    player_message_id = channelsprovider.get_player_message_id(player_id)
+    players_channel = client.get_channel(channelsrequests.get_characters_info_channel_id())
+    player_message_id = channelsrequests.get_player_message_id(player_id)
     try:
         player_message = await players_channel.fetch_message(player_message_id)
         await edit_player_message(player_message, player_id)

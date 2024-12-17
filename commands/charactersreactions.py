@@ -1,7 +1,7 @@
 from util import utils, botutils
 from controller import characters, magicshop
 from discord import Message, HTTPException, Forbidden, NotFound
-from provider import magicshopprovider, channelsprovider
+from api import channelsrequests
 from model.inventorymessage import InventoryMessage
 from bridge import charactersbridge
 from util import itemutils
@@ -111,7 +111,7 @@ async def handle_inventory_reaction(payload, user, channel, client, inventory_me
                     sold_item_name = characters.refund_item_by_index(player_id, inventory_item.index)
                     sold = len(sold_item_name) != 0
                     if sold:
-                        shop_channel_id = magicshopprovider.get_shop_channel_id()
+                        shop_channel_id = channelsrequests.get_shop_channel_id()
                         shop_channel = client.get_channel(shop_channel_id)
                         await shop_channel.send(magicshop.get_refunded_item_string(player_id, sold_item_name))
                         await charactersbridge.refresh_player_message(client, player_id)
@@ -195,7 +195,7 @@ async def handle_reserved_item_reaction(payload, user, channel, client, reserved
             if magicshop.sell_item_general(player_id, reserved_item):
                 characters.remove_reserved_item_and_message(player_id)
                 await charactersbridge.refresh_player_message(client, payload.user_id)
-                shop_channel_id = channelsprovider.get_shop_channel_id()
+                shop_channel_id = channelsrequests.get_shop_channel_id()
                 shop_channel = client.get_channel(shop_channel_id)
                 await shop_channel.send(magicshop.get_sold_item_string(payload.user_id, reserved_item.name))
             else:

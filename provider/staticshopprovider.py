@@ -1,12 +1,7 @@
-from source import staticshopsource, channelssource
+from source import staticshopsource
 from model.shopitem import ShopItem
 from source.sourcefields import *
-from source import channelssource
 from model.rarity import rarity_strings_to_rarity
-
-
-def get_static_shop_channel_id() -> int:
-    return channelssource.get_static_shop_channel_id()
 
 
 def add_or_update_in_static_shop(data: dict[int, ShopItem]):

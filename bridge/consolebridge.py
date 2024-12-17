@@ -1,6 +1,7 @@
 from ui.basicbutton import BasicButton
 from discord.interactions import Interaction
-from provider import consoleprovider, channelsprovider
+from provider import consoleprovider
+from api import channelsrequests
 from typing import Callable, Awaitable
 from commands import characterscommands, magicshopcommands
 from discord import ButtonStyle, Message
@@ -59,7 +60,7 @@ async def construct_console_shop_generate_prompt(send_message: Callable[[View], 
             return await interaction.response.send_message("You're not an admin.", ephemeral=True)
 
         async def handle_input(modal_interaction: Interaction, levels_separated_by_comma: str):
-            channel_id = channelsprovider.get_shop_channel_id()
+            channel_id = channelsrequests.get_shop_channel_id()
             channel = client.get_channel(channel_id)
             await modal_interaction.response.defer()
             return await magicshopcommands.handle_generate(

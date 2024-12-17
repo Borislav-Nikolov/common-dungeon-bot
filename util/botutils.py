@@ -1,6 +1,6 @@
 import discord
 
-from provider import channelsprovider
+from api import channelsrequests
 from typing import Callable, Awaitable
 from discord import Message
 import asyncio
@@ -18,11 +18,11 @@ def is_admin(user) -> bool:
 
 
 def is_characters_info_channel(message) -> bool:
-    return message.channel.id == channelsprovider.get_characters_info_channel_id()
+    return message.channel.id == channelsrequests.get_characters_info_channel_id()
 
 
 def is_shop_channel(message) -> bool:
-    return message.channel.id == channelsprovider.get_shop_channel_id()
+    return message.channel.id == channelsrequests.get_shop_channel_id()
 
 
 async def create_emoji_prompt(

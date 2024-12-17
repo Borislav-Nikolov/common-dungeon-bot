@@ -290,49 +290,6 @@ def get_character_row_string(character: Character, detailed: bool) -> str:
     return character_string
 
 
-def delete_character(player_id, character_name):
-    player: Player = charactersprovider.get_player(player_id)
-    index = -1
-    for character in player.characters:
-        index += 1
-        if character.character_name == character_name:
-            player.characters.pop(index)
-            break
-    charactersprovider.add_or_update_player(player)
-
-
-def change_character_name(player_id, old_name, new_name):
-    player: Player = charactersprovider.get_player(player_id)
-    character = find_character_or_throw(player, old_name)
-    character.character_name = new_name
-    charactersprovider.add_or_update_player(player)
-
-
-def swap_class_levels(player_id, character_name, class_to_remove_from, class_to_add_to):
-    player = charactersprovider.get_player(player_id)
-    character = find_character_or_throw(player, character_name)
-    was_level_removed = False
-    was_level_added = False
-    for character_class in character.classes:
-        if character_class.class_name == class_to_remove_from:
-            if character_class.level <= 1:
-                raise Exception("Class to remove from must be of level higher than 1.")
-            else:
-                character_class.level -= 1
-                was_level_removed = True
-        elif character_class.class_name == class_to_add_to:
-            if character_class.level >= 20:
-                raise Exception("Class to add to must be of level lower than 20.")
-            else:
-                character_class.level += 1
-                was_level_added = True
-    if not was_level_removed:
-        raise Exception("Class to remove from was not found.")
-    elif was_level_removed and not was_level_added:
-        add_class_to_character_data(character, {class_to_add_to: 1}, False)
-    charactersprovider.add_or_update_player(player)
-
-
 def find_character_or_throw(player: Player, character_name) -> Character:
     for character in player.characters:
         if character.character_name == character_name:
