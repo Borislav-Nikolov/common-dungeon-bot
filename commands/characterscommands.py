@@ -3,10 +3,11 @@ from util import utils, botutils
 from model.addsessiondata import AddSessionData
 from model.addplayerdata import AddPlayerData
 from model.addcharacterdata import AddCharacterData
-from model.playerstatus import player_status_from_name
+from model.playerstatus import player_status_from_name, PlayerStatus
 from model.playerrole import player_role_from_name
 from bridge import charactersbridge
 from api import charactersrequests, channelsrequests
+from provider import charactersprovider
 
 
 async def handle_character_commands(message, client) -> bool:
@@ -47,6 +48,8 @@ async def handle_character_commands(message, client) -> bool:
                     await handle_change_player_status(message, player_id_and_new_status_csv=keywords[2])
                 elif keywords[1] == "changeplayerrole":
                     await handle_change_player_role(message, player_id_and_new_role_csv=keywords[2])
+                elif keywords[1] == "setallasactive":
+                    await handle_set_all_as_active()
         # NON-ADMIN COMMANDS
         # ALL CHANNELS
         if keywords[1] == "inventory":
@@ -238,3 +241,9 @@ async def handle_change_player_role(message, player_id_and_new_role_csv):
         await message.add_reaction('🪙')
     else:
         await message.add_reaction('❌')
+
+
+async def handle_set_all_as_active():
+    all_players = charactersprovider.get_all_players()
+    for player in all_players:
+        charactersrequests.make_change_player_status_request(player.player_id, PlayerStatus.Active)

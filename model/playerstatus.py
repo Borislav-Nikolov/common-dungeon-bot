@@ -15,6 +15,6 @@ def player_status_from_name(player_status_name: str) -> Optional[PlayerStatus]:
     elif player_status_name_lower == PlayerStatus.Inactive.name.lower():
         return PlayerStatus.Inactive
     elif player_status_name_lower == PlayerStatus.Active.name.lower():
-        return PlayerStatus.Banned
+        return PlayerStatus.Active
     else:
         return None
