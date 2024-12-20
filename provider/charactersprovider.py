@@ -5,6 +5,8 @@ from model.inventoryitem import InventoryItem
 from model.item import Item
 from model.inventorymessage import InventoryMessage
 from model.rarity import rarity_strings_to_rarity
+from model.playerrole import PlayerRole, player_role_from_name
+from model.playerstatus import PlayerStatus, player_status_from_name
 from source.sourcefields import *
 from source import playerssource
 from util import utils, charactersutils
@@ -19,6 +21,8 @@ def add_or_update_players(players: list[Player]):
     for player in players:
         player_data[player.player_id] = {
             PLAYER_FIELD_NAME: player.name,
+            PLAYER_FIELD_PLAYER_ROLE: player.player_role.name,
+            PLAYER_FIELD_PLAYER_STATUS: player.player_status.name,
             PLAYER_FIELD_PLAYER_LEVEL: player.player_level,
             PLAYER_FIELD_SESSIONS_ON_THIS_LEVEL: player.sessions_on_this_level,
             PLAYER_FIELD_COMMON_TOKENS: player.common_tokens,
@@ -120,6 +124,10 @@ def map_player_object(player_id, player_data: dict) -> Player:
     return Player(
         player_id=player_id,
         name=player_data[PLAYER_FIELD_NAME],
+        player_status=PlayerStatus.Active if PLAYER_FIELD_PLAYER_STATUS not in player_data else player_status_from_name(
+            player_data[PLAYER_FIELD_PLAYER_STATUS]),
+        player_role=PlayerRole.Regular if PLAYER_FIELD_PLAYER_ROLE not in player_data else player_role_from_name(
+            player_data[PLAYER_FIELD_PLAYER_ROLE]),
         player_level=-1 if PLAYER_FIELD_PLAYER_LEVEL not in player_data else player_data[PLAYER_FIELD_PLAYER_LEVEL],
         sessions_on_this_level=-1 if PLAYER_FIELD_SESSIONS_ON_THIS_LEVEL not in player_data else player_data[
             PLAYER_FIELD_SESSIONS_ON_THIS_LEVEL],

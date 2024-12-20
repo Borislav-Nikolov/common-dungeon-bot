@@ -3,16 +3,21 @@ from model.inventoryitem import InventoryItem
 from model.inventorymessage import InventoryMessage
 from model.reserveditemmessage import ReservedItemMessage
 from model.item import Item
+from model.playerrole import PlayerRole
+from model.playerstatus import PlayerStatus
 from util.utils import *
 
 
 class Player:
-    def __init__(self, player_id, name: str, player_level: int, sessions_on_this_level: int, common_tokens: int,
+    def __init__(self, player_id, name: str, player_role: PlayerRole, player_status: PlayerStatus, player_level: int,
+                 sessions_on_this_level: int, common_tokens: int,
                  uncommon_tokens: int, rare_tokens: int, very_rare_tokens: int, legendary_tokens: int,
                  characters: list[Character], inventory: list[InventoryItem], reserved_items: list[Item],
                  inventory_messages: list[InventoryMessage], reserved_items_messages: list[ReservedItemMessage]):
         self.player_id = player_id
         self.name: str = name
+        self.player_role: PlayerRole = player_role
+        self.player_status: PlayerStatus = player_status
         self.player_level: int = player_level
         self.sessions_on_this_level: int = sessions_on_this_level
         self.common_tokens: int = common_tokens

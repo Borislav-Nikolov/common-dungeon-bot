@@ -17,6 +17,8 @@ SHOP_ITEM_FIELD_SOLD = "sold"
 
 # Player fields
 PLAYER_FIELD_NAME = "name"
+PLAYER_FIELD_PLAYER_ROLE = "player_role"
+PLAYER_FIELD_PLAYER_STATUS = "player_status"
 PLAYER_FIELD_PLAYER_LEVEL = "player_level"
 PLAYER_FIELD_SESSIONS_ON_THIS_LEVEL = "sessions_on_this_level"
 PLAYER_FIELD_COMMON_TOKENS = "common_tokens"

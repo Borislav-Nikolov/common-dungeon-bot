@@ -5,6 +5,8 @@ from api.base import api_url
 from model.addsessiondata import AddSessionData
 from model.addplayerdata import AddPlayerData
 from model.addcharacterdata import AddCharacterData
+from model.playerstatus import PlayerStatus
+from model.playerrole import PlayerRole
 
 
 def make_add_session_request(data: dict[str, AddSessionData]) -> bool:
@@ -102,6 +104,32 @@ def make_swap_character_class_levels_request(
         'character_name': character_name,
         'class_to_remove_from': class_to_remove_from,
         'class_to_add_to': class_to_add_to
+    }
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.status_code == 200
+
+
+def make_change_player_status_request(
+        player_id,
+        new_player_status: PlayerStatus
+) -> bool:
+    url = api_url('change_player_status')
+    data = {
+        'player_id': player_id,
+        'player_status': new_player_status.name
+    }
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.status_code == 200
+
+
+def make_change_player_role_request(
+        player_id,
+        new_player_role: PlayerRole
+) -> bool:
+    url = api_url('change_player_role')
+    data = {
+        'player_id': player_id,
+        'player_role': new_player_role.name
     }
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
     return response.status_code == 200

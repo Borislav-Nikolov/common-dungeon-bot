@@ -5,9 +5,10 @@ from util import utils
 from controller import characters
 from discord import NotFound
 from provider import charactersprovider
-from api import channelsrequests
+from api import channelsrequests, charactersrequests
 from ui.playerview import PlayerView
 from discord.interactions import Interaction
+from model.playerstatus import PlayerStatus
 import time
 
 
@@ -56,7 +57,11 @@ async def refresh_player_message(client, player_id):
         player_message = await players_channel.fetch_message(player_message_id)
         await edit_player_message(player_message, player_id)
     except NotFound:
-        print(f'Message for player ID {player_id} was not found.')
+        print(f'Message for player ID {player_id} was not found. Marking player as inactive...')
+        if charactersrequests.make_change_player_status_request(player_id, PlayerStatus.Inactive):
+            print(f'Player with ID {player_id} was made inactive.')
+        else:
+            print(f'Making player with ID {player_id} inactive was not successful.')
 
 
 async def send_player_message(channel, player_id) -> Message:
@@ -88,6 +93,8 @@ def get_player_view(player_id) -> PlayerView:
 async def reinitialize_character_messages(client):
     all_players = charactersprovider.get_all_players()
     for player in all_players:
-        await refresh_player_message(client, player.player_id)
-        time.sleep(5)
+        # TODO: maybe get only active players from source
+        if player.player_status == PlayerStatus.Active:
+            await refresh_player_message(client, player.player_id)
+            time.sleep(5)
     print('All available player messages have been initialized.')

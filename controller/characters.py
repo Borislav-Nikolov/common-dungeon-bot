@@ -7,6 +7,7 @@ from model.characterclass import CharacterClass
 from model.inventorymessage import InventoryMessage
 from model.reserveditemmessage import ReservedItemMessage
 from model.rarity import rarity_strings_to_rarity
+from model.playerrole import PlayerRole
 from typing import Optional
 from util import charactersutils
 
@@ -337,3 +338,7 @@ def change_player_id(old_id, new_id):
     player_data.player_id = new_id_str
     charactersprovider.add_or_update_player(player_data)
     charactersprovider.delete_player(old_id_str)
+
+
+def is_admin(player_id) -> bool:
+    return charactersprovider.get_player(player_id).player_role == PlayerRole.Admin

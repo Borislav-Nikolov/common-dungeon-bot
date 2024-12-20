@@ -60,9 +60,9 @@ async def construct_console_shop_generate_prompt(send_message: Callable[[View], 
             return await interaction.response.send_message("You're not an admin.", ephemeral=True)
 
         async def handle_input(modal_interaction: Interaction, levels_separated_by_comma: str):
+            await modal_interaction.response.defer()
             channel_id = channelsrequests.get_shop_channel_id()
             channel = client.get_channel(channel_id)
-            await modal_interaction.response.defer()
             return await magicshopcommands.handle_generate(
                 channel,
                 levels_separated_by_comma
@@ -90,13 +90,13 @@ async def construct_console_shop_generate_prompt(send_message: Callable[[View], 
 async def construct_console_character_status_change_prompt(send_message: Callable[[View], Awaitable[Message]], client):
     async def handle_input(interaction: Interaction, character_name: str, character_status: str) -> bool:
         try:
+            await interaction.response.defer()
             await charactersbridge.update_character_status(
                 client=client,
                 player_id=interaction.user.id,
                 character_name=character_name,
                 status=character_status
             )
-            await interaction.response.defer()
             return True
         except ValueError:
             print(f'Character not found for character_name={character_name}, at character status change.')

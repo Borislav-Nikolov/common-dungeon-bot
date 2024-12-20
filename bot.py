@@ -46,7 +46,7 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
 
         print(f'{username} said: "{user_message}" ({channel})')
 
-        if user_message == '!testapicommunication':
+        if user_message == '!testapicommunication' and botutils.is_admin_message(message):
             if testapicommunication.test_api_communication():
                 await message.add_reaction('🪙')
             else:

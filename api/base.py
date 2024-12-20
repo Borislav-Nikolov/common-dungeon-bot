@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from api import sockets
 
 load_dotenv()
 
@@ -15,6 +16,7 @@ def init_api(test: bool, local: bool):
     is_test = test
     global endpoint
     endpoint = API_ENDPOINT if not local else TEST_API_ENDPOINT_LOCAL_8081
+    sockets.sio.connect(endpoint)
 
 
 def api_url(function_name: str) -> str:
