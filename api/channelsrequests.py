@@ -51,7 +51,7 @@ def set_player_message_id(player_id, message_id) -> bool:
 
 
 def set_shop_message_id(message_id) -> bool:
-    url = api_url('set_player_message_id')
+    url = api_url('set_shop_message_id')
     data = {'message_id': message_id}
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
     return response.status_code == 200

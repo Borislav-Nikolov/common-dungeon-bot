@@ -5,6 +5,7 @@ from api import sockets
 load_dotenv()
 
 API_ENDPOINT = "https://common-dnd-backend.fly.dev/"
+WEBSOCKET_API_ENDPOINT = "wss://common-dnd-backend.fly.dev/socket.io/"
 TEST_API_ENDPOINT_LOCAL_8081 = "http://localhost:8081/"
 
 global endpoint
@@ -16,7 +17,7 @@ def init_api(test: bool, local: bool):
     is_test = test
     global endpoint
     endpoint = API_ENDPOINT if not local else TEST_API_ENDPOINT_LOCAL_8081
-    sockets.sio.connect(endpoint)
+    # sockets.sio.connect(WEBSOCKET_API_ENDPOINT if not local else TEST_API_ENDPOINT_LOCAL_8081)
 
 
 def api_url(function_name: str) -> str:
