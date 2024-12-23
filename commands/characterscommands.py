@@ -50,6 +50,8 @@ async def handle_character_commands(message, client) -> bool:
                     await handle_change_player_role(message, player_id_and_new_role_csv=keywords[2])
                 elif keywords[1] == "setallasactive":
                     await handle_set_all_as_active()
+                elif keywords[1] == "subtracttokensforrarity":
+                    await handle_subtract_tokens_for_rarity(message, player_id_and_params_csv=keywords[2])
         # NON-ADMIN COMMANDS
         # ALL CHANNELS
         if keywords[1] == "inventory":
@@ -170,6 +172,19 @@ async def handle_add_to_inventory(message, player_id_and_params_csv):
         await message.channel.send(f"{player_id_and_params[1]} was added to <@{player_id}>")
     else:
         await message.channel.send(f"{player_id_and_params[1]} was not added to <@{player_id}>. Prompt may be wrong.")
+
+
+async def handle_subtract_tokens_for_rarity(message, player_id_and_params_csv):
+    player_id_and_params = utils.split_strip(player_id_and_params_csv, ',')
+    player_id = utils.strip_id_tag(player_id_and_params[0])
+    if characters.subtract_player_tokens_for_rarity(
+        player_id=player_id,
+        rarity=player_id_and_params[1],
+        rarity_level=player_id_and_params[2]
+    ):
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
 
 
 async def handle_inventory_prompt(author):
