@@ -11,9 +11,13 @@ from discord.ext import commands
 from api import channelsrequests, testapicommunication
 
 
+global client
+
+
 def run_discord_bot(bot_token, allowed_guild_id: str):
     intents = discord.Intents.default()
     intents.message_content = True
+    global client
     client = commands.Bot(command_prefix='$', intents=intents)
 
     @client.event

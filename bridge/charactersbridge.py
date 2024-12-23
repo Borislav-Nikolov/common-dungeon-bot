@@ -10,6 +10,24 @@ from ui.playerview import PlayerView
 from discord.interactions import Interaction
 from model.playerstatus import PlayerStatus
 import time
+from api.sockets import sio
+import bot
+import asyncio
+
+
+@sio.on('refresh_player_messages')
+def on_refresh_player_messages_event(data):
+    print(f'Received refresh player messages event for: {data}')
+    for player_id in data['player_ids']:
+        future = asyncio.run_coroutine_threadsafe(
+            refresh_player_message(bot.client, player_id),
+            bot.client.loop
+        )
+        try:
+            result = future.result()
+            print(f"Result for player_id {player_id}: {result}")
+        except Exception as e:
+            print(f"Error occurred for player_id {player_id}: {e}")
 
 
 async def send_inventory_messages(member, inventory_strings: list[dict[int, str]],
@@ -93,7 +111,7 @@ def get_player_view(player_id) -> PlayerView:
 async def reinitialize_character_messages(client):
     all_players = charactersprovider.get_all_players()
     for player in all_players:
-        # TODO: maybe get only active players from source
+        # TODO: get only active players from source
         if player.player_status == PlayerStatus.Active:
             await refresh_player_message(client, player.player_id)
             time.sleep(5)
