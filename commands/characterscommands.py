@@ -19,7 +19,7 @@ async def handle_character_commands(message, client) -> bool:
             # CHARACTERS INFO CHANNEL
             if botutils.is_characters_info_channel(message):
                 if keywords[1] == "addsession":
-                    await handle_addsession(client, message, session_data_csv=keywords[2])
+                    await handle_addsession(message, session_data_csv=keywords[2])
                 elif keywords[1] == "removesession":
                     await handle_removesession(client, message, session_data_csv=keywords[2])
                 elif keywords[1] == "refreshmessage":
@@ -156,6 +156,7 @@ async def handle_repost(message, player_tag):
     player_id = utils.strip_id_tag(player_tag)
     new_player_message = await charactersbridge.send_player_message(message.channel, player_id)
     channelsrequests.set_player_message_id(player_id, new_player_message.id)
+    charactersrequests.make_change_player_status_request(player_id, PlayerStatus.Active)
 
 
 async def handle_add_to_inventory(message, player_id_and_params_csv):
