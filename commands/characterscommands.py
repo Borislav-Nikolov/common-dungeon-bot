@@ -71,7 +71,7 @@ async def handle_refresh_player_message(client, player_ids_csv):
 
 # TODO: Do the same for the rest of the commands as for this function, meaning:
 #  Add a model class for the input and documentation.
-async def handle_addsession(client, message, session_data_csv):
+async def handle_addsession(message, session_data_csv):
     """
      Expected input for `session_data_csv`:
         1) Player ID - required.
@@ -84,8 +84,6 @@ async def handle_addsession(client, message, session_data_csv):
     """
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
     if charactersrequests.make_add_session_request(id_to_data):
-        for player_id in id_to_data:
-            await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
     else:
         await message.add_reaction('❌')
