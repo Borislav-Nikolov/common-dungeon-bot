@@ -56,8 +56,7 @@ def assemble_player(player_id, player_object, include_inventory, include_charact
     if PLAYER_FIELD_INVENTORY in player_object:
         migrate_player_data = True
         inventory = player_object[PLAYER_FIELD_INVENTORY]
-        if len(inventory) > 0:
-            update_in_player_inventories({string_id: inventory})
+        update_in_player_inventories({string_id: inventory})
         player_object_copy.pop(PLAYER_FIELD_INVENTORY)
     elif include_inventory:
         inventory_data = get_player_inventory(string_id)
@@ -66,8 +65,7 @@ def assemble_player(player_id, player_object, include_inventory, include_charact
     if PLAYER_FIELD_CHARACTERS in player_object:
         migrate_player_data = True
         characters = player_object[PLAYER_FIELD_CHARACTERS]
-        if len(characters) > 0:
-            update_in_player_characters({string_id: characters})
+        update_in_player_characters({string_id: characters})
         player_object_copy.pop(PLAYER_FIELD_CHARACTERS)
     elif include_characters:
         characters_data = get_player_characters(string_id)
@@ -75,6 +73,10 @@ def assemble_player(player_id, player_object, include_inventory, include_charact
             player_object[PLAYER_FIELD_CHARACTERS] = characters_data
     if migrate_player_data:
         update_in_players({string_id: player_object_copy})
+    if not include_inventory and PLAYER_FIELD_INVENTORY in player_object:
+        player_object.pop(PLAYER_FIELD_INVENTORY)
+    if not include_characters and PLAYER_FIELD_CHARACTERS in player_object:
+        player_object.pop(PLAYER_FIELD_CHARACTERS)
     return player_object
 
 
@@ -128,12 +130,10 @@ def update_in_players(players_data):
     for player_id in players_data:
         player_object = players_data[player_id]
         if PLAYER_FIELD_INVENTORY in player_object:
-            if len(player_object[PLAYER_FIELD_INVENTORY]) > 0:
-                update_in_player_inventories({player_id: player_object[PLAYER_FIELD_INVENTORY]})
+            update_in_player_inventories({player_id: player_object[PLAYER_FIELD_INVENTORY]})
             player_object.pop(PLAYER_FIELD_INVENTORY)
         if PLAYER_FIELD_CHARACTERS in player_object:
-            if len(player_object[PLAYER_FIELD_CHARACTERS]) > 0:
-                update_in_player_characters({player_id: player_object[PLAYER_FIELD_CHARACTERS]})
+            update_in_player_characters({player_id: player_object[PLAYER_FIELD_CHARACTERS]})
             player_object.pop(PLAYER_FIELD_CHARACTERS)
         players_data[player_id] = player_object
         players_ref.update(players_data)

@@ -10,6 +10,7 @@ from model.playerstatus import PlayerStatus, player_status_from_name
 from source.sourcefields import *
 from source import playerssource
 from util import utils, charactersutils
+from typing import Optional
 
 
 def add_or_update_player(player: Player):
@@ -30,46 +31,6 @@ def add_or_update_players(players: list[Player]):
             PLAYER_FIELD_RARE_TOKENS: player.rare_tokens,
             PLAYER_FIELD_VERY_RARE_TOKENS: player.very_rare_tokens,
             PLAYER_FIELD_LEGENDARY_TOKENS: player.legendary_tokens,
-            PLAYER_FIELD_CHARACTERS: list(
-                map(
-                    lambda character: {
-                        CHARACTER_FIELD_NAME: character.character_name,
-                        CHARACTER_FIELD_LEVEL: character.character_level,
-                        CHARACTER_FIELD_CLASSES: list(
-                            map(
-                                lambda character_class: {
-                                    CLASS_FIELD_NAME: character_class.class_name,
-                                    CLASS_FIELD_LEVEL: character_class.level,
-                                    CLASS_FIELD_IS_PRIMARY: character_class.is_primary
-                                },
-                                character.classes
-                            )
-                        ),
-                        CHARACTER_FIELD_LAST_DM: character.last_dm,
-                        CHARACTER_FIELD_SESSIONS: character.sessions_on_this_level,
-                        CHARACTER_FIELD_STATUS: character.status
-                    },
-                    player.characters
-                )
-            ),
-            PLAYER_FIELD_INVENTORY: list(
-                map(
-                    lambda item: {
-                        ITEM_FIELD_NAME: item.name,
-                        ITEM_FIELD_DESCRIPTION: item.description,
-                        ITEM_FIELD_PRICE: item.price,
-                        ITEM_FIELD_RARITY: item.rarity.rarity,
-                        ITEM_FIELD_RARITY_LEVEL: item.rarity.rarity_level,
-                        ITEM_FIELD_ATTUNEMENT: item.attunement,
-                        ITEM_FIELD_CONSUMABLE: item.consumable,
-                        ITEM_FIELD_OFFICIAL: item.official,
-                        ITEM_FIELD_BANNED: item.banned,
-                        INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
-                        INVENTORY_ITEM_FIELD_INDEX: item.index
-                    },
-                    player.inventory
-                )
-            ),
             PLAYER_FIELD_RESERVED_ITEMS: list(
                 map(
                     lambda item: {
@@ -92,16 +53,65 @@ def add_or_update_players(players: list[Player]):
                 f'i{reserved_items_message.beginning_index}': reserved_items_message.message_id
                 for reserved_items_message in player.reserved_items_messages}
         }
+        if player.inventory is not None:
+            player_data[player.player_id][PLAYER_FIELD_INVENTORY] = list(
+                map(
+                    lambda item: {
+                        ITEM_FIELD_NAME: item.name,
+                        ITEM_FIELD_DESCRIPTION: item.description,
+                        ITEM_FIELD_PRICE: item.price,
+                        ITEM_FIELD_RARITY: item.rarity.rarity,
+                        ITEM_FIELD_RARITY_LEVEL: item.rarity.rarity_level,
+                        ITEM_FIELD_ATTUNEMENT: item.attunement,
+                        ITEM_FIELD_CONSUMABLE: item.consumable,
+                        ITEM_FIELD_OFFICIAL: item.official,
+                        ITEM_FIELD_BANNED: item.banned,
+                        INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
+                        INVENTORY_ITEM_FIELD_INDEX: item.index
+                    },
+                    player.inventory
+                )
+            )
+        if player.characters is not None:
+            player_data[player.player_id][PLAYER_FIELD_CHARACTERS] = list(
+                map(
+                    lambda character: {
+                        CHARACTER_FIELD_NAME: character.character_name,
+                        CHARACTER_FIELD_LEVEL: character.character_level,
+                        CHARACTER_FIELD_CLASSES: list(
+                            map(
+                                lambda character_class: {
+                                    CLASS_FIELD_NAME: character_class.class_name,
+                                    CLASS_FIELD_LEVEL: character_class.level,
+                                    CLASS_FIELD_IS_PRIMARY: character_class.is_primary
+                                },
+                                character.classes
+                            )
+                        ),
+                        CHARACTER_FIELD_LAST_DM: character.last_dm,
+                        CHARACTER_FIELD_SESSIONS: character.sessions_on_this_level,
+                        CHARACTER_FIELD_STATUS: character.status
+                    },
+                    player.characters
+                )
+            )
     playerssource.update_in_players(player_data)
 
 
-def get_player(player_id) -> Player:
+def get_player(player_id) -> Optional[Player]:
     player_data = playerssource.get_player(player_id)
-    return map_player_object(player_id, player_data)
+    if player_data:
+        return map_player_object(player_id, player_data)
+    else:
+        return None
 
 
-def get_players(player_ids: list) -> list[Player]:
-    players_data = playerssource.get_players(player_ids)
+def get_players(player_ids: list, include_inventory=True, include_characters=True) -> list[Player]:
+    players_data = playerssource.get_players(
+        player_ids,
+        include_inventory=include_inventory,
+        include_characters=include_characters
+    )
     return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
 
 
@@ -110,14 +120,16 @@ def get_all_players() -> list[Player]:
     return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
 
 
+def get_players_by_status(player_status: PlayerStatus) -> list[Player]:
+    players_data = playerssource.get_players_by_status(player_status.name)
+    return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
+
+
 def delete_player(player_id):
     playerssource.delete_player(player_id)
 
 
 def map_player_object(player_id, player_data: dict) -> Player:
-    inventory_list = utils.filter_not_none(
-        list() if PLAYER_FIELD_INVENTORY not in player_data else player_data[PLAYER_FIELD_INVENTORY]
-    )
     reserved_items = utils.filter_not_none(
         list() if PLAYER_FIELD_RESERVED_ITEMS not in player_data else player_data[PLAYER_FIELD_RESERVED_ITEMS]
     )
@@ -136,7 +148,7 @@ def map_player_object(player_id, player_data: dict) -> Player:
         rare_tokens=player_data[PLAYER_FIELD_RARE_TOKENS],
         very_rare_tokens=player_data[PLAYER_FIELD_VERY_RARE_TOKENS],
         legendary_tokens=player_data[PLAYER_FIELD_LEGENDARY_TOKENS],
-        characters=list(
+        characters=None if PLAYER_FIELD_CHARACTERS not in player_data else list(
             map(
                 lambda character: Character(
                     character_name=character[CHARACTER_FIELD_NAME],
@@ -159,7 +171,7 @@ def map_player_object(player_id, player_data: dict) -> Player:
                 player_data[PLAYER_FIELD_CHARACTERS]
             )
         ),
-        inventory=list(
+        inventory=None if PLAYER_FIELD_INVENTORY not in player_data else list(
             map(
                 lambda item: InventoryItem(
                     name=item[ITEM_FIELD_NAME],
@@ -173,7 +185,7 @@ def map_player_object(player_id, player_data: dict) -> Player:
                     quantity=item[INVENTORY_ITEM_FIELD_QUANTITY],
                     index=item[INVENTORY_ITEM_FIELD_INDEX]
                 ),
-                inventory_list
+                utils.filter_not_none(player_data[PLAYER_FIELD_INVENTORY])
             )
         ),
         reserved_items=list(

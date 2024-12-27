@@ -58,6 +58,8 @@ def add_dummy_item_to_inventory(player_id, item_name, item_rarity, item_rarity_l
 def add_single_quantity_item_to_inventory(player_id, new_item: InventoryItem):
     player: Player = charactersprovider.get_player(player_id)
     repeats = False
+    if player.inventory is None:
+        player.inventory = list()
     for item in player.inventory:
         if new_item.name == item.name:
             repeats = True
@@ -74,7 +76,7 @@ def get_inventory_strings(player_id) -> list[dict[int, str]]:
     if fix_inventory(player):
         # refresh player reference if there were changes
         player = charactersprovider.get_player(player_id)
-    inventory = player.inventory
+    inventory = player.inventory or []
     inventory_string = f'# Inventory\n' \
                        f'{tokens_string(player)}\n\n'
     count = 0
@@ -143,7 +145,7 @@ def refresh_inventory_by_id_if_needed(player_id) -> bool:
 def refresh_inventory_if_needed(player: Player) -> bool:
     last_item = None
     needs_refresh = False
-    for item in player.inventory:
+    for item in player.inventory or []:
         if last_item is not None:
             difference = item.index - last_item.index
             if difference != 1:
@@ -166,7 +168,7 @@ def fix_inventory(player: Player) -> bool:
 
 
 def get_item_from_inventory(player: Player, item_index) -> InventoryItem:
-    inventory = player.inventory
+    inventory = player.inventory or []
     for item in inventory:
         if item.index == item_index:
             return item
@@ -201,7 +203,7 @@ def subtract_item_from_inventory(player: Player, item: InventoryItem) -> bool:
     subtracted = False
     removed = False
     list_index = 0
-    for inventory_item in player.inventory:
+    for inventory_item in player.inventory or []:
         if inventory_item.index == item.index:
             inventory_item.quantity -= 1
             if inventory_item.quantity <= 0:
@@ -292,7 +294,7 @@ def get_character_row_string(character: Character, detailed: bool) -> str:
 
 
 def find_character_or_throw(player: Player, character_name) -> Character:
-    for character in player.characters:
+    for character in player.characters or []:
         if character.character_name == character_name:
             return character
     raise ValueError("Character not found.")
