@@ -35,7 +35,3 @@ def map_item_data_to_item_list(items_data: list) -> list[Item]:
             )
         )
     return items
-
-
-def update_in_items(item_data):
-    return itemssource.update_in_items(item_data)

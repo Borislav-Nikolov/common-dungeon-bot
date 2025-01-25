@@ -15,11 +15,7 @@ def init_items_source(is_test: bool):
 
 
 def get_all_items() -> list:
-    return items_ref_2.get()
-
-
-def update_in_items(item_data):
-    items_ref_2.update(item_data)
+    return list(items_ref_2.get().values())
 
 
 def get_all_minor_items():
@@ -39,7 +35,7 @@ def get_all_major_items():
 # All of bellow's script is used to initialize the items in the database.
 def mix_all_items_and_all_items_2():
     items: list = items_ref.get()
-    items2: list = items_ref_2.get()
+    items2: list = list(items_ref_2.get().values())
     new_list: list = copy.deepcopy(items2)
     for item in items:
         rarity_level = item[field_rarity_level]
@@ -55,7 +51,7 @@ def mix_all_items_and_all_items_2():
                 has_match = True
         if not has_match:
             new_list.append(item)
-    items_ref_2.set(new_list)
+    items_ref_2.set({item['name']: item for item in new_list})
 
 
 def init_in_firebase():
@@ -73,7 +69,7 @@ def init_in_firebase():
                 item_copy = copy.deepcopy(item)
                 item_copy[field_name] = fixed_name
                 append_new_item(new_items, item_copy)
-    items_ref_2.set(new_items)
+    items_ref_2.set({item['name']: item for item in new_items})
 
 
 def extract_to_json():
@@ -98,10 +94,15 @@ def append_new_item(new_items: list, item):
     if field_name in item and len(item[field_name]) > 0 and item[field_name] not in prohibited_items_by_name and \
             field_source in item and item[field_source] in permitted_sources and field_rarity in item and item[
             field_rarity] in permitted_rarities:
+
+        if field_entries in item and isinstance(item[field_entries], list) and len(item[field_entries]) > 0 and \
+                isinstance(item[field_entries][0], str) and '#itemEntry' in item[field_entries][0]:
+            return
+
         translation_table = str.maketrans('', '', '$#[]/.')
-        item_name = item['name'].translate(translation_table)
+        translated_item_name = item['name'].translate(translation_table)
         new_items.append({
-            "name": item_name,
+            "name": translated_item_name,
             "attunement": True if field_req_attune in item and ((isinstance(item[field_req_attune], bool) and item[
                 field_req_attune]) or (isinstance(item[field_req_attune], str) and len(item[field_req_attune]) > 0))
             else False,
@@ -109,11 +110,19 @@ def append_new_item(new_items: list, item):
             "official": True,
             "price": "undetermined",
             "rarity": item[field_rarity],
-            field_rarity_level: item[field_tier] if field_tier in item and item[field_tier] in permitted_rarity_levels
-            else init_TYPE_MAJOR,
+            field_rarity_level: extract_rarity_level(item, translated_item_name),
             "description": description_from_entries(item[field_entries]) if field_entries in item
             else "*missing description*"
         })
+
+
+def extract_rarity_level(item, translated_item_name) -> str:
+    return init_TYPE_MINOR if should_be_minor(translated_item_name) else item[field_tier] \
+        if field_tier in item and item[field_tier] in permitted_rarity_levels else init_TYPE_MAJOR
+
+
+def should_be_minor(item_name) -> bool:
+    return any(partial_name in item_name for partial_name in partial_names_of_items_to_be_made_minor)
 
 
 def description_from_entries(entries: list[str, dict]) -> str:
@@ -163,12 +172,16 @@ field_items = 'items'
 field_rarity_level = "rarity_level"
 
 permitted_sources = ['PHB', 'DMG', 'MM', 'VGM', 'XGE', 'MTF', 'TCE', 'FTD', 'MPMM', 'BGG', 'BMT',
-                     'ERLW', 'EGW', 'MOT', 'SCC', 'AAG', 'SatO',
+                     'ERLW', 'MOT', 'SCC', 'AAG', 'SatO',
                      'HotDQ', 'PotA', 'OotA', 'SKT', 'TftYP', 'ToA', 'WDH', 'WDMM',
-                     'GoS', 'BGDiA', 'IDRotF', 'CM', 'WBtW', 'CRCotN', 'DSotDQ', 'PaBTSO']
+                     'GoS', 'BGDiA', 'IDRotF', 'CM', 'WBtW', 'DSotDQ', 'PaBTSO']
 
 prohibited_items_by_name = [
-    'Horned Ring', 'Korolnor Scepter'
+    'Horned Ring', 'Korolnor Scepter', 'Mind Crystal (Subtle)'
+]
+
+partial_names_of_items_to_be_made_minor = [
+    'Devastation Orb of', 'Mind Crystal'
 ]
 
 init_COMMON = "common"
