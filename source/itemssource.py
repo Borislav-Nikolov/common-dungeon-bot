@@ -106,7 +106,7 @@ def append_new_item(new_items: list, item):
             "attunement": True if field_req_attune in item and ((isinstance(item[field_req_attune], bool) and item[
                 field_req_attune]) or (isinstance(item[field_req_attune], str) and len(item[field_req_attune]) > 0))
             else False,
-            "banned": False,
+            "banned": translated_item_name in banned_items,
             "official": True,
             "price": "undetermined",
             "rarity": item[field_rarity],
@@ -182,6 +182,10 @@ prohibited_items_by_name = [
 
 partial_names_of_items_to_be_made_minor = [
     'Devastation Orb of', 'Mind Crystal'
+]
+
+banned_items = [
+    'Deck of Wonder'
 ]
 
 init_COMMON = "common"

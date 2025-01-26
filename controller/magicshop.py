@@ -57,6 +57,8 @@ def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
     very_rare = list()
     legendary = list()
     for item in items_from_firebase:
+        if item.banned:
+            continue
         rarity = item.rarity
         if rarity.rarity == COMMON and max_rarity_ordinal >= COMMON_ORDINAL:
             common.append(item)
@@ -129,6 +131,8 @@ def sell_item(player_id, item_index) -> str:
     sold = False
     for item in items:
         if item.index == item_index and item.sold is False:
+            if item.banned:
+                return ''
             if item.quantity != infinite_quantity:
                 item.quantity = item.quantity - 1
                 quantity = item.quantity
