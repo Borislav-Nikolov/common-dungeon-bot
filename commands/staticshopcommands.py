@@ -1,5 +1,6 @@
 from util import utils, botutils, itemutils
-from provider import channelsprovider, itemsprovider, staticshopprovider
+from provider import itemsprovider, staticshopprovider
+from api import channelsrequests
 from controller import staticshop
 
 
@@ -14,7 +15,7 @@ async def handle_static_shop_commands(message) -> bool:
 
 
 async def handle_static_shop_initialization(message):
-    channelsprovider.initialize_static_shop_channel(message.channel.id)
+    channelsrequests.initialize_static_shop_channel(message.channel.id)
     all_minor_items = itemsprovider.get_all_minor_items()
     for item in all_minor_items:
         new_message = await message.channel.send(itemutils.get_static_shop_message(item))

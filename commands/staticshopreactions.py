@@ -1,4 +1,5 @@
-from provider import staticshopprovider, channelsprovider
+from provider import staticshopprovider
+from api import channelsrequests
 from controller import staticshop, magicshop
 from bridge import charactersbridge
 from util import itemutils, botutils
@@ -11,7 +12,7 @@ async def handle_static_shop_reactions(payload, client, item_message):
     info_emoji = '\U00002754'
     static_shop_item = staticshopprovider.get_static_shop_item(item_message.id)
     dm_channel = await payload.member.create_dm()
-    general_shop_channel = client.get_channel(channelsprovider.get_shop_channel_id())
+    general_shop_channel = client.get_channel(channelsrequests.get_shop_channel_id())
 
     async def provide_message() -> Message:
         return await dm_channel.send(

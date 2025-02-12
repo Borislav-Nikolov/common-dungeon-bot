@@ -1,9 +1,13 @@
 from controller import characters
-from provider import channelsprovider
 from util import utils, botutils
 from model.addsessiondata import AddSessionData
+from model.addplayerdata import AddPlayerData
+from model.addcharacterdata import AddCharacterData
+from model.playerstatus import player_status_from_name, PlayerStatus
+from model.playerrole import player_role_from_name
 from bridge import charactersbridge
-from api import charactersrequests
+from api import charactersrequests, channelsrequests
+from provider import charactersprovider
 
 
 async def handle_character_commands(message, client) -> bool:
@@ -15,15 +19,15 @@ async def handle_character_commands(message, client) -> bool:
             # CHARACTERS INFO CHANNEL
             if botutils.is_characters_info_channel(message):
                 if keywords[1] == "addsession":
-                    await handle_addsession(client, message, session_data_csv=keywords[2])
+                    await handle_addsession(message, session_data_csv=keywords[2])
                 elif keywords[1] == "removesession":
                     await handle_removesession(client, message, session_data_csv=keywords[2])
                 elif keywords[1] == "refreshmessage":
                     await handle_refresh_player_message(client, player_ids_csv=keywords[2])
                 elif keywords[1] == "addplayer":
-                    await handle_addplayer(client, player_data_csv=keywords[2])
+                    await handle_addplayer(client, message, player_data_csv=keywords[2])
                 elif keywords[1] == "addcharacter":
-                    await handle_addcharacter(client, data_csv=keywords[2])
+                    await handle_addcharacter(client, message, data_csv=keywords[2])
                 elif keywords[1] == "deletecharacter":
                     await handle_deletecharacter(client, player_id_char_name_csv=keywords[2])
                 elif keywords[1] == "changename":
@@ -40,6 +44,14 @@ async def handle_character_commands(message, client) -> bool:
             else:
                 if keywords[1] == "inventoryadd":
                     await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
+                elif keywords[1] == "changeplayerstatus":
+                    await handle_change_player_status(message, player_id_and_new_status_csv=keywords[2])
+                elif keywords[1] == "changeplayerrole":
+                    await handle_change_player_role(message, player_id_and_new_role_csv=keywords[2])
+                elif keywords[1] == "setallasactive":
+                    await handle_set_all_as_active()
+                elif keywords[1] == "subtracttokensforrarity":
+                    await handle_subtract_tokens_for_rarity(message, player_id_and_params_csv=keywords[2])
         # NON-ADMIN COMMANDS
         # ALL CHANNELS
         if keywords[1] == "inventory":
@@ -59,7 +71,7 @@ async def handle_refresh_player_message(client, player_ids_csv):
 
 # TODO: Do the same for the rest of the commands as for this function, meaning:
 #  Add a model class for the input and documentation.
-async def handle_addsession(client, message, session_data_csv):
+async def handle_addsession(message, session_data_csv):
     """
      Expected input for `session_data_csv`:
         1) Player ID - required.
@@ -72,8 +84,6 @@ async def handle_addsession(client, message, session_data_csv):
     """
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
     if charactersrequests.make_add_session_request(id_to_data):
-        for player_id in id_to_data:
-            await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
     else:
         await message.add_reaction('❌')
@@ -81,7 +91,7 @@ async def handle_addsession(client, message, session_data_csv):
 
 async def handle_removesession(client, message, session_data_csv):
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
-    if characters.remove_session(id_to_data):
+    if charactersrequests.make_remove_session_request(id_to_data):
         for player_id in id_to_data:
             await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
@@ -89,42 +99,51 @@ async def handle_removesession(client, message, session_data_csv):
         await message.add_reaction('❌')
 
 
-async def handle_addplayer(client, player_data_csv):
+async def handle_addplayer(client, message, player_data_csv):
     player_data_list = utils.split_strip(player_data_csv, ',')
     player_id = utils.strip_id_tag(player_data_list[0])
     player_data_list.pop(0)
-    characters.add_player(player_id, player_data_list)
-    players_channel = client.get_channel(channelsprovider.get_characters_info_channel_id())
-    new_player_message = await charactersbridge.send_player_message(players_channel, player_id)
-    channelsprovider.set_player_message_id(player_id, new_player_message.id)
+
+    add_player_data = AddPlayerData.from_command(player_id=player_id, player_data_list=player_data_list)
+    if charactersrequests.make_add_player_request(add_player_data):
+        players_channel = client.get_channel(channelsrequests.get_characters_info_channel_id())
+        new_player_message = await charactersbridge.send_player_message(players_channel, player_id)
+        channelsrequests.set_player_message_id(player_id, new_player_message.id)
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
 
 
-async def handle_addcharacter(client, data_csv):
+async def handle_addcharacter(client, message, data_csv):
     data_list = utils.split_strip(data_csv, ',')
     player_id = utils.strip_id_tag(data_list[0])
     data_list.pop(0)
-    characters.add_character(player_id, data_list)
-    await charactersbridge.refresh_player_message(client, player_id)
+    add_character_data = AddCharacterData.from_command(player_id, data_list)
+    if charactersrequests.make_add_character_request(add_character_data):
+        await charactersbridge.refresh_player_message(client, player_id)
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
 
 
 async def handle_deletecharacter(client, player_id_char_name_csv):
     player_id_to_character_name = utils.split_strip(player_id_char_name_csv, ',')
     player_id = utils.strip_id_tag(player_id_to_character_name[0])
-    characters.delete_character(player_id, player_id_to_character_name[1])
+    charactersrequests.make_delete_character_request(player_id, player_id_to_character_name[1])
     await charactersbridge.refresh_player_message(client, player_id)
 
 
 async def handle_changename(client, player_id_names_csv):
     player_id_and_names = utils.split_strip(player_id_names_csv, ',')
     player_id = utils.strip_id_tag(player_id_and_names[0])
-    characters.change_character_name(player_id, player_id_and_names[1], player_id_and_names[2])
+    charactersrequests.make_change_character_name_request(player_id, player_id_and_names[1], player_id_and_names[2])
     await charactersbridge.refresh_player_message(client, player_id)
 
 
 async def handle_swapclasslevels(client, player_id_and_params_csv):
     player_id_and_params = utils.split_strip(player_id_and_params_csv, ',')
     player_id = utils.strip_id_tag(player_id_and_params[0])
-    characters.swap_class_levels(
+    charactersrequests.make_swap_character_class_levels_request(
         player_id=player_id,
         character_name=player_id_and_params[1],
         class_to_remove_from=player_id_and_params[2],
@@ -136,7 +155,8 @@ async def handle_swapclasslevels(client, player_id_and_params_csv):
 async def handle_repost(message, player_tag):
     player_id = utils.strip_id_tag(player_tag)
     new_player_message = await charactersbridge.send_player_message(message.channel, player_id)
-    channelsprovider.set_player_message_id(player_id, new_player_message.id)
+    channelsrequests.set_player_message_id(player_id, new_player_message.id)
+    charactersrequests.make_change_player_status_request(player_id, PlayerStatus.Active)
 
 
 async def handle_add_to_inventory(message, player_id_and_params_csv):
@@ -151,6 +171,19 @@ async def handle_add_to_inventory(message, player_id_and_params_csv):
         await message.channel.send(f"{player_id_and_params[1]} was added to <@{player_id}>")
     else:
         await message.channel.send(f"{player_id_and_params[1]} was not added to <@{player_id}>. Prompt may be wrong.")
+
+
+async def handle_subtract_tokens_for_rarity(message, player_id_and_params_csv):
+    player_id_and_params = utils.split_strip(player_id_and_params_csv, ',')
+    player_id = utils.strip_id_tag(player_id_and_params[0])
+    if characters.subtract_player_tokens_for_rarity(
+        player_id=player_id,
+        rarity=player_id_and_params[1],
+        rarity_level=player_id_and_params[2]
+    ):
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
 
 
 async def handle_inventory_prompt(author):
@@ -198,7 +231,33 @@ async def handle_change_id(client, player_ids_csv):
     old_id = utils.strip_id_tag(player_data_list[0])
     new_id = utils.strip_id_tag(player_data_list[1])
     characters.change_player_id(old_id, new_id)
-    player_message_id = channelsprovider.get_player_message_id(str(old_id))
-    channelsprovider.set_player_message_id(str(new_id), player_message_id)
-    channelsprovider.delete_player_message_id(str(old_id))
+    player_message_id = channelsrequests.get_player_message_id(str(old_id))
+    channelsrequests.set_player_message_id(str(new_id), player_message_id)
+    channelsrequests.delete_player_message_id(str(old_id))
     await charactersbridge.refresh_player_message(client, new_id)
+
+
+async def handle_change_player_status(message, player_id_and_new_status_csv):
+    data_list = utils.split_strip(player_id_and_new_status_csv, ',')
+    player_id = utils.strip_id_tag(data_list[0])
+    new_player_status = data_list[1]
+    if charactersrequests.make_change_player_status_request(player_id, player_status_from_name(new_player_status)):
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
+
+
+async def handle_change_player_role(message, player_id_and_new_role_csv):
+    data_list = utils.split_strip(player_id_and_new_role_csv, ',')
+    player_id = utils.strip_id_tag(data_list[0])
+    new_player_role = data_list[1]
+    if charactersrequests.make_change_player_role_request(player_id, player_role_from_name(new_player_role)):
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
+
+
+async def handle_set_all_as_active():
+    all_players = charactersprovider.get_all_players()
+    for player in all_players:
+        charactersrequests.make_change_player_status_request(player.player_id, PlayerStatus.Active)

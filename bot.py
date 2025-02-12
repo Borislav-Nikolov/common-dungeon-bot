@@ -1,19 +1,23 @@
 
 import discord
 
-from provider import magicshopprovider, staticshopprovider, postsprovider
+from provider import postsprovider
 from commands import homebrewcommands, magicshopcommands, serverinitializationcommands, characterscommands, \
     magicshopreactions, staticshopcommands, staticshopreactions, postscommands, postsreactions, charactersreactions, \
     consolecommands
 from bridge import consolebridge, charactersbridge
 from util import botutils
 from discord.ext import commands
-from api import testapicommunication
+from api import channelsrequests, testapicommunication
+
+
+global client
 
 
 def run_discord_bot(bot_token, allowed_guild_id: str):
     intents = discord.Intents.default()
     intents.message_content = True
+    global client
     client = commands.Bot(command_prefix='$', intents=intents)
 
     @client.event
@@ -46,7 +50,7 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
 
         print(f'{username} said: "{user_message}" ({channel})')
 
-        if user_message == '!testapicommunication':
+        if user_message == '!testapicommunication' and botutils.is_admin_message(message):
             if testapicommunication.test_api_communication():
                 await message.add_reaction('🪙')
             else:
@@ -84,10 +88,10 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
             message = await channel.fetch_message(payload.message_id)
         if message.author.id != client.user.id:
             return
-        if channel.id == magicshopprovider.get_shop_channel_id()\
-                and payload.message_id == magicshopprovider.get_shop_message_id():
+        if channel.id == channelsrequests.get_shop_channel_id()\
+                and payload.message_id == channelsrequests.get_shop_message_id():
             await magicshopreactions.handle_magic_shop_reaction(payload, channel, client, message)
-        elif channel.id == staticshopprovider.get_static_shop_channel_id():
+        elif channel.id == channelsrequests.get_static_shop_channel_id():
             await staticshopreactions.handle_static_shop_reactions(payload, client, message)
         elif botutils.is_dm_channel(channel):
             dm_reaction_handled =\

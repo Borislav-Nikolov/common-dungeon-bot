@@ -45,7 +45,6 @@ class CharacterStatusView(View):
                         on_submit_callback=on_submit
                     )
                 )
-            return await button_interaction.response.defer()
 
         self.button = BasicButton(
             label='Change character status',

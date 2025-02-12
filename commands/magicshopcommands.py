@@ -1,6 +1,6 @@
 from util import utils, botutils
 from controller import characters, magicshop
-from provider import channelsprovider
+from api import channelsrequests
 from bridge import charactersbridge
 import time
 
@@ -33,26 +33,26 @@ async def handle_shop_commands(message, client) -> bool:
 
 async def handle_generate(shop_channel, character_levels_csv):
     new_shop_message = await shop_channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
-    channelsprovider.set_shop_message_id(new_shop_message.id)
+    channelsrequests.set_shop_message_id(new_shop_message.id)
     for index in range(1, magicshop.SHOP_MAX_NUMBER_OF_ITEMS + 1):
         time.sleep(5)
         await new_shop_message.add_reaction(utils.index_to_emoji(index))
 
 
 async def handle_refresh(message):
-    shop_message = await message.channel.fetch_message(channelsprovider.get_shop_message_id())
+    shop_message = await message.channel.fetch_message(channelsrequests.get_shop_message_id())
     await shop_message.edit(content=magicshop.get_current_shop_string())
 
 
 async def handle_repost(message):
     new_shop_message = await message.channel.send(magicshop.get_current_shop_string())
-    channelsprovider.set_shop_message_id(new_shop_message.id)
+    channelsrequests.set_shop_message_id(new_shop_message.id)
     for index in range(1, magicshop.SHOP_MAX_NUMBER_OF_ITEMS + 1):
         await new_shop_message.add_reaction(utils.index_to_emoji(index))
 
 
 async def handle_buy_item(client, message, command_message):
-    shop_message = await message.channel.fetch_message(channelsprovider.get_shop_message_id())
+    shop_message = await message.channel.fetch_message(channelsrequests.get_shop_message_id())
     sold_item_name = magicshop.sell_item(message.author.id, int(command_message))
     sold = len(sold_item_name) != 0
     if sold:

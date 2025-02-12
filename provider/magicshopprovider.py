@@ -1,15 +1,7 @@
 from model.shopitem import ShopItem
 from source.sourcefields import *
 from model.rarity import rarity_strings_to_rarity
-from source import magicshopsource, channelssource
-
-
-def get_shop_channel_id() -> int:
-    return channelssource.get_shop_channel_id()
-
-
-def get_shop_message_id() -> int:
-    return channelssource.get_shop_message_id()
+from source import magicshopsource
 
 
 def set_in_magic_shop(items: list[ShopItem]):
