@@ -50,6 +50,7 @@ def mix_all_items_and_all_items_2():
             if name1 == name2 or name1 in name2 or name2 in name1 or name1[:7] in name2 or name2[:7] in name1:
                 has_match = True
         if not has_match:
+            item['consumable'] = item[field_name] in consumable_items
             new_list.append(item)
     items_ref_2.set({item['name']: item for item in new_list})
 
@@ -112,7 +113,8 @@ def append_new_item(new_items: list, item):
             "rarity": item[field_rarity],
             field_rarity_level: extract_rarity_level(item, translated_item_name),
             "description": description_from_entries(item[field_entries]) if field_entries in item
-            else "*missing description*"
+            else "*missing description*",
+            "consumable": translated_item_name in consumable_items
         })
 
 
@@ -186,6 +188,107 @@ partial_names_of_items_to_be_made_minor = [
 
 banned_items = [
     'Deck of Wonder'
+]
+
+consumable_items = [
+    "Ammunition (+1) (Per)",
+    "Ammunition (+2) (Per)",
+    "Ammunition (+3) (Per)",
+    "Arrow of Slaying",
+    "Walloping Ammunition",
+
+    "Bag of Beans",
+    "Bead of Force",
+    "Bead of Nourishment",
+    "Bead of Refreshment",
+    "Chime of Opening",
+    "Devastation Orb of Air",
+    "Devastation Orb of Earth",
+    "Devastation Orb of Fire",
+    "Devastation Orb of Water",
+    "Dust of Disappearance",
+    "Dust of Dryness",
+    "Dust of Sneezing and Choking",
+    "Elemental Gem, Blue Sapphire",
+    "Elemental Gem, Emerald",
+    "Elemental Gem, Red Corundum",
+    "Elemental Gem, Yellow Diamond",
+    "Elixir of Health",
+    "Keoghtom's Ointment",
+    "Mind Crystal (Careful)",
+    "Mind Crystal (Distant)",
+    "Mind Crystal (Empowered)",
+    "Mind Crystal (Extended)",
+    "Mind Crystal (Heightened)",
+    "Mind Crystal (Quickened)",
+    "Mystery Key",
+    "Necklace of Fireballs",
+    "Nolzur's Marvelous Pigments",
+    "Oil of Etherealness",
+    "Oil of Sharpness",
+    "Oil of Slipperiness",
+    "Perfume of Bewitching",
+    "Philter of Love",
+    "Pot of Awakening",
+
+    "Potion of Animal Friendship",
+    "Potion of Clairvoyance",
+    "Potion of Climbing",
+    "Potion of Cloud Giant Strength",
+    "Potion of Diminution",
+    "Potion of Fire Breath",
+    "Potion of Fire Giant Strength",
+    "Potion of Flying",
+    "Potion of Frost Giant Strength",
+    "Potion of Gaseous Form",
+    "Potion of Greater Healing",
+    "Potion of Growth",
+    "Potion of Healing",
+    "Potion of Heroism",
+    "Potion of Hill Giant Strength",
+    "Potion of Invisibility",
+    "Potion of Invulnerability",
+    "Potion of Longevity",
+    "Potion of Mind Reading",
+    "Potion of Poison",
+    "Potion of Speed",
+    "Potion of Stone Giant Strength",
+    "Potion of Storm Giant Strength",
+    "Potion of Superior Healing",
+    "Potion of Supreme Healing",
+    "Potion of Vitality",
+    "Potion of Water Breathing",
+
+    "Robe of Useful Items",
+    "Scroll of Protection from Aberrations",
+    "Scroll of Protection from Beasts",
+    "Scroll of Protection from Celestials",
+    "Scroll of Protection from Elementals",
+    "Scroll of Protection from Fey",
+    "Scroll of Protection from Fiends",
+    "Scroll of Protection from Plants",
+    "Scroll of Protection from Undead",
+    "Sovereign Glue",
+
+    "Spell Scroll (Cantrip)",
+    "Spell Scroll (1st Level)",
+    "Spell Scroll (2nd Level)",
+    "Spell Scroll (3rd Level)",
+    "Spell Scroll (4th Level)",
+    "Spell Scroll (5th Level)",
+    "Spell Scroll (6th Level)",
+    "Spell Scroll (7th Level)",
+    "Spell Scroll (8th Level)",
+    "Spell Scroll (9th Level)",
+
+    "Universal Solvent",
+
+    "Tome of Clear Thought",
+    "Tome of Leadership and Influence",
+    "Tome of Understanding",
+    "Manual of Bodily Health",
+    "Manual of Gainful Exercise",
+    "Manual of Quickness of Action"
 ]
 
 init_COMMON = "common"
