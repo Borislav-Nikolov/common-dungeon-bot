@@ -106,22 +106,8 @@ def get_player(player_id) -> Optional[Player]:
         return None
 
 
-def get_players(player_ids: list, include_inventory=True, include_characters=True) -> list[Player]:
-    players_data = playerssource.get_players(
-        player_ids,
-        include_inventory=include_inventory,
-        include_characters=include_characters
-    )
-    return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
-
-
 def get_all_players() -> list[Player]:
     players_data = playerssource.get_all_players()
-    return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
-
-
-def get_players_by_status(player_status: PlayerStatus) -> list[Player]:
-    players_data = playerssource.get_players_by_status(player_status.name)
     return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
 
 
