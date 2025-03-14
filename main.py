@@ -2,8 +2,7 @@ import api.base
 import bot
 import firebase
 import os
-from source import itemssource, magicshopsource, playerssource, staticshopsource, postssource, \
-    consolesource, rolepermissionssourse
+from source import staticshopsource, rolepermissionssourse
 
 from dotenv import load_dotenv
 
@@ -17,9 +16,7 @@ if __name__ == '__main__':
     # initialize firebase realtime database components
     firebase.init_firebase(project_url)
     staticshopsource.init_static_shop_source(is_test)
-    postssource.init_posts_source(is_test)
     rolepermissionssourse.init_role_permissions_source(is_test)
     api.base.init_api(test=is_test, local=True)
     # start bot
     bot.run_discord_bot(bot_token=bot_token, allowed_guild_id=str(os.getenv('TEST_ALLOWED_GUILD_ID')))
-
