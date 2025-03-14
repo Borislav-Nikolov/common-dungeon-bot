@@ -20,7 +20,6 @@ if __name__ == '__main__':
     magicshopsource.init_shop_source(is_test)
     staticshopsource.init_static_shop_source(is_test)
     postssource.init_posts_source(is_test)
-    consolesource.init_console_source(is_test)
     rolepermissionssourse.init_role_permissions_source(is_test)
     api.base.init_api(test=is_test, local=True)
     # start bot
