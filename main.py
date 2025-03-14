@@ -16,7 +16,6 @@ if __name__ == '__main__':
     project_url = str(os.getenv('FIREBASE_PROJECT'))
     # initialize firebase realtime database components
     firebase.init_firebase(project_url)
-    magicshopsource.init_shop_source(is_test)
     staticshopsource.init_static_shop_source(is_test)
     postssource.init_posts_source(is_test)
     rolepermissionssourse.init_role_permissions_source(is_test)
