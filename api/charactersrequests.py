@@ -133,3 +133,42 @@ def make_change_player_role_request(
     }
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
     return response.status_code == 200
+
+
+def get_player(player_id, include_inventory=True, include_characters=True):
+    url = api_url('get_player')
+    params = {
+        "include_inventory": str(include_inventory).lower(),
+        "include_characters": str(include_characters).lower(),
+        'player_id': str(player_id)
+    }
+    response = requests.get(url, params=params, headers=api.base.get_bearer_token_headers())
+    if not response.ok:
+        return None
+    return response.json()
+
+
+def get_all_players(include_inventory=True, include_characters=True) -> dict:
+    url = api_url('get_all_players')
+    params = {
+        "include_inventory": str(include_inventory).lower(),
+        "include_characters": str(include_characters).lower()
+    }
+    response = requests.get(url, params=params, headers=api.base.get_bearer_token_headers())
+    if not response.ok:
+        return {}
+    return response.json()
+
+
+def update_in_players(players_data: dict) -> bool:
+    url = api_url('update_in_players')
+    data = {"players_data": players_data}
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.ok
+
+
+def delete_player(player_id) -> bool:
+    url = api_url('delete_player')
+    data = {'player_id': player_id}
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.ok
