@@ -4,7 +4,7 @@ import discord
 from provider import postsprovider
 from commands import homebrewcommands, magicshopcommands, serverinitializationcommands, characterscommands, \
     magicshopreactions, staticshopcommands, staticshopreactions, postscommands, postsreactions, charactersreactions, \
-    consolecommands
+    consolecommands, timecommands
 from bridge import consolebridge, charactersbridge
 from util import botutils
 from discord.ext import commands
@@ -66,9 +66,11 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
             if not handled:
                 handled = await postscommands.handle_posts_commands(message)
             if not handled:
-                await homebrewcommands.handle_homebrew_commands(message, client)
+                handled = await homebrewcommands.handle_homebrew_commands(message, client)
             if not handled:
-                await consolecommands.handle_console_commands(message, client)
+                handled = await consolecommands.handle_console_commands(message, client)
+            if not handled:
+                await timecommands.handle_time_commands(message)
 
     @client.event
     async def on_raw_reaction_add(payload):
