@@ -15,3 +15,11 @@ def set_in_magic_shop(items: list) -> bool:
     data = {'items': items}
     response = requests.post(url, json=data, headers=get_bearer_token_headers())
     return response.ok
+
+
+def get_magic_shop_last_date() -> int:
+    url = api_url('get_magic_shop_last_date')
+    response = requests.get(url, headers=get_bearer_token_headers())
+    if response.ok:
+        return response.json()['magic_shop_last_date']
+    return -1

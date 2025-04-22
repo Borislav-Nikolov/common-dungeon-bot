@@ -5,10 +5,11 @@ from provider import postsprovider
 from commands import homebrewcommands, magicshopcommands, serverinitializationcommands, characterscommands, \
     magicshopreactions, staticshopcommands, staticshopreactions, postscommands, postsreactions, charactersreactions, \
     consolecommands, timecommands
-from bridge import consolebridge, charactersbridge
+from bridge import consolebridge, charactersbridge, magicshopbridge
 from util import botutils
 from discord.ext import commands
 from api import channelsrequests, testapicommunication
+import asyncio
 
 
 global client
@@ -25,6 +26,8 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
         print(f'{client.user} is now running!')
         await consolebridge.reinitialize_console_messages(client)
         await charactersbridge.reinitialize_character_messages(client)
+        await asyncio.create_task(
+            magicshopbridge.run_automatic_shop_posting(client.get_channel(channelsrequests.get_shop_channel_id())))
 
     @client.event
     async def on_resumed():
