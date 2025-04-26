@@ -5,7 +5,7 @@ from api import magicshoprequests, channelsrequests
 from controller import magicshop
 from util import utils
 
-DEFAULT_AUTO_SHOP_CHECK_INTERVAL = 60 * 60  # One hour.
+DEFAULT_AUTO_SHOP_CHECK_INTERVAL = 60 * 2  # One hour.
 
 
 async def post_magic_shop(shop_channel, character_levels_csv):
@@ -20,40 +20,44 @@ async def post_shop_if_not_on_cooldown(shop_channel) -> float:
     last_date = magicshoprequests.get_magic_shop_last_date()
     next_interval = DEFAULT_AUTO_SHOP_CHECK_INTERVAL
     if last_date > 0:
-        now_datetime = datetime.now()
-        target_shop_weekday = -1
-        # Find the weekday for posting that has passed or is now.
-        for shop_weekday in magicshop.SHOP_WEEKDAYS_HOURS:
-            if target_shop_weekday < shop_weekday <= now_datetime.weekday():
-                target_shop_weekday = shop_weekday
-        # If target weekday was not found, then it is in the future. Find it.
-        if target_shop_weekday == -1:
-            for shop_weekday in magicshop.SHOP_WEEKDAYS_HOURS:
-                if target_shop_weekday > shop_weekday > now_datetime.weekday():
-                    target_shop_weekday = shop_weekday
-        # Get the datetime of the next shop.
-        if now_datetime.weekday() >= target_shop_weekday:
-            target_shop_datetime = now_datetime - timedelta(
-                seconds=(now_datetime.weekday() - target_shop_weekday) * 24 * 60 * 60
-            )
-        else:
-            target_shop_datetime = now_datetime + timedelta(
-                seconds=(target_shop_weekday - now_datetime.weekday()) * 24 * 60 * 60
-            )
-        # Give it the exact hour.
-        target_shop_datetime = datetime(
-            year=target_shop_datetime.year,
-            month=target_shop_datetime.month,
-            day=target_shop_datetime.day,
-            hour=magicshop.SHOP_WEEKDAYS_HOURS[target_shop_weekday]
-        )
         last_datetime = datetime.fromtimestamp(last_date)
-        # If the target date is later than the last posted date, and it is a later weekday -> post the shop.
-        if target_shop_datetime > last_datetime and target_shop_datetime.weekday() > last_datetime.weekday():
+
+        ordered_weekdays_from_last: list[int] = list()
+        for weekday_count in range(7):
+            ordered_weekdays_from_last.append((weekday_count + last_datetime.weekday()) % 7)
+
+        next_shop_weekday = -1
+        next_shop_weekday_count_from_last = 0
+        # Find the next shop weekday and number of days between the last shop weekday and the next shop weekday.
+        for weekday in ordered_weekdays_from_last:
+            if ordered_weekdays_from_last[0] == weekday:
+                continue
+            next_shop_weekday_count_from_last += 1
+            if weekday in magicshop.SHOP_WEEKDAYS_HOURS:
+                next_shop_weekday = weekday
+                break
+
+        # If there was no weekday found after the last date's weekday, default to one week after.
+        if next_shop_weekday == -1:
+            next_shop_weekday = ordered_weekdays_from_last[0]
+            next_shop_weekday_count_from_last = 7
+
+        # Construct the next shop datetime from the last datetime plus the difference in days.
+        next_shop_datetime = last_datetime + timedelta(days=next_shop_weekday_count_from_last)
+        next_shop_datetime = datetime(
+            year=next_shop_datetime.year,
+            month=next_shop_datetime.month,
+            day=next_shop_datetime.day,
+            hour=magicshop.SHOP_WEEKDAYS_HOURS[next_shop_weekday]
+        )
+
+        # Post the shop if the next shop datetime has passed already.
+        if datetime.now() >= next_shop_datetime:
             await post_magic_shop(shop_channel, magicshop.DEFAULT_SHOP_CHARACTER_LEVELS)
         else:
-            # If it's still not the time to post, get the time remaining and use for the next check interval.
-            next_interval = (last_datetime - target_shop_datetime).total_seconds()
+            # Else, set the next shop cooldown check to be after the time between now and the next shop date.
+            next_interval = (next_shop_datetime - datetime.now()).total_seconds()
+
     return next_interval
 
 
