@@ -22,12 +22,25 @@ async def post_shop_if_not_on_cooldown(shop_channel) -> float:
     if last_date > 0:
         now_datetime = datetime.now()
         target_shop_weekday = -1
+        # Find the weekday for posting that has passed or is now.
         for shop_weekday in magicshop.SHOP_WEEKDAYS_HOURS:
             if target_shop_weekday < shop_weekday <= now_datetime.weekday():
                 target_shop_weekday = shop_weekday
-        target_shop_datetime = now_datetime - timedelta(
-            seconds=(now_datetime.weekday() - target_shop_weekday) * 24 * 60 * 60
-        )
+        # If target weekday was not found, then it is in the future. Find it.
+        if target_shop_weekday == -1:
+            for shop_weekday in magicshop.SHOP_WEEKDAYS_HOURS:
+                if target_shop_weekday > shop_weekday > now_datetime.weekday():
+                    target_shop_weekday = shop_weekday
+        # Get the datetime of the next shop.
+        if now_datetime.weekday() >= target_shop_weekday:
+            target_shop_datetime = now_datetime - timedelta(
+                seconds=(now_datetime.weekday() - target_shop_weekday) * 24 * 60 * 60
+            )
+        else:
+            target_shop_datetime = now_datetime + timedelta(
+                seconds=(target_shop_weekday - now_datetime.weekday()) * 24 * 60 * 60
+            )
+        # Give it the exact hour.
         target_shop_datetime = datetime(
             year=target_shop_datetime.year,
             month=target_shop_datetime.month,
@@ -35,9 +48,11 @@ async def post_shop_if_not_on_cooldown(shop_channel) -> float:
             hour=magicshop.SHOP_WEEKDAYS_HOURS[target_shop_weekday]
         )
         last_datetime = datetime.fromtimestamp(last_date)
-        if target_shop_datetime > last_datetime:
+        # If the target date is later than the last posted date, and it is a later weekday -> post the shop.
+        if target_shop_datetime > last_datetime and target_shop_datetime.weekday() > last_datetime.weekday():
             await post_magic_shop(shop_channel, magicshop.DEFAULT_SHOP_CHARACTER_LEVELS)
         else:
+            # If it's still not the time to post, get the time remaining and use for the next check interval.
             next_interval = (last_datetime - target_shop_datetime).total_seconds()
     return next_interval
 
