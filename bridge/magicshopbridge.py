@@ -23,6 +23,7 @@ async def post_shop_if_not_on_cooldown(shop_channel) -> float:
         last_datetime = datetime.fromtimestamp(last_date)
 
         ordered_weekdays_from_last: list[int] = list()
+        # Order the weekdays in a list, starting with the last shop date's weekday.
         for weekday_count in range(7):
             ordered_weekdays_from_last.append((weekday_count + last_datetime.weekday()) % 7)
 
