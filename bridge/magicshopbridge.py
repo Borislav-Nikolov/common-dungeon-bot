@@ -5,7 +5,7 @@ from api import magicshoprequests, channelsrequests
 from controller import magicshop
 from util import utils
 
-DEFAULT_AUTO_SHOP_CHECK_INTERVAL = 60 * 2  # One hour.
+DEFAULT_AUTO_SHOP_CHECK_INTERVAL = 60 * 60  # One hour.
 
 
 async def post_magic_shop(shop_channel, character_levels_csv):
