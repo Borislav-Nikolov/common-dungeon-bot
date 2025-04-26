@@ -12,7 +12,7 @@ from util.itemutils import *
 
 # number restricted because of emoji limit
 SHOP_MAX_NUMBER_OF_ITEMS = 20
-SHOP_WEEKDAYS_HOURS = {0: 0, 3: 12}  # Monday 00:00, Thursday 12PM
+SHOP_WEEKDAYS_HOURS = {3: 0, 6: 12}  # Wednesday 00:00, Sunday 12PM
 DEFAULT_SHOP_CHARACTER_LEVELS = '4,4,4,4,9,9,9,9,9,9,9,9,14,14,14,14,14,15,15'
 
 
