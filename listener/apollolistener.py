@@ -44,9 +44,7 @@ def _prepare_cover(raw: bytes) -> bytes:
 
 
 async def check_for_apollo_message(message: discord.Message) -> bool:
-    print(message.author.id)
     if message.author.id != APOLLO_USER_ID or not message.embeds:
-        print('not apollo or no embeds')
         return False
 
     embed = message.embeds[0]
