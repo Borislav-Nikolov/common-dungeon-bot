@@ -1,7 +1,7 @@
 from util import utils, botutils
 from controller import characters, magicshop
 from api import channelsrequests
-from bridge import charactersbridge
+from bridge import charactersbridge, magicshopbridge
 import time
 
 
@@ -32,11 +32,7 @@ async def handle_shop_commands(message, client) -> bool:
 
 
 async def handle_generate(shop_channel, character_levels_csv):
-    new_shop_message = await shop_channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
-    channelsrequests.set_shop_message_id(new_shop_message.id)
-    for index in range(1, magicshop.SHOP_MAX_NUMBER_OF_ITEMS + 1):
-        time.sleep(5)
-        await new_shop_message.add_reaction(utils.index_to_emoji(index))
+    await magicshopbridge.post_magic_shop(shop_channel, character_levels_csv)
 
 
 async def handle_refresh(message):
