@@ -34,6 +34,7 @@ PLAYER_FIELD_RESERVED_ITEMS_MESSAGES = "reserved_items_messages"
 
 CHARACTER_FIELD_NAME = "character_name"
 CHARACTER_FIELD_LEVEL = "character_level"
+CHARACTER_FIELD_MAX_LEVEL = "max_level"
 CHARACTER_FIELD_CLASSES = "classes"
 CHARACTER_FIELD_LAST_DM = "last_dm"
 CHARACTER_FIELD_SESSIONS = "sessions_on_this_level"

@@ -172,3 +172,14 @@ def delete_player(player_id) -> bool:
     data = {'player_id': player_id}
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
     return response.ok
+
+
+def make_set_character_max_level_request(player_id, character_name, max_level) -> bool:
+    url = api_url('set_character_max_level')
+    data = {
+        'player_id': player_id,
+        'character_name': character_name,
+        'max_level': max_level
+    }
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.ok

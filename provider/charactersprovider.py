@@ -139,6 +139,7 @@ def map_player_object(player_id, player_data: dict) -> Player:
                 lambda character: Character(
                     character_name=character[CHARACTER_FIELD_NAME],
                     character_level=character[CHARACTER_FIELD_LEVEL],
+                    max_level=20 if CHARACTER_FIELD_MAX_LEVEL in character else character[CHARACTER_FIELD_MAX_LEVEL],
                     classes=list(
                         map(
                             lambda character_class: CharacterClass(

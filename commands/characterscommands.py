@@ -58,6 +58,8 @@ async def handle_character_commands(message, client) -> bool:
             await handle_inventory_prompt(message.author)
         elif keywords[1] == "inventoryremove":
             await handle_remove_from_inventory_prompt(message, int(keywords[2]))
+        elif keywords[1] == "maxlevel":
+            await handle_set_max_level(message, keywords[2])
         return True
     return False
 
@@ -261,3 +263,17 @@ async def handle_set_all_as_active():
     all_players = charactersprovider.get_all_players()
     for player in all_players:
         charactersrequests.make_change_player_status_request(player.player_id, PlayerStatus.Active)
+
+
+async def handle_set_max_level(message, character_name_and_max_level_csv):
+    player_id = message.author.id
+    name_and_max_lvl = utils.split_strip(character_name_and_max_level_csv, ',')
+    if charactersrequests.make_set_character_max_level_request(
+        player_id=player_id,
+        character_name=name_and_max_lvl[0],
+        max_level=name_and_max_lvl[1]
+    ):
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
+
