@@ -78,6 +78,7 @@ def add_or_update_players(players: list[Player]):
                     lambda character: {
                         CHARACTER_FIELD_NAME: character.character_name,
                         CHARACTER_FIELD_LEVEL: character.character_level,
+                        CHARACTER_FIELD_MAX_LEVEL: character.max_level,
                         CHARACTER_FIELD_CLASSES: list(
                             map(
                                 lambda character_class: {
@@ -139,7 +140,7 @@ def map_player_object(player_id, player_data: dict) -> Player:
                 lambda character: Character(
                     character_name=character[CHARACTER_FIELD_NAME],
                     character_level=character[CHARACTER_FIELD_LEVEL],
-                    max_level=20 if CHARACTER_FIELD_MAX_LEVEL in character else character[CHARACTER_FIELD_MAX_LEVEL],
+                    max_level=20 if CHARACTER_FIELD_MAX_LEVEL not in character else character[CHARACTER_FIELD_MAX_LEVEL],
                     classes=list(
                         map(
                             lambda character_class: CharacterClass(
