@@ -5,6 +5,7 @@ from provider import postsprovider
 from commands import homebrewcommands, magicshopcommands, serverinitializationcommands, characterscommands, \
     magicshopreactions, staticshopcommands, staticshopreactions, postscommands, postsreactions, charactersreactions, \
     consolecommands, timecommands
+from listener import apollolistener
 from bridge import consolebridge, charactersbridge, magicshopbridge
 from util import botutils
 from discord.ext import commands
@@ -58,8 +59,11 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
                 await message.add_reaction('🪙')
             else:
                 await message.add_reaction('❌')
+
+        handled: bool = False
+
         if user_message.startswith('$'):
-            handled: bool = await serverinitializationcommands.handle_server_initialization_prompts(message)
+            handled = await serverinitializationcommands.handle_server_initialization_prompts(message)
             if not handled:
                 handled = await magicshopcommands.handle_shop_commands(message, client)
             if not handled:
@@ -74,6 +78,9 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
                 handled = await consolecommands.handle_console_commands(message, client)
             if not handled:
                 await timecommands.handle_time_commands(message)
+
+        if not handled:
+            await apollolistener.check_for_apollo_message(message)
 
     @client.event
     async def on_raw_reaction_add(payload):
