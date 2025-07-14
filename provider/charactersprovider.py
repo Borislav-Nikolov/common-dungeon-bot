@@ -42,7 +42,8 @@ def add_or_update_players(players: list[Player]):
                         ITEM_FIELD_ATTUNEMENT: item.attunement,
                         ITEM_FIELD_CONSUMABLE: item.consumable,
                         ITEM_FIELD_OFFICIAL: item.official,
-                        ITEM_FIELD_BANNED: item.banned
+                        ITEM_FIELD_BANNED: item.banned,
+                        ITEM_FIELD_ALWAYS_AVAILABLE: item.always_available
                     },
                     player.reserved_items
                 )
@@ -66,6 +67,7 @@ def add_or_update_players(players: list[Player]):
                         ITEM_FIELD_CONSUMABLE: item.consumable,
                         ITEM_FIELD_OFFICIAL: item.official,
                         ITEM_FIELD_BANNED: item.banned,
+                        ITEM_FIELD_ALWAYS_AVAILABLE: item.always_available,
                         INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
                         INVENTORY_ITEM_FIELD_INDEX: item.index
                     },
@@ -170,6 +172,8 @@ def map_player_object(player_id, player_data: dict) -> Player:
                     consumable=False if ITEM_FIELD_CONSUMABLE not in item else item[ITEM_FIELD_CONSUMABLE],
                     official=False if ITEM_FIELD_OFFICIAL not in item else item[ITEM_FIELD_OFFICIAL],
                     banned=False if ITEM_FIELD_BANNED not in item else item[ITEM_FIELD_BANNED],
+                    always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in item else item[
+                        ITEM_FIELD_ALWAYS_AVAILABLE],
                     quantity=item[INVENTORY_ITEM_FIELD_QUANTITY],
                     index=item[INVENTORY_ITEM_FIELD_INDEX]
                 ),
@@ -186,7 +190,9 @@ def map_player_object(player_id, player_data: dict) -> Player:
                     attunement=item[ITEM_FIELD_ATTUNEMENT],
                     consumable=False if ITEM_FIELD_CONSUMABLE not in item else item[ITEM_FIELD_CONSUMABLE],
                     official=False if ITEM_FIELD_OFFICIAL not in item else item[ITEM_FIELD_OFFICIAL],
-                    banned=False if ITEM_FIELD_BANNED not in item else item[ITEM_FIELD_BANNED]
+                    banned=False if ITEM_FIELD_BANNED not in item else item[ITEM_FIELD_BANNED],
+                    always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in item else item[
+                        ITEM_FIELD_ALWAYS_AVAILABLE]
                 ),
                 reserved_items
             )

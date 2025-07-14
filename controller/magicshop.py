@@ -31,6 +31,7 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
             consumable=magic_item.consumable,
             official=magic_item.official,
             banned=magic_item.banned,
+            always_available=magic_item.always_available,
             quantity=infinite_quantity,
             index=counter,
             sold=False
@@ -161,6 +162,7 @@ def sell_item_general(player_id, item: Item) -> bool:
             consumable=item.consumable,
             official=item.official,
             banned=item.banned,
+            always_available=item.always_available,
             quantity=1,
             index=-1,  # Expected to be set by the item adding function
             price="no price set"

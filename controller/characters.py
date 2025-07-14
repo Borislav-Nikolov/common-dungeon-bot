@@ -48,6 +48,7 @@ def add_dummy_item_to_inventory(player_id, item_name, item_rarity, item_rarity_l
                     consumable=False,
                     official=False,
                     banned=True,
+                    always_available=False,
                     quantity=1,
                     index=0
                 )

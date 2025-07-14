@@ -36,6 +36,8 @@ def get_static_shop_item(message_id: int) -> ShopItem:
                 consumable=False if ITEM_FIELD_CONSUMABLE not in static_item else static_item[ITEM_FIELD_CONSUMABLE],
                 official=False if ITEM_FIELD_OFFICIAL not in static_item else static_item[ITEM_FIELD_OFFICIAL],
                 banned=False if ITEM_FIELD_BANNED not in static_item else static_item[ITEM_FIELD_BANNED],
+                always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in static_item else static_item[
+                    ITEM_FIELD_ALWAYS_AVAILABLE],
                 quantity=static_item[INVENTORY_ITEM_FIELD_QUANTITY],
                 index=static_item[INVENTORY_ITEM_FIELD_INDEX],
                 sold=static_item[SHOP_ITEM_FIELD_SOLD]
