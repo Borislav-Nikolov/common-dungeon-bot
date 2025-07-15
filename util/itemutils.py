@@ -66,3 +66,7 @@ def get_shop_item_description(item: Item) -> list[str]:
 
 def get_reserved_item_message(item: Item) -> str:
     return f'* **{item.name}** - {tokens_per_rarity(item.rarity.rarity, item.rarity.rarity_level)}'
+
+
+def str_to_is_sellable(s) -> bool:
+    return utils.str_to_bool(s) or s.lower() == 'sellable'

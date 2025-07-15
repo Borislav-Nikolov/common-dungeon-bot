@@ -33,7 +33,7 @@ def subtract_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str)
     return False
 
 
-def add_dummy_item_to_inventory(player_id, item_name, item_rarity, item_rarity_level) -> bool:
+def add_dummy_item_to_inventory(player_id, item_name, item_rarity, item_rarity_level, sellable: bool) -> bool:
     rarity = rarity_strings_to_rarity(item_rarity, item_rarity_level)
     if rarity is None:
         return False
@@ -50,7 +50,8 @@ def add_dummy_item_to_inventory(player_id, item_name, item_rarity, item_rarity_l
                     banned=True,
                     always_available=False,
                     quantity=1,
-                    index=0
+                    index=0,
+                    sellable=sellable
                 )
     )
     return True
@@ -182,6 +183,8 @@ def get_item_from_inventory_by_id(player_id, item_index) -> InventoryItem:
 
 def refund_item_by_index(player_id, item_index: int) -> str:
     item: InventoryItem = get_item_from_inventory_by_id(player_id, item_index)
+    if not item.sellable:
+        return ""
     player: Player = charactersprovider.get_player(player_id)
     subtracted = subtract_item_from_inventory(player, item)
     if subtracted:
@@ -232,6 +235,7 @@ def add_player_tokens_for_rarity(player_id, rarity: str, rarity_level: str) -> b
 
 def add_tokens_to_player_for_rarity(player: Player, rarity: str, rarity_level: str):
     tokens_to_add = utils.tokens_per_rarity_number(rarity, rarity_level)
+    tokens_to_add = utils.original_token_price_to_refund_price(tokens_to_add)
     current_tokens = player.get_tokens_with_rarity_string(rarity)
     player.set_tokens_with_rarity_string(rarity, current_tokens + tokens_to_add)
 

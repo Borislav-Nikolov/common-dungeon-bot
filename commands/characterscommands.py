@@ -1,5 +1,5 @@
 from controller import characters
-from util import utils, botutils
+from util import utils, botutils, itemutils
 from model.addsessiondata import AddSessionData
 from model.addplayerdata import AddPlayerData
 from model.addcharacterdata import AddCharacterData
@@ -168,7 +168,8 @@ async def handle_add_to_inventory(message, player_id_and_params_csv):
         player_id=player_id,
         item_name=player_id_and_params[1],
         item_rarity=player_id_and_params[2],
-        item_rarity_level=player_id_and_params[3]
+        item_rarity_level=player_id_and_params[3],
+        sellable=itemutils.str_to_is_sellable(player_id_and_params[4]) if len(player_id_and_params) >= 5 else False
     ):
         await message.channel.send(f"{player_id_and_params[1]} was added to <@{player_id}>")
     else:

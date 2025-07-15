@@ -21,6 +21,7 @@ def set_in_magic_shop(items: list[ShopItem]):
                 ITEM_FIELD_ALWAYS_AVAILABLE: item.always_available,
                 INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
                 INVENTORY_ITEM_FIELD_INDEX: item.index,
+                INVENTORY_ITEM_FIELD_SELLABLE: item.sellable,
                 SHOP_ITEM_FIELD_SOLD: item.sold
             }
         )
@@ -45,6 +46,8 @@ def get_magic_shop_items() -> list[ShopItem]:
                     ITEM_FIELD_ALWAYS_AVAILABLE],
                 quantity=source_item[INVENTORY_ITEM_FIELD_QUANTITY],
                 index=source_item[INVENTORY_ITEM_FIELD_INDEX],
+                sellable=True if INVENTORY_ITEM_FIELD_SELLABLE not in source_item else source_item[
+                    INVENTORY_ITEM_FIELD_SELLABLE],
                 sold=source_item[SHOP_ITEM_FIELD_SOLD]
             )
         )

@@ -69,7 +69,8 @@ def add_or_update_players(players: list[Player]):
                         ITEM_FIELD_BANNED: item.banned,
                         ITEM_FIELD_ALWAYS_AVAILABLE: item.always_available,
                         INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
-                        INVENTORY_ITEM_FIELD_INDEX: item.index
+                        INVENTORY_ITEM_FIELD_INDEX: item.index,
+                        INVENTORY_ITEM_FIELD_SELLABLE: item.sellable
                     },
                     player.inventory
                 )
@@ -175,7 +176,8 @@ def map_player_object(player_id, player_data: dict) -> Player:
                     always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in item else item[
                         ITEM_FIELD_ALWAYS_AVAILABLE],
                     quantity=item[INVENTORY_ITEM_FIELD_QUANTITY],
-                    index=item[INVENTORY_ITEM_FIELD_INDEX]
+                    index=item[INVENTORY_ITEM_FIELD_INDEX],
+                    sellable=True if INVENTORY_ITEM_FIELD_SELLABLE not in item else item[INVENTORY_ITEM_FIELD_SELLABLE]
                 ),
                 utils.filter_not_none(player_data[PLAYER_FIELD_INVENTORY])
             )

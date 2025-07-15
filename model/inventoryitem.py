@@ -4,7 +4,7 @@ from model.rarity import Rarity
 
 class InventoryItem(Item):
     def __init__(self, name: str, description: str, price: str, rarity: Rarity, attunement: bool, consumable: bool,
-                 official: bool, banned: bool, always_available: bool, quantity: int, index: int):
+                 official: bool, banned: bool, always_available: bool, quantity: int, index: int, sellable: bool):
         super().__init__(
             name=name,
             description=description,
@@ -18,4 +18,5 @@ class InventoryItem(Item):
         )
         self.quantity: int = quantity
         self.index: int = index
+        self.sellable: bool = sellable
 
