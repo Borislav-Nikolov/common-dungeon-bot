@@ -75,11 +75,11 @@ async def handle_sell_item_by_rarity(client, message, tag_rarity_raritylevel_csv
 
 async def handle_sell_item_by_inventory_ordinal(client, message, item_ordinal):
     player_id = message.author.id
+    item_name = characters.get_item_from_inventory_by_id(player_id, item_ordinal).name
     sold = magicshoprequests.sell_item_from_inventory(player_id, item_ordinal)
     if sold:
         await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
-        item_name = characters.get_item_from_inventory_by_id(player_id, item_ordinal).name
         await message.channel.send(magicshop.get_refunded_item_string(player_id, item_name))
     else:
         await message.add_reaction('❌')

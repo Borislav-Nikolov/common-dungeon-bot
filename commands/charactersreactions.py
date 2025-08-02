@@ -112,11 +112,11 @@ async def handle_inventory_reaction(payload, user, channel, client, inventory_me
 
             async def handle_sell(clicked_destroy_emoji: str) -> bool:
                 if clicked_destroy_emoji == accept_emoji:
+                    sold_item_name = characters.get_item_from_inventory_by_id(player_id, inventory_item.index).name
                     sold = magicshoprequests.sell_item_from_inventory(player_id, inventory_item.index)
                     if sold:
                         shop_channel_id = channelsrequests.get_shop_channel_id()
                         shop_channel = client.get_channel(shop_channel_id)
-                        sold_item_name = characters.get_item_from_inventory_by_id(player_id, inventory_item.index).name
                         await shop_channel.send(magicshop.get_refunded_item_string(player_id, sold_item_name))
                         await charactersbridge.refresh_player_message(client, player_id)
                         await refresh_inventory_messages()
