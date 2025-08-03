@@ -20,6 +20,7 @@ def add_or_update_in_static_shop(data: dict[int, ShopItem]):
                 ITEM_FIELD_BANNED: item.banned,
                 INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
                 INVENTORY_ITEM_FIELD_INDEX: item.index,
+                INVENTORY_ITEM_FIELD_SELLABLE: item.sellable,
                 SHOP_ITEM_FIELD_SOLD: item.sold
             }
     staticshopsource.update_in_static_shop(shop_data)
@@ -36,7 +37,11 @@ def get_static_shop_item(message_id: int) -> ShopItem:
                 consumable=False if ITEM_FIELD_CONSUMABLE not in static_item else static_item[ITEM_FIELD_CONSUMABLE],
                 official=False if ITEM_FIELD_OFFICIAL not in static_item else static_item[ITEM_FIELD_OFFICIAL],
                 banned=False if ITEM_FIELD_BANNED not in static_item else static_item[ITEM_FIELD_BANNED],
+                always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in static_item else static_item[
+                    ITEM_FIELD_ALWAYS_AVAILABLE],
                 quantity=static_item[INVENTORY_ITEM_FIELD_QUANTITY],
                 index=static_item[INVENTORY_ITEM_FIELD_INDEX],
+                sellable=True if INVENTORY_ITEM_FIELD_SELLABLE not in static_item else static_item[
+                    INVENTORY_ITEM_FIELD_SELLABLE],
                 sold=static_item[SHOP_ITEM_FIELD_SOLD]
             )

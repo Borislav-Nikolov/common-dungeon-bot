@@ -14,7 +14,10 @@ def get_inventory_item_row_string(magic_item: InventoryItem) -> str:
         quantity_string = str(item_quantity) if item_quantity != infinite_quantity else '*infinite*'
         magic_item_string += f'{quantity_string}, '
         magic_item_string += 'cost: '
-    magic_item_string += f'{tokens_per_rarity(magic_item.rarity.rarity, magic_item.rarity.rarity_level)}\n'
+    magic_item_string += f'sells for {
+        original_token_price_to_refund_price(
+            tokens_per_rarity_number(magic_item.rarity.rarity, magic_item.rarity.rarity_level)
+        )} {magic_item.rarity.rarity} tokens\n' if magic_item.sellable else '**NOT** sellable\n'
     return magic_item_string
 
 
@@ -66,3 +69,7 @@ def get_shop_item_description(item: Item) -> list[str]:
 
 def get_reserved_item_message(item: Item) -> str:
     return f'* **{item.name}** - {tokens_per_rarity(item.rarity.rarity, item.rarity.rarity_level)}'
+
+
+def str_to_is_sellable(s) -> bool:
+    return utils.str_to_bool(s) or s.lower() == 'sellable'

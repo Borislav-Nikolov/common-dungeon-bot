@@ -1,6 +1,6 @@
 from util import utils, botutils
 from controller import characters, magicshop
-from api import channelsrequests
+from api import channelsrequests, magicshoprequests
 from bridge import charactersbridge, magicshopbridge
 import time
 
@@ -65,7 +65,7 @@ async def handle_sell_item_by_rarity(client, message, tag_rarity_raritylevel_csv
     # expected: player_tag,rarity,rarity level
     sell_data = utils.split_strip(tag_rarity_raritylevel_csv, ',')
     player_id = utils.strip_id_tag(sell_data[0])
-    sold = magicshop.refund_item(player_id, sell_data[1], sell_data[2])
+    sold = magicshoprequests.sell_item_by_rarity(player_id, sell_data[1], sell_data[2])
     if sold:
         await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
@@ -75,8 +75,8 @@ async def handle_sell_item_by_rarity(client, message, tag_rarity_raritylevel_csv
 
 async def handle_sell_item_by_inventory_ordinal(client, message, item_ordinal):
     player_id = message.author.id
-    item_name = characters.refund_item_by_index(player_id, item_ordinal)
-    sold = len(item_name) > 0
+    item_name = characters.get_item_from_inventory_by_id(player_id, item_ordinal).name
+    sold = magicshoprequests.sell_item_from_inventory(player_id, item_ordinal)
     if sold:
         await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')

@@ -1,7 +1,7 @@
 from util import utils, botutils
 from controller import characters, magicshop
 from discord import Message, HTTPException, Forbidden, NotFound
-from api import channelsrequests
+from api import channelsrequests, magicshoprequests
 from model.inventorymessage import InventoryMessage
 from bridge import charactersbridge
 from util import itemutils
@@ -35,9 +35,13 @@ async def handle_inventory_reaction(payload, user, channel, client, inventory_me
     accept_emoji = '\U00002705'
     decline_emoji = '\U0000274C'
 
+    selling_string = f'You can sell it by clicking {sell_emoji}.' if inventory_item.sellable else \
+        f'This item is **NOT** sellable.'
+    emoji_list = [sell_emoji, destroy_emoji, cancel_emoji] if inventory_item.sellable else [destroy_emoji, cancel_emoji]
+
     async def provide_message() -> Message:
         return await channel.send(f'<@{payload.user_id}>, what would you like to do with **{inventory_item.name}**?\n'
-                                  f'You can sell it by clicking {sell_emoji}.\n'
+                                  f'{selling_string}\n'
                                   f'You can delete it by clicking {destroy_emoji}.\n')
 
     async def refresh_inventory_messages():
@@ -108,8 +112,8 @@ async def handle_inventory_reaction(payload, user, channel, client, inventory_me
 
             async def handle_sell(clicked_destroy_emoji: str) -> bool:
                 if clicked_destroy_emoji == accept_emoji:
-                    sold_item_name = characters.refund_item_by_index(player_id, inventory_item.index)
-                    sold = len(sold_item_name) != 0
+                    sold_item_name = characters.get_item_from_inventory_by_id(player_id, inventory_item.index).name
+                    sold = magicshoprequests.sell_item_from_inventory(player_id, inventory_item.index)
                     if sold:
                         shop_channel_id = channelsrequests.get_shop_channel_id()
                         shop_channel = client.get_channel(shop_channel_id)
@@ -165,7 +169,7 @@ async def handle_inventory_reaction(payload, user, channel, client, inventory_me
     await botutils.create_emoji_prompt(
         client=client,
         user_id=payload.user_id,
-        emoji_list=[sell_emoji, destroy_emoji, cancel_emoji],
+        emoji_list=emoji_list,
         prompt_message=provide_message,
         on_emoji_click=on_emoji_click,
         on_timeout=on_timeout,

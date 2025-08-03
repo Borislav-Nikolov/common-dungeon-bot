@@ -58,6 +58,10 @@ CHARACTER_TIER_VERY_RARE = 3
 CHARACTER_TIER_LEGENDARY = 4
 
 
+def original_token_price_to_refund_price(original_price: int) -> int:
+    return max(1, original_price - 2)
+
+
 def rarity_to_ordinal(rarity: str) -> int:
     rarity = rarity.lower()
     if rarity == COMMON:
@@ -270,3 +274,7 @@ def find_index(searched_list: list[object], selector: Callable[[object], bool]):
 
 def dict_first_key(queried_dict):
     return next(iter(queried_dict))
+
+
+def str_to_bool(s) -> bool:
+    return s.lower() in ['true', '1', 'yes', 'on']

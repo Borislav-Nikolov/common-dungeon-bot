@@ -31,9 +31,11 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
             consumable=magic_item.consumable,
             official=magic_item.official,
             banned=magic_item.banned,
+            always_available=magic_item.always_available,
             quantity=infinite_quantity,
             index=counter,
-            sold=False
+            sold=False,
+            sellable=True
         )
         shop_items.append(new_shop_item)
         magic_shop_string += get_unsold_item_row_string_emoji(new_shop_item)
@@ -161,9 +163,11 @@ def sell_item_general(player_id, item: Item) -> bool:
             consumable=item.consumable,
             official=item.official,
             banned=item.banned,
+            always_available=item.always_available,
             quantity=1,
             index=-1,  # Expected to be set by the item adding function
-            price="no price set"
+            price="no price set",
+            sellable=True
         )
     if characters.subtract_player_tokens_for_rarity(player_id, item.rarity.rarity, item.rarity.rarity_level):
         item_name_lower = item.name.lower()

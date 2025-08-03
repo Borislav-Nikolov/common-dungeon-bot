@@ -51,5 +51,6 @@ def map_item_data_to_item(item) -> Item:
         attunement=item[ITEM_FIELD_ATTUNEMENT],
         consumable=False if ITEM_FIELD_CONSUMABLE not in item else item[ITEM_FIELD_CONSUMABLE],
         official=False if ITEM_FIELD_OFFICIAL not in item else item[ITEM_FIELD_OFFICIAL],
-        banned=False if ITEM_FIELD_BANNED not in item else item[ITEM_FIELD_BANNED]
+        banned=False if ITEM_FIELD_BANNED not in item else item[ITEM_FIELD_BANNED],
+        always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in item else item[ITEM_FIELD_ALWAYS_AVAILABLE]
     )

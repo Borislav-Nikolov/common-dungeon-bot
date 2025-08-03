@@ -18,8 +18,10 @@ def set_in_magic_shop(items: list[ShopItem]):
                 ITEM_FIELD_CONSUMABLE: item.consumable,
                 ITEM_FIELD_OFFICIAL: item.official,
                 ITEM_FIELD_BANNED: item.banned,
+                ITEM_FIELD_ALWAYS_AVAILABLE: item.always_available,
                 INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
                 INVENTORY_ITEM_FIELD_INDEX: item.index,
+                INVENTORY_ITEM_FIELD_SELLABLE: item.sellable,
                 SHOP_ITEM_FIELD_SOLD: item.sold
             }
         )
@@ -40,8 +42,12 @@ def get_magic_shop_items() -> list[ShopItem]:
                 consumable=False if ITEM_FIELD_CONSUMABLE not in source_item else source_item[ITEM_FIELD_CONSUMABLE],
                 official=False if ITEM_FIELD_OFFICIAL not in source_item else source_item[ITEM_FIELD_OFFICIAL],
                 banned=False if ITEM_FIELD_BANNED not in source_item else source_item[ITEM_FIELD_BANNED],
+                always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in source_item else source_item[
+                    ITEM_FIELD_ALWAYS_AVAILABLE],
                 quantity=source_item[INVENTORY_ITEM_FIELD_QUANTITY],
                 index=source_item[INVENTORY_ITEM_FIELD_INDEX],
+                sellable=True if INVENTORY_ITEM_FIELD_SELLABLE not in source_item else source_item[
+                    INVENTORY_ITEM_FIELD_SELLABLE],
                 sold=source_item[SHOP_ITEM_FIELD_SOLD]
             )
         )
