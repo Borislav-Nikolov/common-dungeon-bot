@@ -5,6 +5,7 @@ from model.reserveditemmessage import ReservedItemMessage
 from model.item import Item
 from model.playerrole import PlayerRole
 from model.playerstatus import PlayerStatus
+from model.rarity import Rarity
 from util.utils import *
 from typing import Optional
 
@@ -13,6 +14,7 @@ class Player:
     def __init__(self, player_id, name: str, player_role: PlayerRole, player_status: PlayerStatus, player_level: int,
                  sessions_on_this_level: int, common_tokens: int,
                  uncommon_tokens: int, rare_tokens: int, very_rare_tokens: int, legendary_tokens: int,
+                 last_bundle_rarity: Optional[Rarity],
                  characters: Optional[list[Character]], inventory: Optional[list[InventoryItem]],
                  reserved_items: list[Item], inventory_messages: list[InventoryMessage],
                  reserved_items_messages: list[ReservedItemMessage]):
@@ -27,6 +29,7 @@ class Player:
         self.rare_tokens: int = rare_tokens
         self.very_rare_tokens: int = very_rare_tokens
         self.legendary_tokens: int = legendary_tokens
+        self.last_bundle_rarity: Optional[Rarity] = last_bundle_rarity
         self.characters: Optional[list[Character]] = characters
         self.inventory: Optional[list[InventoryItem]] = inventory
         self.reserved_items: list[Item] = reserved_items
