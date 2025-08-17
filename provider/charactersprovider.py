@@ -33,8 +33,6 @@ def add_or_update_players(players: list[Player]):
             PLAYER_FIELD_RARE_TOKENS: player.rare_tokens,
             PLAYER_FIELD_VERY_RARE_TOKENS: player.very_rare_tokens,
             PLAYER_FIELD_LEGENDARY_TOKENS: player.legendary_tokens,
-            PLAYER_FIELD_LAST_BUNDLE_RARITY:
-                f'{player.last_bundle_rarity.rarity},{player.last_bundle_rarity.rarity_level}',
             PLAYER_FIELD_RESERVED_ITEMS: list(
                 map(
                     lambda item: {
@@ -103,6 +101,9 @@ def add_or_update_players(players: list[Player]):
                     player.characters
                 )
             )
+        if player.last_bundle_rarity:
+            player_data[player.player_id][PLAYER_FIELD_LAST_BUNDLE_RARITY] =\
+                f'{player.last_bundle_rarity.rarity},{player.last_bundle_rarity.rarity_level}'
     playerssource.update_in_players(player_data)
 
 
