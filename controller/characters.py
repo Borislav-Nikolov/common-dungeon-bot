@@ -63,7 +63,7 @@ def add_single_quantity_item_to_inventory(player_id, new_item: InventoryItem):
     if player.inventory is None:
         player.inventory = list()
     for item in player.inventory:
-        if new_item.name == item.name:
+        if new_item.name == item.name and new_item.sellable == item.sellable:
             repeats = True
             item.quantity += 1
     if not repeats:
