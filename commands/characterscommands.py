@@ -52,6 +52,8 @@ async def handle_character_commands(message, client) -> bool:
                     await handle_set_all_as_active()
                 elif keywords[1] == "subtracttokensforrarity":
                     await handle_subtract_tokens_for_rarity(message, player_id_and_params_csv=keywords[2])
+                elif keywords[1] == "addmissingbundles":
+                    await handle_add_missing_bundles(message, player_tag=keywords[2])
         # NON-ADMIN COMMANDS
         # ALL CHANNELS
         if keywords[1] == "inventory":
@@ -274,6 +276,14 @@ async def handle_set_max_level(message, character_name_and_max_level_csv):
         character_name=name_and_max_lvl[0],
         max_level=name_and_max_lvl[1]
     ):
+        await message.add_reaction('🪙')
+    else:
+        await message.add_reaction('❌')
+
+
+async def handle_add_missing_bundles(message, player_tag):
+    player_id = utils.strip_id_tag(player_tag)
+    if charactersrequests.make_add_missing_bundles_request(player_id):
         await message.add_reaction('🪙')
     else:
         await message.add_reaction('❌')

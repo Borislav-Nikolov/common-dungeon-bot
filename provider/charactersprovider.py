@@ -4,13 +4,15 @@ from model.characterclass import CharacterClass
 from model.inventoryitem import InventoryItem
 from model.item import Item
 from model.inventorymessage import InventoryMessage
-from model.rarity import rarity_strings_to_rarity
+from model.rarity import rarity_strings_to_rarity, Rarity
 from model.playerrole import PlayerRole, player_role_from_name
 from model.playerstatus import PlayerStatus, player_status_from_name
 from source.sourcefields import *
 from source import playerssource
 from util import utils, charactersutils
 from typing import Optional
+
+from util.utils import split_strip
 
 
 def add_or_update_player(player: Player):
@@ -99,6 +101,9 @@ def add_or_update_players(players: list[Player]):
                     player.characters
                 )
             )
+        if player.last_bundle_rarity:
+            player_data[player.player_id][PLAYER_FIELD_LAST_BUNDLE_RARITY] =\
+                f'{player.last_bundle_rarity.rarity},{player.last_bundle_rarity.rarity_level}'
     playerssource.update_in_players(player_data)
 
 
@@ -123,6 +128,10 @@ def map_player_object(player_id, player_data: dict) -> Player:
     reserved_items = utils.filter_not_none(
         list() if PLAYER_FIELD_RESERVED_ITEMS not in player_data else player_data[PLAYER_FIELD_RESERVED_ITEMS]
     )
+    last_bundle_rarity: Optional[Rarity] = None
+    if PLAYER_FIELD_LAST_BUNDLE_RARITY in player_data:
+        rarity_and_level = split_strip(player_data[PLAYER_FIELD_LAST_BUNDLE_RARITY], ',')
+        last_bundle_rarity = rarity_strings_to_rarity(rarity_and_level[0], rarity_and_level[1])
     return Player(
         player_id=player_id,
         name=player_data[PLAYER_FIELD_NAME],
@@ -138,6 +147,7 @@ def map_player_object(player_id, player_data: dict) -> Player:
         rare_tokens=player_data[PLAYER_FIELD_RARE_TOKENS],
         very_rare_tokens=player_data[PLAYER_FIELD_VERY_RARE_TOKENS],
         legendary_tokens=player_data[PLAYER_FIELD_LEGENDARY_TOKENS],
+        last_bundle_rarity=last_bundle_rarity,
         characters=None if PLAYER_FIELD_CHARACTERS not in player_data else list(
             map(
                 lambda character: Character(
