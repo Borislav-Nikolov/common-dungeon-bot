@@ -1,5 +1,5 @@
 from controller import characters
-from util import utils, botutils, itemutils
+from util import utils, botutils, itemutils, requestutils
 from model.addsessiondata import AddSessionData
 from model.addplayerdata import AddPlayerData
 from model.addcharacterdata import AddCharacterData
@@ -41,19 +41,22 @@ async def handle_character_commands(message, client) -> bool:
                 elif keywords[1] == "changeid":
                     await handle_change_id(client, player_ids_csv=keywords[2])
             # ALL CHANNELS - ADMIN COMMANDS
-            else:
-                if keywords[1] == "inventoryadd":
-                    await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
-                elif keywords[1] == "changeplayerstatus":
-                    await handle_change_player_status(message, player_id_and_new_status_csv=keywords[2])
-                elif keywords[1] == "changeplayerrole":
-                    await handle_change_player_role(message, player_id_and_new_role_csv=keywords[2])
-                elif keywords[1] == "setallasactive":
-                    await handle_set_all_as_active()
-                elif keywords[1] == "subtracttokensforrarity":
-                    await handle_subtract_tokens_for_rarity(message, player_id_and_params_csv=keywords[2])
-                elif keywords[1] == "addmissingbundles":
-                    await handle_add_missing_bundles(message, player_tag=keywords[2])
+            if keywords[1] == "inventoryadd":
+                await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
+            elif keywords[1] == "changeplayerstatus":
+                await handle_change_player_status(message, player_id_and_new_status_csv=keywords[2])
+            elif keywords[1] == "changeplayerrole":
+                await handle_change_player_role(message, player_id_and_new_role_csv=keywords[2])
+            elif keywords[1] == "setallasactive":
+                await handle_set_all_as_active()
+            elif keywords[1] == "subtracttokensforrarity":
+                await handle_subtract_tokens_for_rarity(message, player_id_and_params_csv=keywords[2])
+            elif keywords[1] == "addmissingbundles":
+                await handle_add_missing_bundles(message, player_tag=keywords[2])
+            elif keywords[1] == "addtokens":
+                await handle_add_arbitrary_tokens(message, data_csv=keywords[2])
+            elif keywords[1] == "subtracttokens":
+                await handle_subtract_arbitrary_tokens(message, data_csv=keywords[2])
         # NON-ADMIN COMMANDS
         # ALL CHANNELS
         if keywords[1] == "inventory":
@@ -87,7 +90,7 @@ async def handle_addsession(message, session_data_csv):
         '@<1234> - Bob, @<5678> - Alice - Rogue, @<9012> - Dave'
     """
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
-    if charactersrequests.make_add_session_request(id_to_data):
+    if charactersrequests.make_add_session_request(id_to_data, message.author.global_name):
         await message.add_reaction('🪙')
     else:
         await message.add_reaction('❌')
@@ -288,3 +291,46 @@ async def handle_add_missing_bundles(message, player_tag):
     else:
         await message.add_reaction('❌')
 
+
+async def handle_add_arbitrary_tokens(message, data_csv):
+    data_list = utils.split_strip(data_csv, ',')
+    player_id: str = utils.strip_id_tag(data_list[0])
+    token_rarity: str = requestutils.translate_rarity_name(data_list[1])
+    quantity_str = data_list[2]
+    quantity: int = -1
+    if quantity_str.isdigit():
+        quantity = int(quantity_str)
+    if len(token_rarity) > 0 and quantity >= 0:
+        if charactersrequests.make_add_arbitrary_tokens_request(
+            player_id=player_id,
+            token_rarity=token_rarity,
+            quantity=quantity,
+            moderator_name=message.author.global_name
+        ):
+            await message.add_reaction('🪙')
+        else:
+            await message.add_reaction('❌')
+    else:
+        await message.add_reaction('❌')
+
+
+async def handle_subtract_arbitrary_tokens(message, data_csv):
+    data_list = utils.split_strip(data_csv, ',')
+    player_id: str = utils.strip_id_tag(data_list[0])
+    token_rarity: str = requestutils.translate_rarity_name(data_list[1])
+    quantity_str = data_list[2]
+    quantity: int = -1
+    if quantity_str.isdigit():
+        quantity = int(quantity_str)
+    if len(token_rarity) > 0 and quantity >= 0:
+        if charactersrequests.make_subtract_arbitrary_tokens_request(
+            player_id=player_id,
+            token_rarity=token_rarity,
+            quantity=quantity,
+            moderator_name=message.author.global_name
+        ):
+            await message.add_reaction('🪙')
+        else:
+            await message.add_reaction('❌')
+    else:
+        await message.add_reaction('❌')

@@ -9,18 +9,24 @@ from model.playerstatus import PlayerStatus
 from model.playerrole import PlayerRole
 
 
-def make_add_session_request(data: dict[str, AddSessionData]) -> bool:
+def make_add_session_request(
+        data: dict[str, AddSessionData],
+        moderator_name: str
+) -> bool:
     url = api_url('add_player_session')
-    data_list = list()
+    data_dict = {
+        'players_data': list(),
+        'moderator_name': moderator_name
+    }
     for session_data_key in data:
         session_data = data[session_data_key]
-        data_list.append({
+        data_dict['players_data'].append({
             'player_id': session_data.player_id,
             'character_name': session_data.character_name,
             'class_name': session_data.class_name,
             'is_dm': session_data.is_dm
         })
-    response = requests.post(url, json=data_list, headers=api.base.get_bearer_token_headers())
+    response = requests.post(url, json=data_dict, headers=api.base.get_bearer_token_headers())
     return response.status_code == 200
 
 
@@ -188,5 +194,39 @@ def make_set_character_max_level_request(player_id, character_name, max_level) -
 def make_add_missing_bundles_request(player_id) -> bool:
     url = api_url('add_missing_bundles')
     data = {'player_id': player_id}
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.ok
+
+
+def make_add_arbitrary_tokens_request(
+        player_id: str,
+        token_rarity: str,
+        quantity: int,
+        moderator_name: str
+) -> bool:
+    url = api_url('add_arbitrary_tokens')
+    data = {
+        'player_id': player_id,
+        'token_rarity': token_rarity,
+        'quantity': quantity,
+        'moderator_name': moderator_name
+    }
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.ok
+
+
+def make_subtract_arbitrary_tokens_request(
+        player_id: str,
+        token_rarity: str,
+        quantity: int,
+        moderator_name: str
+) -> bool:
+    url = api_url('subtract_arbitrary_tokens')
+    data = {
+        'player_id': player_id,
+        'token_rarity': token_rarity,
+        'quantity': quantity,
+        'moderator_name': moderator_name
+    }
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
     return response.ok
