@@ -298,6 +298,16 @@ def get_character_row_string(character: Character, detailed: bool) -> str:
     return character_string
 
 
+def get_log_message(player_id_to_character_and_link: dict[str, dict[str, Optional[str]]]):
+    final_string = ""
+    for player_id_tag, character_to_link in player_id_to_character_and_link.items():
+        character = next(iter(character_to_link))
+        link = character_to_link[character]
+        character_string = f'[__{character}__]({link})' if link else f'__{character}__'
+        final_string += f'{player_id_tag} as {character_string}\n'
+    return final_string
+
+
 def find_character_or_throw(player: Player, character_name) -> Character:
     for character in player.characters or []:
         if character.character_name == character_name:

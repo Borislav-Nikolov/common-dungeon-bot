@@ -1,3 +1,5 @@
+from typing import Optional
+
 from controller import characters
 from util import utils, botutils, itemutils, requestutils
 from model.addsessiondata import AddSessionData
@@ -65,6 +67,8 @@ async def handle_character_commands(message, client) -> bool:
             await handle_remove_from_inventory_prompt(message, int(keywords[2]))
         elif keywords[1] == "maxlevel":
             await handle_set_max_level(message, keywords[2])
+        elif keywords[1] == "generatelogmessage":
+            await handle_generate_log_message(client, message, keywords[2])
         return True
     return False
 
@@ -332,5 +336,29 @@ async def handle_subtract_arbitrary_tokens(message, data_csv):
             await message.add_reaction('🪙')
         else:
             await message.add_reaction('❌')
+    else:
+        await message.add_reaction('❌')
+
+
+async def handle_generate_log_message(client, message, data_csv):
+    data_list = utils.split_strip(data_csv, ',')
+    character_to_player_id: dict[str, str] = dict()
+    characters_list = list()
+    for player_id_to_character in data_list:
+        player_to_character_list = utils.split_strip(player_id_to_character, '-')
+        character_to_player_id[player_to_character_list[1]] = player_to_character_list[0]
+        characters_list.append(player_to_character_list[1])
+    character_to_forum_posts: dict[str, Optional[str]] = await botutils.search_forum_titles(
+        bot=client,
+        forum_channel_id=channelsrequests.get_characters_forum_channel_id(),
+        search_terms=characters_list,
+        case_sensitive=False,
+        prefer_exact_match=True
+    )
+    player_id_to_character_and_link: dict[str, dict[str, Optional[str]]] = dict()
+    for character, link in character_to_forum_posts.items():
+        player_id_to_character_and_link[character_to_player_id[character]] = {character: link}
+    if len(player_id_to_character_and_link) > 0:
+        await message.channel.send(characters.get_log_message(player_id_to_character_and_link))
     else:
         await message.add_reaction('❌')

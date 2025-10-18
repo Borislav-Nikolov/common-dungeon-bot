@@ -1,7 +1,7 @@
 import discord
 
 from api import channelsrequests
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, Optional
 from discord import Message
 import asyncio
 
@@ -70,3 +70,55 @@ def get_role_id_tag(role_id) -> str:
 
 def strip_role_id_tag(role_id_tag: str) -> str:
     return role_id_tag.strip()[3:role_id_tag.find('>')]
+
+
+async def search_forum_titles(
+        bot,
+        forum_channel_id: int,
+        search_terms: list[str],
+        case_sensitive: bool = False,
+        prefer_exact_match: bool = True
+) -> dict[str, Optional[str]]:
+    results: dict[str, Optional[str]] = {term: None for term in search_terms}
+    partial_matches: dict[str, Optional[str]] = {term: None for term in search_terms}
+
+    forum = await bot.fetch_channel(forum_channel_id)
+    if not forum or not isinstance(forum, discord.ForumChannel):
+        raise ValueError()
+
+    # Collect all threads
+    all_threads = list(forum.threads)
+    try:
+        async for thread in forum.archived_threads(limit=None):
+            all_threads.append(thread)
+    except discord.Forbidden:
+        pass
+
+    for thread in all_threads:
+        thread_title = thread.name if case_sensitive else thread.name.lower()
+
+        for term in search_terms:
+            search_term = term if case_sensitive else term.lower()
+            discord_link = f"https://discord.com/channels/{forum.guild.id}/{thread.id}"
+
+            # Check for exact match first (if preferred)
+            if prefer_exact_match and thread_title == search_term:
+                results[term] = discord_link
+            # Check for partial match
+            elif search_term in thread_title:
+                if prefer_exact_match:
+                    # Store as partial match, only use if no exact match found
+                    if partial_matches[term] is None:
+                        partial_matches[term] = discord_link
+                else:
+                    # Use first partial match found
+                    if results[term] is None:
+                        results[term] = discord_link
+
+    # Fill in partial matches for terms that didn't get exact matches
+    if prefer_exact_match:
+        for term in search_terms:
+            if results[term] is None and partial_matches[term] is not None:
+                results[term] = partial_matches[term]
+
+    return results
