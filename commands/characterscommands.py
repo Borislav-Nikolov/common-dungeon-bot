@@ -387,7 +387,11 @@ async def _generate_log_message_from_date(client, message, target_date):
         response_lines = ["Multiple sessions found for this date. Please select one by replying with the number:"]
         for idx, (timestamp, log_data) in enumerate(logs_list, start=1):
             session_log = SessionLog.from_dict(log_data)
-            character_names = [player_data.character_name for player_data in session_log.players.values()]
+            character_names = [
+                (f'{charactersprovider.get_player(player_data.player_id).name} - '
+                 f'{player_data.character_name}'
+                 f'{' (DM)' if player_data.is_dm else ''}') for player_data in session_log.players.values()
+            ]
             characters_str = ", ".join(character_names)
             response_lines.append(f"{idx}. {characters_str}")
 
