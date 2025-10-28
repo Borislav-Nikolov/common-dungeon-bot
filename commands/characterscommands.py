@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import datetime, timedelta
+import asyncio
 
 from controller import characters
 from util import utils, botutils, itemutils, requestutils, timeutils
@@ -8,6 +9,7 @@ from model.addplayerdata import AddPlayerData
 from model.addcharacterdata import AddCharacterData
 from model.playerstatus import player_status_from_name, PlayerStatus
 from model.playerrole import player_role_from_name
+from model.sessionlog import SessionLog
 from bridge import charactersbridge
 from api import charactersrequests, channelsrequests, logsrequests
 from provider import charactersprovider
@@ -370,24 +372,54 @@ async def _generate_log_message_from_date(client, message, target_date):
 
     logs = logsrequests.get_session_logs_range(start_timestamp, end_timestamp)
 
+    if len(logs) == 0:
+        await message.add_reaction('❌')
+        return
+
     if len(logs) == 1:
         # Extract the single log
         await _generate_log_message_from_log(client, message, next(iter(logs.values())))
+    else:
+        # Multiple logs found - present options to user
+        logs_list = list(logs.items())  # List of (timestamp, log_data) tuples
+
+        # Build the message with numbered list
+        response_lines = ["Multiple sessions found for this date. Please select one by replying with the number:"]
+        for idx, (timestamp, log_data) in enumerate(logs_list, start=1):
+            session_log = SessionLog.from_dict(log_data)
+            character_names = [player_data.character_name for player_data in session_log.players.values()]
+            characters_str = ", ".join(character_names)
+            response_lines.append(f"{idx}. {characters_str}")
+
+        await message.channel.send("\n".join(response_lines))
+
+        # Wait for user response
+        def check(m):
+            return m.author == message.author and m.channel == message.channel
+
+        try:
+            user_response = await client.wait_for('message', timeout=60.0, check=check)
+            selected_number = int(user_response.content.strip())
+
+            if 1 <= selected_number <= len(logs_list):
+                selected_log = logs_list[selected_number - 1][1]  # Get log_data from tuple
+                await _generate_log_message_from_log(client, user_response, selected_log)
+            else:
+                await message.channel.send("Invalid selection. Please use the command again.")
+        except ValueError:
+            await message.channel.send("Invalid input. Please use the command again.")
+        except asyncio.TimeoutError:
+            await message.channel.send("Selection timed out. Please use the command again.")
 
 
 async def _generate_log_message_from_log(client, message, log_data):
+    # Parse the log data using the SessionLog model
+    session_log = SessionLog.from_dict(log_data)
+
     # Build the data_csv string in the format: "player_id1-character1, player_id2-character2, ..."
     data_parts = []
-    for key, value in log_data.items():
-        # Skip the moderator_name key
-        if key == 'moderator_name':
-            continue
-
-        # Each player entry has player_id and character_name
-        if isinstance(value, dict) and 'player_id' in value and 'character_name' in value:
-            player_id = value['player_id']
-            character_name = value['character_name']
-            data_parts.append(f"<@{player_id}>-{character_name}")
+    for player_id, player_data in session_log.players.items():
+        data_parts.append(f"<@{player_data.player_id}>-{player_data.character_name}")
 
     if len(data_parts) > 0:
         data_csv = ', '.join(data_parts)
