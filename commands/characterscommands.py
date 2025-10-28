@@ -1,14 +1,15 @@
 from typing import Optional
+from datetime import datetime, timedelta
 
 from controller import characters
-from util import utils, botutils, itemutils, requestutils
+from util import utils, botutils, itemutils, requestutils, timeutils
 from model.addsessiondata import AddSessionData
 from model.addplayerdata import AddPlayerData
 from model.addcharacterdata import AddCharacterData
 from model.playerstatus import player_status_from_name, PlayerStatus
 from model.playerrole import player_role_from_name
 from bridge import charactersbridge
-from api import charactersrequests, channelsrequests
+from api import charactersrequests, channelsrequests, logsrequests
 from provider import charactersprovider
 
 
@@ -340,7 +341,64 @@ async def handle_subtract_arbitrary_tokens(message, data_csv):
         await message.add_reaction('❌')
 
 
-async def handle_generate_log_message(client, message, data_csv):
+async def handle_generate_log_message(client, message, data_str):
+    # Attempt to extract datetime
+    try:
+        date_and_time = utils.split_strip(data_str, ' ')
+        if len(date_and_time) == 1:
+            parsed_datetime = timeutils.parse_date_str(date_and_time[0])
+        else:
+            parsed_datetime = timeutils.parse_datetime_str(data_str)
+    except ValueError:
+        parsed_datetime = None
+
+    if parsed_datetime:
+        await _generate_log_message_from_date(client, message, parsed_datetime.date())
+    else:
+        await _generate_log_message_from_csv_data(client, message, data_str)
+
+
+async def _generate_log_message_from_date(client, message, target_date):
+    day_before = target_date - timedelta(days=1)
+    day_after = target_date + timedelta(days=1)
+
+    start_datetime = datetime.combine(day_before, datetime.min.time())
+    end_datetime = datetime.combine(day_after, datetime.max.time())
+
+    start_timestamp = int(start_datetime.timestamp())
+    end_timestamp = int(end_datetime.timestamp())
+
+    logs = logsrequests.get_session_logs_range(start_timestamp, end_timestamp)
+
+    if len(logs) == 1:
+        # Extract the single log
+        await _generate_log_message_from_log(client, message, next(iter(logs.values())))
+
+
+async def _generate_log_message_from_log(client, message, log_data):
+    # Build the data_csv string in the format: "player_id1-character1, player_id2-character2, ..."
+    data_parts = []
+    for key, value in log_data.items():
+        # Skip the moderator_name key
+        if key == 'moderator_name':
+            continue
+
+        # Each player entry has player_id and character_name
+        if isinstance(value, dict) and 'player_id' in value and 'character_name' in value:
+            player_id = value['player_id']
+            character_name = value['character_name']
+            data_parts.append(f"<@{player_id}>-{character_name}")
+
+    if len(data_parts) > 0:
+        data_csv = ', '.join(data_parts)
+        # Call the existing handle_generate_log_message function
+        await _generate_log_message_from_csv_data(client, message, data_csv)
+    else:
+        # No valid player data found in the log
+        await message.add_reaction('❌')
+
+
+async def _generate_log_message_from_csv_data(client, message, data_csv):
     data_list = utils.split_strip(data_csv, ',')
     character_to_player_id: dict[str, str] = dict()
     characters_list = list()
