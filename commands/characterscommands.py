@@ -378,17 +378,32 @@ async def _generate_log_message_from_date(client, message, target_date):
 
     if len(logs) == 1:
         # Extract the single log
-        await _generate_log_message_from_log(client, message, next(iter(logs.values())))
+        log_data = next(iter(logs.values()))
+        session_log = SessionLog.from_dict(log_data)
+        await _generate_log_message_from_log(client, message, session_log)
     else:
         # Multiple logs found - present options to user
-        logs_list = list(logs.items())  # List of (timestamp, log_data) tuples
+        # Parse all logs once and store them
+        parsed_logs = [(timestamp, SessionLog.from_dict(log_data)) for timestamp, log_data in logs.items()]
+
+        # Collect all unique player IDs from all logs
+        all_player_ids = set()
+        for timestamp, session_log in parsed_logs:
+            for player_data in session_log.players.values():
+                all_player_ids.add(player_data.player_id)
+
+        # Batch fetch all players at once
+        players_cache = charactersprovider.get_players(
+            list(all_player_ids),
+            include_inventory=False,
+            include_characters=False
+        )
 
         # Build the message with numbered list
         response_lines = ["Multiple sessions found for this date. Please select one by replying with the number:"]
-        for idx, (timestamp, log_data) in enumerate(logs_list, start=1):
-            session_log = SessionLog.from_dict(log_data)
+        for idx, (timestamp, session_log) in enumerate(parsed_logs, start=1):
             character_names = [
-                (f'{charactersprovider.get_player(player_data.player_id).name} - '
+                (f'{players_cache[player_data.player_id].name} - '
                  f'{player_data.character_name}'
                  f'{' (DM)' if player_data.is_dm else ''}') for player_data in session_log.players.values()
             ]
@@ -405,9 +420,9 @@ async def _generate_log_message_from_date(client, message, target_date):
             user_response = await client.wait_for('message', timeout=60.0, check=check)
             selected_number = int(user_response.content.strip())
 
-            if 1 <= selected_number <= len(logs_list):
-                selected_log = logs_list[selected_number - 1][1]  # Get log_data from tuple
-                await _generate_log_message_from_log(client, user_response, selected_log)
+            if 1 <= selected_number <= len(parsed_logs):
+                selected_session_log = parsed_logs[selected_number - 1][1]  # Get SessionLog from tuple
+                await _generate_log_message_from_log(client, user_response, selected_session_log)
             else:
                 await message.channel.send("Invalid selection. Please use the command again.")
         except ValueError:
@@ -416,10 +431,7 @@ async def _generate_log_message_from_date(client, message, target_date):
             await message.channel.send("Selection timed out. Please use the command again.")
 
 
-async def _generate_log_message_from_log(client, message, log_data):
-    # Parse the log data using the SessionLog model
-    session_log = SessionLog.from_dict(log_data)
-
+async def _generate_log_message_from_log(client, message, session_log: SessionLog):
     # Build the data_csv string in the format: "player_id1-character1, player_id2-character2, ..."
     data_parts = []
     for player_id, player_data in session_log.players.items():

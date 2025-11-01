@@ -10,6 +10,14 @@ def get_player(player_id, include_inventory=True, include_characters=True) -> Op
     )
 
 
+def get_players(player_ids, include_inventory=True, include_characters=True) -> dict:
+    return charactersrequests.get_players(
+        player_ids=player_ids,
+        include_inventory=include_inventory,
+        include_characters=include_characters
+    )
+
+
 def get_all_players(include_inventory=True, include_characters=True) -> dict:
     return charactersrequests.get_all_players(
         include_inventory=include_inventory,

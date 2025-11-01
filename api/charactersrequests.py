@@ -154,6 +154,19 @@ def get_player(player_id, include_inventory=True, include_characters=True):
     return response.json()
 
 
+def get_players(player_ids, include_inventory=True, include_characters=True) -> dict:
+    url = api_url('get_players')
+    params = {
+        "include_inventory": str(include_inventory).lower(),
+        "include_characters": str(include_characters).lower(),
+        'player_ids': [str(player_id) for player_id in player_ids]
+    }
+    response = requests.get(url, params=params, headers=api.base.get_bearer_token_headers())
+    if not response.ok:
+        return {}
+    return response.json()
+
+
 def get_all_players(include_inventory=True, include_characters=True) -> dict:
     url = api_url('get_all_players')
     params = {
