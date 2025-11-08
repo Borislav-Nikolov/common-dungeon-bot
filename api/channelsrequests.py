@@ -18,6 +18,13 @@ def initialize_characters_channel(channel_id) -> bool:
     return response.status_code == 200
 
 
+def initialize_characters_forum_channel(channel_id) -> bool:
+    url = api_url('initialize_characters_forum_channel')
+    data = {'channel_id': channel_id}
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.status_code == 200
+
+
 def initialize_static_shop_channel(channel_id) -> bool:
     url = api_url('initialize_static_shop_channel')
     data = {'channel_id': channel_id}
@@ -27,6 +34,12 @@ def initialize_static_shop_channel(channel_id) -> bool:
 
 def get_characters_info_channel_id() -> int:
     url = api_url('get_characters_info_channel_id')
+    response = requests.get(url, headers=api.base.get_bearer_token_headers())
+    return response.json()['channel_id']
+
+
+def get_characters_forum_channel_id() -> int:
+    url = api_url('get_characters_forum_channel_id')
     response = requests.get(url, headers=api.base.get_bearer_token_headers())
     return response.json()['channel_id']
 

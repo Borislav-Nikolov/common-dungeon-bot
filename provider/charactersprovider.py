@@ -115,6 +115,15 @@ def get_player(player_id) -> Optional[Player]:
         return None
 
 
+def get_players(player_ids, include_inventory=True, include_characters=True) -> dict[str, Player]:
+    players_data = playerssource.get_players(
+        player_ids=player_ids,
+        include_inventory=include_inventory,
+        include_characters=include_characters
+    )
+    return {player_id: map_player_object(player_id, players_data[player_id]) for player_id in players_data}
+
+
 def get_all_players() -> list[Player]:
     players_data = playerssource.get_all_players()
     return list(map(lambda player_id: map_player_object(player_id, players_data[player_id]), players_data))
