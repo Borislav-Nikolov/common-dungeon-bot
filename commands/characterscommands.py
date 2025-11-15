@@ -19,20 +19,30 @@ async def handle_character_commands(message, client) -> bool:
     characters_key = '$characters'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     if keywords[0] == characters_key:
-        # ADMIN COMMANDS
-        if botutils.is_admin_message(message):
-            # CHARACTERS INFO CHANNEL
+        # MODERATOR OR ADMIN COMMANDS
+        if botutils.is_moderator_or_admin_message(message):
+            # CHARACTERS INFO CHANNEL - MODERATOR/ADMIN COMMANDS
             if botutils.is_characters_info_channel(message):
                 if keywords[1] == "addsession":
                     await handle_addsession(message, session_data_csv=keywords[2])
                 elif keywords[1] == "removesession":
                     await handle_removesession(client, message, session_data_csv=keywords[2])
-                elif keywords[1] == "refreshmessage":
-                    await handle_refresh_player_message(client, player_ids_csv=keywords[2])
                 elif keywords[1] == "addplayer":
                     await handle_addplayer(client, message, player_data_csv=keywords[2])
                 elif keywords[1] == "addcharacter":
                     await handle_addcharacter(client, message, data_csv=keywords[2])
+            # ALL CHANNELS - MODERATOR/ADMIN COMMANDS
+            if keywords[1] == "addtokens":
+                await handle_add_arbitrary_tokens(message, data_csv=keywords[2])
+            elif keywords[1] == "subtracttokens":
+                await handle_subtract_arbitrary_tokens(message, data_csv=keywords[2])
+
+        # ADMIN-ONLY COMMANDS
+        if botutils.is_admin_message(message):
+            # CHARACTERS INFO CHANNEL - ADMIN ONLY
+            if botutils.is_characters_info_channel(message):
+                if keywords[1] == "refreshmessage":
+                    await handle_refresh_player_message(client, player_ids_csv=keywords[2])
                 elif keywords[1] == "deletecharacter":
                     await handle_deletecharacter(client, player_id_char_name_csv=keywords[2])
                 elif keywords[1] == "changename":
@@ -45,7 +55,7 @@ async def handle_character_commands(message, client) -> bool:
                     await handle_character_status_change(client, player_id_and_params_csv=keywords[2])
                 elif keywords[1] == "changeid":
                     await handle_change_id(client, player_ids_csv=keywords[2])
-            # ALL CHANNELS - ADMIN COMMANDS
+            # ALL CHANNELS - ADMIN ONLY
             if keywords[1] == "inventoryadd":
                 await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
             elif keywords[1] == "changeplayerstatus":
@@ -58,10 +68,6 @@ async def handle_character_commands(message, client) -> bool:
                 await handle_subtract_tokens_for_rarity(message, player_id_and_params_csv=keywords[2])
             elif keywords[1] == "addmissingbundles":
                 await handle_add_missing_bundles(message, player_tag=keywords[2])
-            elif keywords[1] == "addtokens":
-                await handle_add_arbitrary_tokens(message, data_csv=keywords[2])
-            elif keywords[1] == "subtracttokens":
-                await handle_subtract_arbitrary_tokens(message, data_csv=keywords[2])
         # NON-ADMIN COMMANDS
         # ALL CHANNELS
         if keywords[1] == "inventory":
