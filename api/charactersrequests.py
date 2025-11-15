@@ -257,3 +257,24 @@ def make_subtract_arbitrary_tokens_request(
     }
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
     return response.ok
+
+
+def make_add_to_inventory_request(
+        player_id: str,
+        item_name: str,
+        item_rarity: str,
+        item_rarity_level: str,
+        sellable: bool,
+        moderator_name: str
+) -> bool:
+    url = api_url('add_to_inventory')
+    data = {
+        'player_id': player_id,
+        'item_name': item_name,
+        'item_rarity': item_rarity,
+        'item_rarity_level': item_rarity_level,
+        'sellable': sellable,
+        'moderator_name': moderator_name
+    }
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.ok

@@ -36,6 +36,8 @@ async def handle_character_commands(message, client) -> bool:
                 await handle_add_arbitrary_tokens(message, data_csv=keywords[2])
             elif keywords[1] == "subtracttokens":
                 await handle_subtract_arbitrary_tokens(message, data_csv=keywords[2])
+            elif keywords[1] == "inventoryadd":
+                await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
 
         # ADMIN-ONLY COMMANDS
         if botutils.is_admin_message(message):
@@ -56,9 +58,7 @@ async def handle_character_commands(message, client) -> bool:
                 elif keywords[1] == "changeid":
                     await handle_change_id(client, player_ids_csv=keywords[2])
             # ALL CHANNELS - ADMIN ONLY
-            if keywords[1] == "inventoryadd":
-                await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
-            elif keywords[1] == "changeplayerstatus":
+            if keywords[1] == "changeplayerstatus":
                 await handle_change_player_status(message, player_id_and_new_status_csv=keywords[2])
             elif keywords[1] == "changeplayerrole":
                 await handle_change_player_role(message, player_id_and_new_role_csv=keywords[2])
@@ -182,16 +182,22 @@ async def handle_repost(message, player_tag):
 async def handle_add_to_inventory(message, player_id_and_params_csv):
     player_id_and_params = utils.split_strip(player_id_and_params_csv, ',')
     player_id = utils.strip_id_tag(player_id_and_params[0])
-    if characters.add_dummy_item_to_inventory(
+    item_name = player_id_and_params[1]
+    item_rarity = player_id_and_params[2]
+    item_rarity_level = player_id_and_params[3]
+    sellable = itemutils.str_to_is_sellable(player_id_and_params[4]) if len(player_id_and_params) >= 5 else False
+
+    if charactersrequests.make_add_to_inventory_request(
         player_id=player_id,
-        item_name=player_id_and_params[1],
-        item_rarity=player_id_and_params[2],
-        item_rarity_level=player_id_and_params[3],
-        sellable=itemutils.str_to_is_sellable(player_id_and_params[4]) if len(player_id_and_params) >= 5 else False
+        item_name=item_name,
+        item_rarity=item_rarity,
+        item_rarity_level=item_rarity_level,
+        sellable=sellable,
+        moderator_name=message.author.global_name
     ):
-        await message.channel.send(f"{player_id_and_params[1]} was added to <@{player_id}>")
+        await message.add_reaction('🪙')
     else:
-        await message.channel.send(f"{player_id_and_params[1]} was not added to <@{player_id}>. Prompt may be wrong.")
+        await message.add_reaction('❌')
 
 
 async def handle_subtract_tokens_for_rarity(message, player_id_and_params_csv):
