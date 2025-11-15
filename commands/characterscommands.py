@@ -105,7 +105,7 @@ async def handle_addsession(message, session_data_csv):
 
 async def handle_removesession(client, message, session_data_csv):
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
-    if charactersrequests.make_remove_session_request(id_to_data):
+    if charactersrequests.make_remove_session_request(id_to_data, message.author.global_name):
         for player_id in id_to_data:
             await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
@@ -119,7 +119,7 @@ async def handle_addplayer(client, message, player_data_csv):
     player_data_list.pop(0)
 
     add_player_data = AddPlayerData.from_command(player_id=player_id, player_data_list=player_data_list)
-    if charactersrequests.make_add_player_request(add_player_data):
+    if charactersrequests.make_add_player_request(add_player_data, message.author.global_name):
         players_channel = client.get_channel(channelsrequests.get_characters_info_channel_id())
         new_player_message = await charactersbridge.send_player_message(players_channel, player_id)
         channelsrequests.set_player_message_id(player_id, new_player_message.id)
@@ -133,7 +133,7 @@ async def handle_addcharacter(client, message, data_csv):
     player_id = utils.strip_id_tag(data_list[0])
     data_list.pop(0)
     add_character_data = AddCharacterData.from_command(player_id, data_list)
-    if charactersrequests.make_add_character_request(add_character_data):
+    if charactersrequests.make_add_character_request(add_character_data, message.author.global_name):
         await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
     else:
