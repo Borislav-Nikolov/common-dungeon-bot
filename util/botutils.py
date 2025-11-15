@@ -1,6 +1,6 @@
 import discord
 
-from api import channelsrequests
+from api import channelsrequests, rolesrequests
 from typing import Callable, Awaitable, Optional
 from discord import Message
 import asyncio
@@ -10,9 +10,30 @@ def is_admin_message(message) -> bool:
     return is_admin(user=message.author)
 
 
+def is_moderator_or_admin_message(message) -> bool:
+    return is_moderator_or_admin(user=message.author)
+
+
 def is_admin(user) -> bool:
     try:
         return user.guild_permissions.administrator
+    except AttributeError:
+        return False
+
+
+def is_moderator_or_admin(user) -> bool:
+    # First check if user is an admin
+    if is_admin(user):
+        return True
+
+    # Check if user has the moderator role
+    try:
+        moderator_role_id = rolesrequests.get_moderator_role_id()
+        if moderator_role_id is None:
+            return False
+
+        # Check if user has the moderator role
+        return any(str(role.id) == moderator_role_id for role in user.roles)
     except AttributeError:
         return False
 
