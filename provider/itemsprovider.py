@@ -52,5 +52,6 @@ def map_item_data_to_item(item) -> Item:
         consumable=False if ITEM_FIELD_CONSUMABLE not in item else item[ITEM_FIELD_CONSUMABLE],
         official=False if ITEM_FIELD_OFFICIAL not in item else item[ITEM_FIELD_OFFICIAL],
         banned=False if ITEM_FIELD_BANNED not in item else item[ITEM_FIELD_BANNED],
-        always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in item else item[ITEM_FIELD_ALWAYS_AVAILABLE]
+        always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in item else item[ITEM_FIELD_ALWAYS_AVAILABLE],
+        variants=None if ITEM_FIELD_VARIANTS not in item else item[ITEM_FIELD_VARIANTS]
     )

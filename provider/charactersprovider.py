@@ -45,7 +45,8 @@ def add_or_update_players(players: list[Player]):
                         ITEM_FIELD_CONSUMABLE: item.consumable,
                         ITEM_FIELD_OFFICIAL: item.official,
                         ITEM_FIELD_BANNED: item.banned,
-                        ITEM_FIELD_ALWAYS_AVAILABLE: item.always_available
+                        ITEM_FIELD_ALWAYS_AVAILABLE: item.always_available,
+                        ITEM_FIELD_VARIANTS: item.variants
                     },
                     player.reserved_items
                 )
@@ -72,7 +73,10 @@ def add_or_update_players(players: list[Player]):
                         ITEM_FIELD_ALWAYS_AVAILABLE: item.always_available,
                         INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
                         INVENTORY_ITEM_FIELD_INDEX: item.index,
-                        INVENTORY_ITEM_FIELD_SELLABLE: item.sellable
+                        INVENTORY_ITEM_FIELD_SELLABLE: item.sellable,
+                        INVENTORY_ITEM_FIELD_VARIANT: item.variant,
+                        INVENTORY_ITEM_FIELD_CURRENT_HOLDER: item.current_holder,
+                        ITEM_FIELD_VARIANTS: item.variants
                     },
                     player.inventory
                 )
@@ -196,7 +200,11 @@ def map_player_object(player_id, player_data: dict) -> Player:
                         ITEM_FIELD_ALWAYS_AVAILABLE],
                     quantity=item[INVENTORY_ITEM_FIELD_QUANTITY],
                     index=item[INVENTORY_ITEM_FIELD_INDEX],
-                    sellable=True if INVENTORY_ITEM_FIELD_SELLABLE not in item else item[INVENTORY_ITEM_FIELD_SELLABLE]
+                    sellable=True if INVENTORY_ITEM_FIELD_SELLABLE not in item else item[INVENTORY_ITEM_FIELD_SELLABLE],
+                    variants=None if ITEM_FIELD_VARIANTS not in item else item[ITEM_FIELD_VARIANTS],
+                    variant=None if INVENTORY_ITEM_FIELD_VARIANT not in item else item[INVENTORY_ITEM_FIELD_VARIANT],
+                    current_holder=None if INVENTORY_ITEM_FIELD_CURRENT_HOLDER not in item else item[
+                        INVENTORY_ITEM_FIELD_CURRENT_HOLDER]
                 ),
                 utils.filter_not_none(player_data[PLAYER_FIELD_INVENTORY])
             )
@@ -213,7 +221,8 @@ def map_player_object(player_id, player_data: dict) -> Player:
                     official=False if ITEM_FIELD_OFFICIAL not in item else item[ITEM_FIELD_OFFICIAL],
                     banned=False if ITEM_FIELD_BANNED not in item else item[ITEM_FIELD_BANNED],
                     always_available=False if ITEM_FIELD_ALWAYS_AVAILABLE not in item else item[
-                        ITEM_FIELD_ALWAYS_AVAILABLE]
+                        ITEM_FIELD_ALWAYS_AVAILABLE],
+                    variants=None if ITEM_FIELD_VARIANTS not in item else item[ITEM_FIELD_VARIANTS]
                 ),
                 reserved_items
             )
