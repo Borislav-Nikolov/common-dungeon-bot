@@ -49,7 +49,7 @@ async def handle_repost(message):
 
 async def handle_buy_item(client, message, command_message):
     shop_message = await message.channel.fetch_message(channelsrequests.get_shop_message_id())
-    sold_item_name = magicshop.sell_item(message.author.id, int(command_message))
+    sold_item_name = magicshoprequests.buy_magic_shop_item_by_index(int(command_message))
     sold = len(sold_item_name) != 0
     if sold:
         shop_string = magicshop.get_current_shop_string()
