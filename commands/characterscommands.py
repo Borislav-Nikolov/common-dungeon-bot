@@ -19,20 +19,32 @@ async def handle_character_commands(message, client) -> bool:
     characters_key = '$characters'
     keywords = utils.split_strip(str(utils.first_line(message.content)), '.')
     if keywords[0] == characters_key:
-        # ADMIN COMMANDS
-        if botutils.is_admin_message(message):
-            # CHARACTERS INFO CHANNEL
+        # MODERATOR OR ADMIN COMMANDS
+        if botutils.is_moderator_or_admin_message(message):
+            # CHARACTERS INFO CHANNEL - MODERATOR/ADMIN COMMANDS
             if botutils.is_characters_info_channel(message):
                 if keywords[1] == "addsession":
                     await handle_addsession(message, session_data_csv=keywords[2])
                 elif keywords[1] == "removesession":
                     await handle_removesession(client, message, session_data_csv=keywords[2])
-                elif keywords[1] == "refreshmessage":
-                    await handle_refresh_player_message(client, player_ids_csv=keywords[2])
                 elif keywords[1] == "addplayer":
                     await handle_addplayer(client, message, player_data_csv=keywords[2])
                 elif keywords[1] == "addcharacter":
                     await handle_addcharacter(client, message, data_csv=keywords[2])
+            # ALL CHANNELS - MODERATOR/ADMIN COMMANDS
+            if keywords[1] == "addtokens":
+                await handle_add_arbitrary_tokens(message, data_csv=keywords[2])
+            elif keywords[1] == "subtracttokens":
+                await handle_subtract_arbitrary_tokens(message, data_csv=keywords[2])
+            elif keywords[1] == "inventoryadd":
+                await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
+
+        # ADMIN-ONLY COMMANDS
+        if botutils.is_admin_message(message):
+            # CHARACTERS INFO CHANNEL - ADMIN ONLY
+            if botutils.is_characters_info_channel(message):
+                if keywords[1] == "refreshmessage":
+                    await handle_refresh_player_message(client, player_ids_csv=keywords[2])
                 elif keywords[1] == "deletecharacter":
                     await handle_deletecharacter(client, player_id_char_name_csv=keywords[2])
                 elif keywords[1] == "changename":
@@ -45,10 +57,8 @@ async def handle_character_commands(message, client) -> bool:
                     await handle_character_status_change(client, player_id_and_params_csv=keywords[2])
                 elif keywords[1] == "changeid":
                     await handle_change_id(client, player_ids_csv=keywords[2])
-            # ALL CHANNELS - ADMIN COMMANDS
-            if keywords[1] == "inventoryadd":
-                await handle_add_to_inventory(message, player_id_and_params_csv=keywords[2])
-            elif keywords[1] == "changeplayerstatus":
+            # ALL CHANNELS - ADMIN ONLY
+            if keywords[1] == "changeplayerstatus":
                 await handle_change_player_status(message, player_id_and_new_status_csv=keywords[2])
             elif keywords[1] == "changeplayerrole":
                 await handle_change_player_role(message, player_id_and_new_role_csv=keywords[2])
@@ -58,10 +68,6 @@ async def handle_character_commands(message, client) -> bool:
                 await handle_subtract_tokens_for_rarity(message, player_id_and_params_csv=keywords[2])
             elif keywords[1] == "addmissingbundles":
                 await handle_add_missing_bundles(message, player_tag=keywords[2])
-            elif keywords[1] == "addtokens":
-                await handle_add_arbitrary_tokens(message, data_csv=keywords[2])
-            elif keywords[1] == "subtracttokens":
-                await handle_subtract_arbitrary_tokens(message, data_csv=keywords[2])
         # NON-ADMIN COMMANDS
         # ALL CHANNELS
         if keywords[1] == "inventory":
@@ -105,7 +111,7 @@ async def handle_addsession(message, session_data_csv):
 
 async def handle_removesession(client, message, session_data_csv):
     id_to_data: dict[str, AddSessionData] = AddSessionData.id_to_data_from_command_input(session_data_csv)
-    if charactersrequests.make_remove_session_request(id_to_data):
+    if charactersrequests.make_remove_session_request(id_to_data, message.author.global_name):
         for player_id in id_to_data:
             await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
@@ -119,7 +125,7 @@ async def handle_addplayer(client, message, player_data_csv):
     player_data_list.pop(0)
 
     add_player_data = AddPlayerData.from_command(player_id=player_id, player_data_list=player_data_list)
-    if charactersrequests.make_add_player_request(add_player_data):
+    if charactersrequests.make_add_player_request(add_player_data, message.author.global_name):
         players_channel = client.get_channel(channelsrequests.get_characters_info_channel_id())
         new_player_message = await charactersbridge.send_player_message(players_channel, player_id)
         channelsrequests.set_player_message_id(player_id, new_player_message.id)
@@ -133,7 +139,7 @@ async def handle_addcharacter(client, message, data_csv):
     player_id = utils.strip_id_tag(data_list[0])
     data_list.pop(0)
     add_character_data = AddCharacterData.from_command(player_id, data_list)
-    if charactersrequests.make_add_character_request(add_character_data):
+    if charactersrequests.make_add_character_request(add_character_data, message.author.global_name):
         await charactersbridge.refresh_player_message(client, player_id)
         await message.add_reaction('🪙')
     else:
@@ -176,16 +182,22 @@ async def handle_repost(message, player_tag):
 async def handle_add_to_inventory(message, player_id_and_params_csv):
     player_id_and_params = utils.split_strip(player_id_and_params_csv, ',')
     player_id = utils.strip_id_tag(player_id_and_params[0])
-    if characters.add_dummy_item_to_inventory(
+    item_name = player_id_and_params[1]
+    item_rarity = player_id_and_params[2]
+    item_rarity_level = player_id_and_params[3]
+    sellable = itemutils.str_to_is_sellable(player_id_and_params[4]) if len(player_id_and_params) >= 5 else False
+
+    if charactersrequests.make_add_to_inventory_request(
         player_id=player_id,
-        item_name=player_id_and_params[1],
-        item_rarity=player_id_and_params[2],
-        item_rarity_level=player_id_and_params[3],
-        sellable=itemutils.str_to_is_sellable(player_id_and_params[4]) if len(player_id_and_params) >= 5 else False
+        item_name=item_name,
+        item_rarity=item_rarity,
+        item_rarity_level=item_rarity_level,
+        sellable=sellable,
+        moderator_name=message.author.global_name
     ):
-        await message.channel.send(f"{player_id_and_params[1]} was added to <@{player_id}>")
+        await message.add_reaction('🪙')
     else:
-        await message.channel.send(f"{player_id_and_params[1]} was not added to <@{player_id}>. Prompt may be wrong.")
+        await message.add_reaction('❌')
 
 
 async def handle_subtract_tokens_for_rarity(message, player_id_and_params_csv):

@@ -30,34 +30,47 @@ def make_add_session_request(
     return response.status_code == 200
 
 
-def make_remove_session_request(data: dict[str, AddSessionData]) -> bool:
+def make_remove_session_request(
+        data: dict[str, AddSessionData],
+        moderator_name: str
+) -> bool:
     url = api_url('remove_player_session')
-    data_list = list()
+    data_dict = {
+        'players_data': list(),
+        'moderator_name': moderator_name
+    }
     for session_data_key in data:
         session_data = data[session_data_key]
-        data_list.append({
+        data_dict['players_data'].append({
             'player_id': session_data.player_id,
             'character_name': session_data.character_name,
             'class_name': session_data.class_name,
             'is_dm': session_data.is_dm
         })
-    response = requests.post(url, json=data_list, headers=api.base.get_bearer_token_headers())
+    response = requests.post(url, json=data_dict, headers=api.base.get_bearer_token_headers())
     return response.status_code == 200
 
 
-def make_add_player_request(add_player_data: AddPlayerData) -> bool:
+def make_add_player_request(
+        add_player_data: AddPlayerData,
+        moderator_name: str
+) -> bool:
     url = api_url('add_player')
     data = {
         'player_id': add_player_data.player_id,
         'player_name': add_player_data.player_name,
         'character_name': add_player_data.character_name,
-        'class_name': add_player_data.class_name
+        'class_name': add_player_data.class_name,
+        'moderator_name': moderator_name
     }
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
     return response.status_code == 200
 
 
-def make_add_character_request(add_character_data: AddCharacterData) -> bool:
+def make_add_character_request(
+        add_character_data: AddCharacterData,
+        moderator_name: str
+) -> bool:
     url = api_url('add_character')
     data = {
         'player_id': add_character_data.player_id,
@@ -71,7 +84,8 @@ def make_add_character_request(add_character_data: AddCharacterData) -> bool:
                 },
                 add_character_data.classes_data
             )
-        )
+        ),
+        'moderator_name': moderator_name
     }
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
     return response.status_code == 200
@@ -239,6 +253,27 @@ def make_subtract_arbitrary_tokens_request(
         'player_id': player_id,
         'token_rarity': token_rarity,
         'quantity': quantity,
+        'moderator_name': moderator_name
+    }
+    response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())
+    return response.ok
+
+
+def make_add_to_inventory_request(
+        player_id: str,
+        item_name: str,
+        item_rarity: str,
+        item_rarity_level: str,
+        sellable: bool,
+        moderator_name: str
+) -> bool:
+    url = api_url('add_to_inventory')
+    data = {
+        'player_id': player_id,
+        'item_name': item_name,
+        'item_rarity': item_rarity,
+        'item_rarity_level': item_rarity_level,
+        'sellable': sellable,
         'moderator_name': moderator_name
     }
     response = requests.post(url, json=data, headers=api.base.get_bearer_token_headers())

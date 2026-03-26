@@ -4,7 +4,7 @@ import discord
 from provider import postsprovider
 from commands import homebrewcommands, magicshopcommands, serverinitializationcommands, characterscommands, \
     magicshopreactions, staticshopcommands, staticshopreactions, postscommands, postsreactions, charactersreactions, \
-    consolecommands, timecommands
+    consolecommands, timecommands, rolescommands
 from listener import apollolistener
 from bridge import consolebridge, charactersbridge, magicshopbridge
 from util import botutils
@@ -64,6 +64,8 @@ def run_discord_bot(bot_token, allowed_guild_id: str):
 
         if user_message.startswith('$'):
             handled = await serverinitializationcommands.handle_server_initialization_prompts(message)
+            if not handled:
+                handled = await rolescommands.handle_roles_prompts(message)
             if not handled:
                 handled = await magicshopcommands.handle_shop_commands(message, client)
             if not handled:
