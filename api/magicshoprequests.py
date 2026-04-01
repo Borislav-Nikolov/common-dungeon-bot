@@ -45,9 +45,12 @@ def generate_magic_shop(character_levels_csv: str) -> str:
     raise ValueError()
 
 
-def buy_magic_shop_item_by_index(item_index) -> str:
+def buy_magic_shop_item_by_index(player_id, item_index) -> str:
     url = api_url('buy_magic_shop_item_by_index')
-    data = {'item_index': item_index}
+    data = {
+        'player_id': player_id,
+        'item_index': item_index
+    }
     response = requests.post(url, json=data, headers=get_bearer_token_headers())
     if response.ok:
         return response.json()['sold_item_name']
