@@ -287,7 +287,7 @@ def get_character_row_string(character: Character, detailed: bool) -> str:
         if class_index != len(character.classes) - 1:
             character_string += ' - '
         class_index += 1
-    if character.character_level < 20:
+    if character.character_level < character.max_level:
         character_level = character.character_level
         current_sessions = character.sessions_on_this_level
         games_to_next_level = utils.sessions_to_next_level(character_level) - current_sessions

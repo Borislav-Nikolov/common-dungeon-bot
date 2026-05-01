@@ -21,7 +21,9 @@ def add_or_update_in_static_shop(data: dict[int, ShopItem]):
                 INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
                 INVENTORY_ITEM_FIELD_INDEX: item.index,
                 INVENTORY_ITEM_FIELD_SELLABLE: item.sellable,
-                SHOP_ITEM_FIELD_SOLD: item.sold
+                INVENTORY_ITEM_FIELD_VARIANT: item.variant,
+                SHOP_ITEM_FIELD_SOLD: item.sold,
+                ITEM_FIELD_VARIANTS: item.variants
             }
     staticshopsource.update_in_static_shop(shop_data)
 
@@ -43,5 +45,7 @@ def get_static_shop_item(message_id: int) -> ShopItem:
                 index=static_item[INVENTORY_ITEM_FIELD_INDEX],
                 sellable=True if INVENTORY_ITEM_FIELD_SELLABLE not in static_item else static_item[
                     INVENTORY_ITEM_FIELD_SELLABLE],
-                sold=static_item[SHOP_ITEM_FIELD_SOLD]
+                sold=static_item[SHOP_ITEM_FIELD_SOLD],
+                variants=None if ITEM_FIELD_VARIANTS not in static_item else static_item[ITEM_FIELD_VARIANTS],
+                variant=None if INVENTORY_ITEM_FIELD_VARIANT not in static_item else static_item[INVENTORY_ITEM_FIELD_VARIANT]
             )

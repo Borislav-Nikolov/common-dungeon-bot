@@ -7,6 +7,9 @@ from provider import magicshopprovider, itemsprovider
 from typing import Optional
 import random
 
+from model.item import Item
+from model.shopitem import ShopItem
+from model.inventoryitem import InventoryItem
 from util import itemutils
 from util.itemutils import *
 
@@ -32,6 +35,7 @@ def generate_new_magic_shop(character_levels_csv: str) -> str:
             official=magic_item.official,
             banned=magic_item.banned,
             always_available=magic_item.always_available,
+            variants=magic_item.variants,
             quantity=infinite_quantity,
             index=counter,
             sold=False,
@@ -61,7 +65,7 @@ def generate_random_shop_list(character_levels_csv: str) -> list[Item]:
     very_rare = list()
     legendary = list()
     for item in items_from_firebase:
-        if item.banned:
+        if item.banned or item.always_available:
             continue
         rarity = item.rarity
         if rarity.rarity == COMMON and max_rarity_ordinal >= COMMON_ORDINAL:
@@ -164,6 +168,7 @@ def sell_item_general(player_id, item: Item) -> bool:
             official=item.official,
             banned=item.banned,
             always_available=item.always_available,
+            variants=item.variants,
             quantity=1,
             index=-1,  # Expected to be set by the item adding function
             price="no price set",

@@ -22,7 +22,9 @@ def set_in_magic_shop(items: list[ShopItem]):
                 INVENTORY_ITEM_FIELD_QUANTITY: item.quantity,
                 INVENTORY_ITEM_FIELD_INDEX: item.index,
                 INVENTORY_ITEM_FIELD_SELLABLE: item.sellable,
-                SHOP_ITEM_FIELD_SOLD: item.sold
+                INVENTORY_ITEM_FIELD_VARIANT: item.variant,
+                SHOP_ITEM_FIELD_SOLD: item.sold,
+                ITEM_FIELD_VARIANTS: item.variants
             }
         )
     magicshopsource.set_in_magic_shop(items_data)
@@ -48,7 +50,9 @@ def get_magic_shop_items() -> list[ShopItem]:
                 index=source_item[INVENTORY_ITEM_FIELD_INDEX],
                 sellable=True if INVENTORY_ITEM_FIELD_SELLABLE not in source_item else source_item[
                     INVENTORY_ITEM_FIELD_SELLABLE],
-                sold=source_item[SHOP_ITEM_FIELD_SOLD]
+                sold=source_item[SHOP_ITEM_FIELD_SOLD],
+                variants=None if ITEM_FIELD_VARIANTS not in source_item else source_item[ITEM_FIELD_VARIANTS],
+                variant=None if INVENTORY_ITEM_FIELD_VARIANT not in source_item else source_item[INVENTORY_ITEM_FIELD_VARIANT]
             )
         )
     return shop_items

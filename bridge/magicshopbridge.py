@@ -9,7 +9,7 @@ DEFAULT_AUTO_SHOP_CHECK_INTERVAL = 60 * 60  # One hour.
 
 
 async def post_magic_shop(shop_channel, character_levels_csv):
-    new_shop_message = await shop_channel.send(magicshop.generate_new_magic_shop(character_levels_csv))
+    new_shop_message = await shop_channel.send(magicshoprequests.generate_magic_shop(character_levels_csv))
     channelsrequests.set_shop_message_id(new_shop_message.id)
     for index in range(1, magicshop.SHOP_MAX_NUMBER_OF_ITEMS + 1):
         await asyncio.sleep(5)

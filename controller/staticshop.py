@@ -17,6 +17,7 @@ def item_to_shop_item(item: Item) -> ShopItem:
             official=item.official,
             banned=item.banned,
             always_available=item.always_available,
+            variants=item.variants,
             quantity=utils.infinite_quantity,
             index=0,
             sold=False,

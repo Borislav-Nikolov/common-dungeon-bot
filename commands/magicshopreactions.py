@@ -1,5 +1,6 @@
 from util import utils, botutils
 from controller import magicshop, characters
+from api import magicshoprequests
 from discord import Message
 from bridge import charactersbridge
 from model.item import Item
@@ -31,7 +32,7 @@ async def handle_magic_shop_reaction(payload, channel, client, shop_message):
 
     async def on_emoji_click(clicked_emoji: str) -> bool:
         if clicked_emoji == accept_emoji:
-            sold_item_name = magicshop.sell_item(payload.user_id, item_index)
+            sold_item_name = magicshoprequests.buy_magic_shop_item_by_index(payload.user_id, item_index)
             sold = len(sold_item_name) != 0
             if sold:
                 shop_string = magicshop.get_current_shop_string()
